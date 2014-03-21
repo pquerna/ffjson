@@ -1,6 +1,8 @@
 # ffjson: freaking fast JSON serialization for Go / Golang
 
-`ffjson` generates static `MarshalJSON` and `UnmarshalJSON` functions for a structure that reduce the reliance unpon runtime reflection to do serialization.  `ffjson` is meant for when you have a few JSON objects that have a similiar object and structure shape all of the time, and don't want all of the features of the main `encoding/json` package.
+`ffjson` generates static `MarshalJSON` and `UnmarshalJSON` functions for  structures. The generated functions reduce the reliance unpon runtime reflection to do serialization.  In cases where `ffjson` doesn't understand a Type involved, it falls back to `encoding/json`, meaning it is a safe drop in replacement.  By using `ffjson` your JSON serialization just gets faster with no additional code changes.
+
+When you change your `struct`, you will need to run `ffjson` again (or make it part of your build tools).
 
 ## Installation
 
@@ -11,14 +13,14 @@
 `ffjson` generates code based on an existing `struct` in go.  For example, `ffjson mypackage/foo.go` will by default create a new file `mypackage/foo_ffjson.go` that contains serialization funcions for all structs found in `foo.go`.
 
 ```sh
-ffjson: generate freaking fast json handling Go code.
+Usage of ffjson:
 
-Usage:
+	ffjson [options] [input_file]
 
-   ffjson [options] [input_file]
+ffjson generates Go code for optimized JSON serialization.
 
-   -w [path]  	Write generate code to this path instead of _ffjson.go.
- ```
+  -w="": Write generate code to this path instead of ${input}_ffjson.go.
+```
 
 
 ## Improving, adding features, taking ffjson new directions!
