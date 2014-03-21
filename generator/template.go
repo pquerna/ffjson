@@ -37,6 +37,7 @@ package {{.PackageName}}
 import (
 	"bytes"
 	"encoding/json"
+	"strconv"
 )
 
 {{.Source}}

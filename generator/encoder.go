@@ -27,14 +27,23 @@ func getValue(sf *StructField) string {
 	var out = ""
 	// TODO(pquerna): non-nil checks, look at isEmptyValue()
 	switch sf.Type {
+	case "uint", "uint8", "uint16", "uint32", "uint64":
+		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(mj." + sf.Name + "), 10))" + "\n"
+	case "int", "int8", "int16", "int32", "int64":
+		out += "buf.Write(strconv.AppendInt([]byte{}, int64(mj." + sf.Name + "), 10))" + "\n"
+	case "string":
+		out += "buf.WriteString(`\"`)" + "\n"
+		out += "buf.WriteString(mj." + sf.Name + ")" + "\n"
+		out += "buf.WriteString(`\"`)" + "\n"
 	default:
+		// println(sf.Type)
 		out += "obj, err = json.Marshal(mj." + sf.Name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
-		return out
 	}
+	return out
 }
 
 func CreateMarshalJSON(si *StructInfo) (string, error) {
