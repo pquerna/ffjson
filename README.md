@@ -23,7 +23,7 @@ Usage:
 
 ## Improving, adding features, taking ffjson new directions!
 
-Please [open issues in Github]() for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
+Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
 ## License
 
