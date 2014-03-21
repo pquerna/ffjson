@@ -17,6 +17,64 @@
 
 package generator
 
+func getOmitEmpty(sf *StructField) string {
+	// TODO(pquerna): non-nil checks, look at isEmptyValue()
+	//	return "if mj." + sf.Name + " != nil {" + "\n"
+	return "if true {" + "\n"
+}
+
+func getValue(sf *StructField) string {
+	var out = ""
+	// TODO(pquerna): non-nil checks, look at isEmptyValue()
+	switch sf.Type {
+	default:
+		out += "obj, err = json.Marshal(mj." + sf.Name + ")" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return nil, err" + "\n"
+		out += "}" + "\n"
+		out += "buf.Write(obj)" + "\n"
+		return out
+	}
+}
+
 func CreateMarshalJSON(si *StructInfo) (string, error) {
-	return "", nil
+	var out = ""
+
+	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
+	out += `var buf bytes.Buffer` + "\n"
+	out += `var err error` + "\n"
+	out += `var obj []byte` + "\n"
+	out += `_ = obj` + "\n"
+	out += `_ = err` + "\n"
+	out += "buf.WriteString(`{`)" + "\n"
+
+	var first = true
+
+	for _, f := range si.Fields {
+		if f.JsonName == "-" {
+			continue
+		}
+
+		if f.OmitEmpty {
+			out += getOmitEmpty(&f)
+		}
+		if !first {
+			out += "buf.WriteString(`,\"`)" + "\n"
+		} else {
+			out += "buf.WriteString(`\"`)" + "\n"
+			first = false
+		}
+		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
+		out += "buf.WriteString(`\":`)" + "\n"
+		out += getValue(&f)
+		if f.OmitEmpty {
+			out += "}" + "\n"
+		}
+	}
+
+	out += "buf.WriteString(`}`)" + "\n"
+	//	out += "println(string(buf.Bytes()))" + "\n"
+	out += `return buf.Bytes(), nil` + "\n"
+	out += `}` + "\n"
+	return out, nil
 }

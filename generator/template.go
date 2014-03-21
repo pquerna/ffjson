@@ -34,6 +34,11 @@ const ffjsonTemplate = `
 
 package {{.PackageName}}
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
 {{.Source}}
 `
 
@@ -44,11 +49,16 @@ type templateInfo struct {
 }
 
 func RenderTemplate(inputPath string, packageName string, source []byte) ([]byte, error) {
+	var keep = false
 	f, err := ioutil.TempFile("", "ffjson-fmt")
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(f.Name())
+	defer func() {
+		if !keep {
+			os.Remove(f.Name())
+		}
+	}()
 
 	t := template.Must(template.New("ffjson.go").Parse(ffjsonTemplate))
 	err = t.Execute(f, &templateInfo{
@@ -69,6 +79,7 @@ func RenderTemplate(inputPath string, packageName string, source []byte) ([]byte
 	err = cmd.Run()
 
 	if err != nil {
+		keep = true
 		return nil, errors.New(string(errOut.Bytes()))
 	}
 
