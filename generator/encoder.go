@@ -17,13 +17,24 @@
 
 package generator
 
-func getOmitEmpty(sf *StructField) string {
+func getOmitEmpty(gc *GenContext, sf *StructField) string {
 	// TODO(pquerna): non-nil checks, look at isEmptyValue()
 	//	return "if mj." + sf.Name + " != nil {" + "\n"
-	return "if true {" + "\n"
+	switch sf.Type {
+	case "string":
+		return "if len(mj." + sf.Name + ") != 0 {" + "\n"
+	case "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64":
+		return "if mj." + sf.Name + " != 0 {" + "\n"
+	case "ptr":
+		// TODO(pquerna): pointers. oops.
+		return "if mj." + sf.Name + " != nil {" + "\n"
+	default:
+		// TODO(pquerna): fix types
+		return "if true {" + "\n"
+	}
 }
 
-func getValue(sf *StructField) string {
+func getValue(gc *GenContext, sf *StructField) string {
 	var out = ""
 	// TODO(pquerna): non-nil checks, look at isEmptyValue()
 	switch sf.Type {
@@ -53,11 +64,11 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 	out += `var buf bytes.Buffer` + "\n"
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
+	out += `var first bool = true` + "\n"
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
+	out += `_ = first` + "\n"
 	out += "buf.WriteString(`{`)" + "\n"
-
-	var first = true
 
 	for _, f := range si.Fields {
 		if f.JsonName == "-" {
@@ -65,24 +76,26 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 		}
 
 		if f.OmitEmpty {
-			out += getOmitEmpty(&f)
+			out += getOmitEmpty(gc, &f)
 		}
-		if !first {
-			out += "buf.WriteString(`,\"`)" + "\n"
-		} else {
-			out += "buf.WriteString(`\"`)" + "\n"
-			first = false
-		}
+
+		out += "if first == true {" + "\n"
+		out += "first = false" + "\n"
+		out += "buf.WriteString(`\"`)" + "\n"
+		out += "} else {" + "\n"
+		out += "buf.WriteString(`,\"`)" + "\n"
+		out += "}" + "\n"
+
 		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
 		out += "buf.WriteString(`\":`)" + "\n"
-		out += getValue(&f)
+		out += getValue(gc, &f)
 		if f.OmitEmpty {
 			out += "}" + "\n"
 		}
 	}
 
 	out += "buf.WriteString(`}`)" + "\n"
-	//	out += "println(string(buf.Bytes()))" + "\n"
+	out += "println(string(buf.Bytes()))" + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
 	gc.AddFunc(out)

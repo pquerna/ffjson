@@ -23,9 +23,8 @@ import (
 )
 
 type GenContext struct {
-	OutputFuncs  []string
-	IsEmptyValue bool
-	WriteString  bool
+	OutputFuncs []string
+	WriteString bool
 }
 
 func NewGenContext() *GenContext {
