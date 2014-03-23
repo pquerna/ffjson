@@ -25,6 +25,8 @@ func getOmitEmpty(gc *GenContext, sf *StructField) string {
 		return "if len(mj." + sf.Name + ") != 0 {" + "\n"
 	case "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64":
 		return "if mj." + sf.Name + " != 0 {" + "\n"
+	case "bool":
+		return "if mj." + sf.Name + " != false {" + "\n"
 	case "ptr":
 		// TODO(pquerna): pointers. oops.
 		return "if mj." + sf.Name + " != nil {" + "\n"
@@ -95,7 +97,7 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 	}
 
 	out += "buf.WriteString(`}`)" + "\n"
-	out += "println(string(buf.Bytes()))" + "\n"
+	// out += "println(string(buf.Bytes()))" + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
 	gc.AddFunc(out)
