@@ -40,16 +40,20 @@ import (
 	"strconv"
 )
 
-{{.Source}}
+{{range .Gc.OutputFuncs}}
+{{.}}
+{{end}}
+
 `
 
 type templateInfo struct {
 	InputPath   string
 	PackageName string
 	Source      string
+	Gc          *GenContext
 }
 
-func RenderTemplate(inputPath string, packageName string, source []byte) ([]byte, error) {
+func RenderTemplate(inputPath string, packageName string, gc *GenContext) ([]byte, error) {
 	var keep = false
 	f, err := ioutil.TempFile("", "ffjson-fmt")
 	if err != nil {
@@ -65,7 +69,7 @@ func RenderTemplate(inputPath string, packageName string, source []byte) ([]byte
 	err = t.Execute(f, &templateInfo{
 		InputPath:   inputPath,
 		PackageName: packageName,
-		Source:      string(source),
+		Gc:          gc,
 	})
 	if err != nil {
 		return nil, err

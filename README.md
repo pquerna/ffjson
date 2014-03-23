@@ -22,6 +22,10 @@ ffjson generates Go code for optimized JSON serialization.
   -w="": Write generate code to this path instead of ${input}_ffjson.go.
 ```
 
+## Status:
+
+* `MarshalJSON` is working and about 25% faster.
+* `UnmarshalJSON` has not been started.
 
 ## Improving, adding features, taking ffjson new directions!
 

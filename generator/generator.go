@@ -18,28 +18,42 @@
 package generator
 
 import (
-	"bytes"
 	"io/ioutil"
 	"os"
 )
 
-func GenerateFiles(inputPath string, outputPath string) error {
-	var code bytes.Buffer
+type GenContext struct {
+	OutputFuncs  []string
+	IsEmptyValue bool
+	WriteString  bool
+}
 
+func NewGenContext() *GenContext {
+	return &GenContext{
+		OutputFuncs: make([]string, 0),
+	}
+}
+
+func (gc *GenContext) AddFunc(out string) {
+	gc.OutputFuncs = append(gc.OutputFuncs, out)
+}
+
+func GenerateFiles(inputPath string, outputPath string) error {
 	packageName, structs, err := ExtractStructs(inputPath)
 	if err != nil {
 		return err
 	}
 
+	gc := NewGenContext()
+
 	for _, st := range structs {
-		dat, err := CreateMarshalJSON(st)
+		err := CreateMarshalJSON(gc, st)
 		if err != nil {
 			return err
 		}
-		code.WriteString(dat)
 	}
 
-	data, err := RenderTemplate(inputPath, packageName, code.Bytes())
+	data, err := RenderTemplate(inputPath, packageName, gc)
 
 	if err != nil {
 		return err

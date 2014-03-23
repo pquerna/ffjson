@@ -46,7 +46,7 @@ func getValue(sf *StructField) string {
 	return out
 }
 
-func CreateMarshalJSON(si *StructInfo) (string, error) {
+func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 	var out = ""
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
@@ -85,5 +85,6 @@ func CreateMarshalJSON(si *StructInfo) (string, error) {
 	//	out += "println(string(buf.Bytes()))" + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
-	return out, nil
+	gc.AddFunc(out)
+	return nil
 }
