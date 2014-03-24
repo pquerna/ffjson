@@ -43,14 +43,14 @@ func GenerateFiles(inputPath string, outputPath string) error {
 		return err
 	}
 
-	im := NewInceptionMain(inputPath)
+	im := NewInceptionMain(inputPath, outputPath)
 
 	err = im.Generate(packageName, structs)
 	if err != nil {
 		return err
 	}
 
-	err = im.Run(outputPath)
+	err = im.Run()
 	if err != nil {
 		return err
 	}

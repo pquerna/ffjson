@@ -21,7 +21,7 @@ import (
 	"reflect"
 )
 
-func getOmitEmpty(ic *InceptionContext, sf *StructField) string {
+func getOmitEmpty(ic *Inception, sf *StructField) string {
 	switch sf.Typ.Kind() {
 
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
@@ -55,7 +55,7 @@ func getOmitEmpty(ic *InceptionContext, sf *StructField) string {
 	}
 }
 
-func getGetInnerValue(ic *InceptionContext, name string, typ reflect.Type) string {
+func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
 	if typ.Implements(marshalerType) {
 		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
@@ -104,11 +104,11 @@ func getGetInnerValue(ic *InceptionContext, name string, typ reflect.Type) strin
 	return out
 }
 
-func getValue(ic *InceptionContext, sf *StructField) string {
+func getValue(ic *Inception, sf *StructField) string {
 	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ)
 }
 
-func CreateMarshalJSON(ic *InceptionContext, si *StructInfo) error {
+func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	var out = ""
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"

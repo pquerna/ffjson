@@ -18,10 +18,11 @@
 package generator
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"text/template"
 )
@@ -41,7 +42,7 @@ import (
 {{$pn := .PackageName}}
 
 func main() {
-	i := ffjsoninception.NewInception()
+	i := ffjsoninception.NewInception("{{.InputPath}}", "{{.PackageName}}", "{{.OutputPath}}")
 {{range .StructNames}}
 	i.Add({{$pn}}.{{.}}{})
 {{end}}
@@ -53,17 +54,21 @@ type templateCtx struct {
 	StructNames []string
 	ImportName  string
 	PackageName string
+	InputPath   string
+	OutputPath  string
 }
 
 type InceptionMain struct {
 	inputPath    string
+	outputPath   string
 	tempMainPath string
 	tempMain     *os.File
 }
 
-func NewInceptionMain(inputPath string) *InceptionMain {
+func NewInceptionMain(inputPath string, outputPath string) *InceptionMain {
 	return &InceptionMain{
-		inputPath: inputPath,
+		inputPath:  inputPath,
+		outputPath: outputPath,
 	}
 }
 
@@ -91,6 +96,22 @@ func getImportName(inputPath string) (string, error) {
 	return rel[4:], nil
 }
 
+func goFmt(p string) (*bytes.Buffer, error) {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd := exec.Command("gofmt", p)
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+
+	err := cmd.Run()
+
+	if err != nil {
+		return nil, errors.New(string(errOut.Bytes()))
+	}
+
+	return &out, nil
+}
+
 func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	var err error
 
@@ -100,11 +121,12 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return nil
 	}
 
-	im.tempMain, err = ioutil.TempFile("", "ffjson-inception")
+	im.tempMain, err = TempFileWithPostfix("", "ffjson-inception", ".go")
 	if err != nil {
 		return err
 	}
 
+	im.tempMainPath = im.tempMain.Name()
 	sn := make([]string, 0)
 	for _, st := range si {
 		sn = append(sn, st.Name)
@@ -114,6 +136,8 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		ImportName:  importName,
 		PackageName: packageName,
 		StructNames: sn,
+		InputPath:   im.inputPath,
+		OutputPath:  im.outputPath,
 	}
 
 	t := template.Must(template.New("inception.go").Parse(inceptionMainTemplate))
@@ -122,11 +146,31 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return err
 	}
 
-	println(im.tempMain.Name())
+	out, err := goFmt(im.tempMainPath)
+	if err != nil {
+		return err
+	}
+
+	_, err = im.tempMain.Seek(0, 0)
+	if err != nil {
+		return err
+	}
+
+	err = im.tempMain.Truncate(0)
+	if err != nil {
+		return err
+	}
+
+	_, err = im.tempMain.Write(out.Bytes())
+	if err != nil {
+		return err
+	}
+
+	println(im.tempMainPath)
 
 	return nil
 }
 
-func (im *InceptionMain) Run(outputPath string) error {
+func (im *InceptionMain) Run() error {
 	return nil
 }

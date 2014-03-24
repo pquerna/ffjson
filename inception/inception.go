@@ -18,18 +18,26 @@
 package ffjsoninception
 
 import (
+	"errors"
 	"fmt"
 	"os"
 )
 
 type Inception struct {
-	objs []*StructInfo
-	ic   *InceptionContext
+	objs        []*StructInfo
+	InputPath   string
+	OutputPath  string
+	PackageName string
+	OutputFuncs []string
+	WriteString bool
 }
 
-func NewInception() *Inception {
+func NewInception(inputPath string, packageName string) *Inception {
 	return &Inception{
-		objs: make([]*StructInfo, 0),
+		objs:        make([]*StructInfo, 0),
+		InputPath:   inputPath,
+		PackageName: packageName,
+		OutputFuncs: make([]string, 0),
 	}
 }
 
@@ -39,7 +47,7 @@ func (i *Inception) Add(obj interface{}) {
 
 func (i *Inception) generateMarshalJSON() error {
 	for _, si := range i.objs {
-		err := CreateMarshalJSON(i.ic, si)
+		err := CreateMarshalJSON(i, si)
 		if err != nil {
 			return err
 		}
@@ -53,11 +61,22 @@ func (i *Inception) handleError(err error) {
 }
 
 func (i *Inception) Execute() {
-	var outputPath = "" // TODO: argv
-	i.ic = NewInceptionContext(outputPath)
+	if len(os.Args) != 1 {
+		i.handleError(errors.New(fmt.Sprintf("Internal ffjson error: inception executable takes no args: %v", os.Args)))
+		return
+	}
+
 	err := i.generateMarshalJSON()
 	if err != nil {
 		i.handleError(err)
 		return
 	}
+
+	out, err := RenderTemplate(i)
+	if err != nil {
+		i.handleError(err)
+		return
+	}
+
+	println(string(out))
 }
