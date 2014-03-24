@@ -55,11 +55,10 @@ func getOmitEmpty(ic *InceptionContext, sf *StructField) string {
 	}
 }
 
-func getValue(ic *InceptionContext, sf *StructField) string {
+func getGetInnerValue(ic *InceptionContext, name string, typ reflect.Type) string {
 	var out = ""
-
-	if sf.HasMarshalJSON {
-		out += "obj, err = mj." + sf.Name + ".MarshalJSON()" + "\n"
+	if typ.Implements(marshalerType) {
+		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
 		out += "}" + "\n"
@@ -67,36 +66,46 @@ func getValue(ic *InceptionContext, sf *StructField) string {
 		return out
 	}
 
-	switch sf.Typ.Kind() {
+	switch typ.Kind() {
 	case reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		out += "buf.Write(strconv.AppendInt([]byte{}, int64(mj." + sf.Name + "), 10))" + "\n"
+		out += "buf.Write(strconv.AppendInt([]byte{}, int64(" + name + "), 10))" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
-		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(mj." + sf.Name + "), 10))" + "\n"
+		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(" + name + "), 10))" + "\n"
 	case reflect.Float32,
 		reflect.Float64:
-		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(mj." + sf.Name + "), 10))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
+	case reflect.Array:
+		out += "buf.WriteString(`[`)" + "\n"
+		out += "for _, v := range " + name + "{" + "\n"
+		out += getGetInnerValue(ic, "v", typ.Elem())
+		out += "}"
+		out += "buf.WriteString(`]`)" + "\n"
 	case reflect.String:
 		out += "buf.WriteString(`\"`)" + "\n"
-		out += "buf.WriteString(mj." + sf.Name + ")" + "\n"
+		out += "buf.WriteString(" + name + ")" + "\n"
 		out += "buf.WriteString(`\"`)" + "\n"
 	default:
-		// println(sf.Type)
-		out += "obj, err = json.Marshal(mj." + sf.Name + ")" + "\n"
+		// println(sf.Typ)
+		out += "obj, err = json.Marshal(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
 	}
 	return out
+}
+
+func getValue(ic *InceptionContext, sf *StructField) string {
+	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ)
 }
 
 func CreateMarshalJSON(ic *InceptionContext, si *StructInfo) error {

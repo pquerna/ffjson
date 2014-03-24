@@ -23,23 +23,22 @@ import (
 )
 
 type Inception struct {
-	objs []interface{}
+	objs []*StructInfo
 	ic   *InceptionContext
 }
 
 func NewInception() *Inception {
 	return &Inception{
-		objs: make([]interface{}, 0),
+		objs: make([]*StructInfo, 0),
 	}
 }
 
 func (i *Inception) Add(obj interface{}) {
-	i.objs = append(i.objs, obj)
+	i.objs = append(i.objs, NewStructInfo(obj))
 }
 
 func (i *Inception) generateMarshalJSON() error {
-	for _, obj := range i.objs {
-		si := NewStructInfo(obj)
+	for _, si := range i.objs {
 		err := CreateMarshalJSON(i.ic, si)
 		if err != nil {
 			return err
