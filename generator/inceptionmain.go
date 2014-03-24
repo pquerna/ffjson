@@ -43,7 +43,7 @@ import (
 func main() {
 	i := ffjsoninception.NewInception()
 {{range .StructNames}}
-	i.Add(&{{$pn}}.{{.}}{})
+	i.Add({{$pn}}.{{.}}{})
 {{end}}
 	i.Execute()
 }
