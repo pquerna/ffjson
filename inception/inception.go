@@ -32,10 +32,11 @@ type Inception struct {
 	WriteString bool
 }
 
-func NewInception(inputPath string, packageName string) *Inception {
+func NewInception(inputPath string, packageName string, outputPath string) *Inception {
 	return &Inception{
 		objs:        make([]*StructInfo, 0),
 		InputPath:   inputPath,
+		OutputPath:  outputPath,
 		PackageName: packageName,
 		OutputFuncs: make([]string, 0),
 	}
