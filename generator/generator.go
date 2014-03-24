@@ -43,6 +43,27 @@ func GenerateFiles(inputPath string, outputPath string) error {
 		return err
 	}
 
+	im := NewInceptionMain(inputPath)
+
+	err = im.Generate(packageName, structs)
+	if err != nil {
+		return err
+	}
+
+	err = im.Run(outputPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateFilesOld(inputPath string, outputPath string) error {
+	packageName, structs, err := ExtractStructs(inputPath)
+	if err != nil {
+		return err
+	}
+
 	gc := NewGenContext()
 
 	for _, st := range structs {

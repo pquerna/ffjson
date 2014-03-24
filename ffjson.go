@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pquerna/ffjson/generator"
+	_ "github.com/pquerna/ffjson/inception"
 	"os"
 	"regexp"
 )
