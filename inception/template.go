@@ -33,9 +33,9 @@ const ffjsonTemplate = `
 package {{.PackageName}}
 
 import (
-	"bytes"
-	"encoding/json"
-	"strconv"
+{{range $k, $v := .OutputImports}}
+{{$k}}
+{{end}}
 )
 
 {{range .OutputFuncs}}

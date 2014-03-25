@@ -21,6 +21,16 @@ import (
 	"reflect"
 )
 
+func typeInInception(ic *Inception, typ reflect.Type) bool {
+	for _, v := range ic.objs {
+		if v.Typ == typ {
+			return true
+		}
+	}
+
+	return false
+}
+
 func getOmitEmpty(ic *Inception, sf *StructField) string {
 	switch sf.Typ.Kind() {
 
@@ -57,7 +67,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
-	if typ.Implements(marshalerType) {
+	if typ.Implements(marshalerType) || typeInInception(ic, typ) {
 		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
@@ -72,6 +82,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
+		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendInt([]byte{}, int64(" + name + "), 10))" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
@@ -79,9 +90,11 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
+		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(" + name + "), 10))" + "\n"
 	case reflect.Float32,
 		reflect.Float64:
+		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
 	case reflect.Array:
 		out += "buf.WriteString(`[`)" + "\n"
@@ -95,6 +108,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "buf.WriteString(`\"`)" + "\n"
 	default:
 		// println(sf.Typ)
+		ic.OutputImports[`"encoding/json"`] = true
 		out += "obj, err = json.Marshal(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
@@ -110,6 +124,8 @@ func getValue(ic *Inception, sf *StructField) string {
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	var out = ""
+
+	ic.OutputImports[`"bytes"`] = true
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"

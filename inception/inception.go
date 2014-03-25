@@ -25,21 +25,23 @@ import (
 )
 
 type Inception struct {
-	objs        []*StructInfo
-	InputPath   string
-	OutputPath  string
-	PackageName string
-	OutputFuncs []string
-	WriteString bool
+	objs          []*StructInfo
+	InputPath     string
+	OutputPath    string
+	PackageName   string
+	OutputImports map[string]bool
+	OutputFuncs   []string
+	WriteString   bool
 }
 
 func NewInception(inputPath string, packageName string, outputPath string) *Inception {
 	return &Inception{
-		objs:        make([]*StructInfo, 0),
-		InputPath:   inputPath,
-		OutputPath:  outputPath,
-		PackageName: packageName,
-		OutputFuncs: make([]string, 0),
+		objs:          make([]*StructInfo, 0),
+		InputPath:     inputPath,
+		OutputPath:    outputPath,
+		PackageName:   packageName,
+		OutputFuncs:   make([]string, 0),
+		OutputImports: make(map[string]bool),
 	}
 }
 
