@@ -20,6 +20,7 @@ package ffjsoninception
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -73,11 +74,24 @@ func (i *Inception) Execute() {
 		return
 	}
 
-	out, err := RenderTemplate(i)
+	data, err := RenderTemplate(i)
 	if err != nil {
 		i.handleError(err)
 		return
 	}
 
-	println(string(out))
+	stat, err := os.Stat(i.InputPath)
+
+	if err != nil {
+		i.handleError(err)
+		return
+	}
+
+	err = ioutil.WriteFile(i.OutputPath, data, stat.Mode())
+
+	if err != nil {
+		i.handleError(err)
+		return
+	}
+
 }

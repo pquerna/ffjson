@@ -60,4 +60,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
 		os.Exit(1)
 	}
+
+	println(outputPath)
 }

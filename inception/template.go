@@ -15,14 +15,12 @@
  *
  */
 
-package generator
+package ffjsoninception
 
 import (
-	"bytes"
-	"errors"
+	"github.com/pquerna/ffjson/shared"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"text/template"
 )
 
@@ -40,20 +38,13 @@ import (
 	"strconv"
 )
 
-{{range .Gc.OutputFuncs}}
+{{range .OutputFuncs}}
 {{.}}
 {{end}}
 
 `
 
-type templateInfo struct {
-	InputPath   string
-	PackageName string
-	Source      string
-	Gc          *GenContext
-}
-
-func RenderTemplate(inputPath string, packageName string, gc *GenContext) ([]byte, error) {
+func RenderTemplate(ic *Inception) ([]byte, error) {
 	var keep = false
 	f, err := ioutil.TempFile("", "ffjson-fmt")
 	if err != nil {
@@ -66,26 +57,16 @@ func RenderTemplate(inputPath string, packageName string, gc *GenContext) ([]byt
 	}()
 
 	t := template.Must(template.New("ffjson.go").Parse(ffjsonTemplate))
-	err = t.Execute(f, &templateInfo{
-		InputPath:   inputPath,
-		PackageName: packageName,
-		Gc:          gc,
-	})
+
+	err = t.Execute(f, ic)
+
 	if err != nil {
 		return nil, err
 	}
 
-	var out bytes.Buffer
-	var errOut bytes.Buffer
-	cmd := exec.Command("gofmt", f.Name())
-	cmd.Stdout = &out
-	cmd.Stderr = &errOut
-
-	err = cmd.Run()
-
+	out, err := shared.GoFmt(f.Name())
 	if err != nil {
-		keep = true
-		return nil, errors.New(string(errOut.Bytes()))
+		return nil, err
 	}
 
 	return out.Bytes(), nil

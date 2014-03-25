@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/pquerna/ffjson/shared"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,7 +62,7 @@ type templateCtx struct {
 type InceptionMain struct {
 	inputPath    string
 	outputPath   string
-	tempMainPath string
+	TempMainPath string
 	tempMain     *os.File
 }
 
@@ -96,22 +97,6 @@ func getImportName(inputPath string) (string, error) {
 	return rel[4:], nil
 }
 
-func goFmt(p string) (*bytes.Buffer, error) {
-	var out bytes.Buffer
-	var errOut bytes.Buffer
-	cmd := exec.Command("gofmt", p)
-	cmd.Stdout = &out
-	cmd.Stderr = &errOut
-
-	err := cmd.Run()
-
-	if err != nil {
-		return nil, errors.New(string(errOut.Bytes()))
-	}
-
-	return &out, nil
-}
-
 func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	var err error
 
@@ -126,7 +111,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return err
 	}
 
-	im.tempMainPath = im.tempMain.Name()
+	im.TempMainPath = im.tempMain.Name()
 	sn := make([]string, 0)
 	for _, st := range si {
 		sn = append(sn, st.Name)
@@ -146,7 +131,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return err
 	}
 
-	out, err := goFmt(im.tempMainPath)
+	out, err := shared.GoFmt(im.TempMainPath)
 	if err != nil {
 		return err
 	}
@@ -166,11 +151,22 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return err
 	}
 
-	println(im.tempMainPath)
-
 	return nil
 }
 
 func (im *InceptionMain) Run() error {
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd := exec.Command("go", "run", "-a", im.TempMainPath)
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+
+	err := cmd.Run()
+
+	if err != nil {
+		return errors.New(
+			fmt.Sprintf("STDOUT:\n%s\nSTDERR:\n%s\n", string(out.Bytes()), string(errOut.Bytes())))
+	}
+
 	return nil
 }
