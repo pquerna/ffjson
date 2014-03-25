@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/pquerna/ffjson/generator"
+	_ "github.com/pquerna/ffjson/inception"
 	"os"
 	"regexp"
 )
@@ -59,4 +60,6 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
 		os.Exit(1)
 	}
+
+	println(outputPath)
 }

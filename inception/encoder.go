@@ -15,42 +15,87 @@
  *
  */
 
-package generator
+package ffjsoninception
 
-func getOmitEmpty(gc *GenContext, sf *StructField) string {
-	// TODO(pquerna): non-nil checks, look at isEmptyValue()
-	//	return "if mj." + sf.Name + " != nil {" + "\n"
-	switch sf.Type {
-	case "string":
+import (
+	"reflect"
+)
+
+func getOmitEmpty(ic *Inception, sf *StructField) string {
+	switch sf.Typ.Kind() {
+
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return "if len(mj." + sf.Name + ") != 0 {" + "\n"
-	case "uint", "uint8", "uint16", "uint32", "uint64", "int", "int8", "int16", "int32", "int64", "float32", "float64":
+
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Uintptr,
+		reflect.Float32,
+		reflect.Float64:
 		return "if mj." + sf.Name + " != 0 {" + "\n"
-	case "bool":
+
+	case reflect.Bool:
 		return "if mj." + sf.Name + " != false {" + "\n"
-	case "ptr":
+
+	case reflect.Interface, reflect.Ptr:
 		// TODO(pquerna): pointers. oops.
 		return "if mj." + sf.Name + " != nil {" + "\n"
+
 	default:
 		// TODO(pquerna): fix types
 		return "if true {" + "\n"
 	}
 }
 
-func getValue(gc *GenContext, sf *StructField) string {
+func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
-	// TODO(pquerna): non-nil checks, look at isEmptyValue()
-	switch sf.Type {
-	case "uint", "uint8", "uint16", "uint32", "uint64":
-		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(mj." + sf.Name + "), 10))" + "\n"
-	case "int", "int8", "int16", "int32", "int64":
-		out += "buf.Write(strconv.AppendInt([]byte{}, int64(mj." + sf.Name + "), 10))" + "\n"
-	case "string":
+	if typ.Implements(marshalerType) {
+		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return nil, err" + "\n"
+		out += "}" + "\n"
+		out += "buf.Write(obj)" + "\n"
+		return out
+	}
+
+	switch typ.Kind() {
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64:
+		out += "buf.Write(strconv.AppendInt([]byte{}, int64(" + name + "), 10))" + "\n"
+	case reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Uintptr:
+		out += "buf.Write(strconv.AppendUint([]byte{}, uint64(" + name + "), 10))" + "\n"
+	case reflect.Float32,
+		reflect.Float64:
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
+	case reflect.Array:
+		out += "buf.WriteString(`[`)" + "\n"
+		out += "for _, v := range " + name + "{" + "\n"
+		out += getGetInnerValue(ic, "v", typ.Elem())
+		out += "}"
+		out += "buf.WriteString(`]`)" + "\n"
+	case reflect.String:
 		out += "buf.WriteString(`\"`)" + "\n"
-		out += "buf.WriteString(mj." + sf.Name + ")" + "\n"
+		out += "buf.WriteString(" + name + ")" + "\n"
 		out += "buf.WriteString(`\"`)" + "\n"
 	default:
-		// println(sf.Type)
-		out += "obj, err = json.Marshal(mj." + sf.Name + ")" + "\n"
+		// println(sf.Typ)
+		out += "obj, err = json.Marshal(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return nil, err" + "\n"
 		out += "}" + "\n"
@@ -59,7 +104,11 @@ func getValue(gc *GenContext, sf *StructField) string {
 	return out
 }
 
-func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
+func getValue(ic *Inception, sf *StructField) string {
+	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ)
+}
+
+func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	var out = ""
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
@@ -78,7 +127,7 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 		}
 
 		if f.OmitEmpty {
-			out += getOmitEmpty(gc, &f)
+			out += getOmitEmpty(ic, f)
 		}
 
 		out += "if first == true {" + "\n"
@@ -90,7 +139,7 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 
 		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
 		out += "buf.WriteString(`\":`)" + "\n"
-		out += getValue(gc, &f)
+		out += getValue(ic, f)
 		if f.OmitEmpty {
 			out += "}" + "\n"
 		}
@@ -100,6 +149,6 @@ func CreateMarshalJSON(gc *GenContext, si *StructInfo) error {
 	// out += "println(string(buf.Bytes()))" + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
-	gc.AddFunc(out)
+	ic.OutputFuncs = append(ic.OutputFuncs, out)
 	return nil
 }

@@ -18,24 +18,10 @@
 package generator
 
 import (
-	"io/ioutil"
+	"errors"
+	"fmt"
 	"os"
 )
-
-type GenContext struct {
-	OutputFuncs []string
-	WriteString bool
-}
-
-func NewGenContext() *GenContext {
-	return &GenContext{
-		OutputFuncs: make([]string, 0),
-	}
-}
-
-func (gc *GenContext) AddFunc(out string) {
-	gc.OutputFuncs = append(gc.OutputFuncs, out)
-}
 
 func GenerateFiles(inputPath string, outputPath string) error {
 	packageName, structs, err := ExtractStructs(inputPath)
@@ -43,29 +29,16 @@ func GenerateFiles(inputPath string, outputPath string) error {
 		return err
 	}
 
-	gc := NewGenContext()
+	im := NewInceptionMain(inputPath, outputPath)
 
-	for _, st := range structs {
-		err := CreateMarshalJSON(gc, st)
-		if err != nil {
-			return err
-		}
-	}
-
-	data, err := RenderTemplate(inputPath, packageName, gc)
-
+	err = im.Generate(packageName, structs)
 	if err != nil {
-		return err
+		return errors.New(fmt.Sprintf("error=%v path=%q", err, im.TempMainPath))
 	}
 
-	stat, err := os.Stat(inputPath)
+	defer os.Remove(im.TempMainPath)
 
-	if err != nil {
-		return err
-	}
-
-	err = ioutil.WriteFile(outputPath, data, stat.Mode())
-
+	err = im.Run()
 	if err != nil {
 		return err
 	}
