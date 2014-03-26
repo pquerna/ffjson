@@ -135,6 +135,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
 	out += `_ = first` + "\n"
+	out += "buf.Grow(1024)" + "\n" // TOOD(pquerna): automatically calc a good size!
 	out += "buf.WriteString(`{`)" + "\n"
 
 	for _, f := range si.Fields {
