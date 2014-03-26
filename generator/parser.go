@@ -30,7 +30,6 @@ import (
 type StructField struct {
 	Name        string
 	JsonName    string
-	Type        string // TODO (pquerna): fix to be a Type, not a string (?)
 	OmitEmpty   bool
 	ForceString bool
 }
@@ -71,7 +70,6 @@ func (si *StructInfo) AddField(field *ast.Field) error {
 	si.Fields = append(si.Fields, StructField{
 		Name:        field.Names[0].Name,
 		JsonName:    jsonName,
-		Type:        field.Type.(*ast.Ident).Name, // TODO (pquerna): find a better way to get the Type (?)
 		OmitEmpty:   opts.Contains("omitempty"),
 		ForceString: opts.Contains("string"),
 	})
