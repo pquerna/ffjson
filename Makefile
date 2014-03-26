@@ -13,6 +13,10 @@ fmt:
 test: clean
 	go test -v github.com/pquerna/ffjson github.com/pquerna/ffjson/generator
 
+bench: all
+	ffjson tests/goser/ff/goser.go
+	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests/goser
+
 clean:
 	go clean -i github.com/pquerna/ffjson/...
 
