@@ -106,6 +106,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 		return nil
 	}
 
+	// for `go run` to work, we must have a file ending in ".go".
 	im.tempMain, err = TempFileWithPostfix("", "ffjson-inception", ".go")
 	if err != nil {
 		return err
@@ -165,8 +166,14 @@ func (im *InceptionMain) Run() error {
 
 	if err != nil {
 		return errors.New(
-			fmt.Sprintf("STDOUT:\n%s\nSTDERR:\n%s\n", string(out.Bytes()), string(errOut.Bytes())))
+			fmt.Sprintf("Go Run Failed for: %s\nSTDOUT:\n%s\nSTDERR:\n%s\n",
+				im.TempMainPath,
+				string(out.Bytes()),
+				string(errOut.Bytes())))
 	}
 
+	defer func() {
+		os.Remove(im.TempMainPath)
+	}()
 	return nil
 }
