@@ -21,8 +21,30 @@ import (
 	"encoding/json"
 	base "github.com/pquerna/ffjson/tests/goser/base"
 	ff "github.com/pquerna/ffjson/tests/goser/ff"
+	"reflect"
 	"testing"
 )
+
+func TestRoundTrip(t *testing.T) {
+	var record ff.Log
+	var recordTripped ff.Log
+	ff.NewLog(&record)
+
+	buf1, err := json.Marshal(&record)
+	if err != nil {
+		t.Fatalf("Marshal: %v", err)
+	}
+
+	err = json.Unmarshal(buf1, &recordTripped)
+	if err != nil {
+		t.Fatalf("Unmarshal: %v", err)
+	}
+
+	good := reflect.DeepEqual(record, recordTripped)
+	if !good {
+		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
+	}
+}
 
 func BenchmarkMarshalJSON(b *testing.B) {
 	var record base.Log

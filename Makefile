@@ -11,7 +11,7 @@ fmt:
 	go fmt github.com/pquerna/ffjson/...
 
 test: clean
-	go test -v github.com/pquerna/ffjson github.com/pquerna/ffjson/generator
+	go test -v github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/tests/...
 
 bench: all
 	ffjson tests/goser/ff/goser.go

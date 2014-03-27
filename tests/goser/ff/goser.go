@@ -127,7 +127,7 @@ func (ip *IP) UnmarshalJSON(data []byte) error {
 	if len(data) < 2 {
 		return io.ErrShortBuffer
 	}
-	*ip = IP(net.ParseIP(string(data[1 : len(data)-1])))
+	*ip = IP(net.ParseIP(string(data[1 : len(data)-1])).To4())
 	return nil
 }
 
