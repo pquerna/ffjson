@@ -18,6 +18,8 @@
 package ffjsoninception
 
 import (
+	"errors"
+	"fmt"
 	"github.com/pquerna/ffjson/shared"
 	"io/ioutil"
 	"os"
@@ -66,7 +68,9 @@ func RenderTemplate(ic *Inception) ([]byte, error) {
 
 	out, err := shared.GoFmt(f.Name())
 	if err != nil {
-		return nil, err
+		keep = true
+		return nil, errors.New(fmt.Sprintf("Error formating: %s\n%v", f.Name(), err))
+
 	}
 
 	return out.Bytes(), nil
