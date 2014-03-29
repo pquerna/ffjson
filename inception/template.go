@@ -20,6 +20,7 @@ package ffjsoninception
 import (
 	"errors"
 	"fmt"
+	"github.com/pquerna/ffjson/pills"
 	"github.com/pquerna/ffjson/shared"
 	"io/ioutil"
 	"os"
@@ -57,6 +58,20 @@ func RenderTemplate(ic *Inception) ([]byte, error) {
 			os.Remove(f.Name())
 		}
 	}()
+
+	// TODO(pquerna): re-org this to be cleaner.
+	if ic.WriteString {
+		imports, funcBody, err := pills.GetPill(pills.Pill_WriteJsonString)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, module := range imports {
+			ic.OutputImports[module] = true
+		}
+
+		ic.OutputFuncs = append(ic.OutputFuncs, funcBody)
+	}
 
 	t := template.Must(template.New("ffjson.go").Parse(ffjsonTemplate))
 

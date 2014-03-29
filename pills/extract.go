@@ -1,0 +1,105 @@
+/**
+ *  Copyright 2014 Paul Querna
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
+package pills
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/printer"
+	"go/token"
+	"os"
+	"path/filepath"
+)
+
+type Pill int32
+
+const (
+	Pill_WriteJsonString Pill = 0
+)
+
+var PillFiles = map[Pill]string{
+	Pill_WriteJsonString: "jsonstring.go",
+}
+
+var PillNames = map[Pill]string{
+	Pill_WriteJsonString: "WriteJsonString",
+}
+
+func extractFunc(funcName string, inputPath string) ([]string, string, error) {
+	fset := token.NewFileSet()
+
+	fp, err := parser.ParseFile(fset, inputPath, nil, 0)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	imports := make([]string, 0)
+
+	for _, imp := range fp.Imports {
+		imports = append(imports, imp.Path.Value)
+	}
+
+	var buf bytes.Buffer
+
+	for _, decl := range fp.Decls {
+		f, ok := decl.(*ast.FuncDecl)
+		if !ok {
+			continue
+		}
+
+		if f.Name.Name != funcName {
+			continue
+		}
+
+		f.Name.Name = "ffjson_" + f.Name.Name
+		printer.Fprint(&buf, fset, f)
+		break
+	}
+
+	return imports, string(buf.Bytes()), nil
+}
+
+func getPath(p Pill) (string, error) {
+	gpath, err := filepath.Abs(os.Getenv("GOPATH"))
+	if err != nil {
+		return "", err
+	}
+
+	rv := filepath.Join(gpath, "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
+
+	if _, err := os.Stat(rv); os.IsNotExist(err) {
+		return "", errors.New(fmt.Sprintf("no such file or directory: %s  GOPATH=%s", rv, gpath))
+	}
+
+	return rv, nil
+}
+
+func GetPill(p Pill) ([]string, string, error) {
+
+	inputPath, err := getPath(p)
+
+	if err != nil {
+		return nil, "", err
+	}
+
+	return extractFunc(PillNames[p], inputPath)
+}
