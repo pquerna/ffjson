@@ -6,14 +6,14 @@ When you change your `struct`, you will need to run `ffjson` again (or make it p
 
 ## Getting Started
 
-If `myfile.go` contains the `struct` types you would like to be faster, and assuming GOPATH is set to a reasonable value for an existing project, you can just run:
+If `myfile.go` contains the `struct` types you would like to be faster, and assuming `GOPATH` is set to a reasonable value for an existing project, you can just run:
 
     go get -u github.com/pquerna/ffjson
     ffjson myfile.go
 
 ## Details
 
-`ffjson` generates code based on an existing `struct` in go.  For example, `ffjson mypackage/foo.go` will by default create a new file `mypackage/foo_ffjson.go` that contains serialization funcions for all structs found in `foo.go`.
+`ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization funcions for all structs found in `foo.go`.
 
 ```sh
 Usage of ffjson:
@@ -25,12 +25,18 @@ ffjson generates Go code for optimized JSON serialization.
   -w="": Write generate code to this path instead of ${input}_ffjson.go.
 ```
 
-## Status:
+## Performance Status:
 
-* `MarshalJSON` is working and about 25% faster.
+* `MarshalJSON` is about twice as fast.
 * `UnmarshalJSON` has not been started.
 
-## Improving, adding features, taking ffjson new directions!
+## Features
+
+* **Drop in Replacement:** Because `ffjson` implements the interfaces already defined by `encoding/json` the performance enhancements are transparent to users of your structures.
+* **No additional dependencies:** `ffjson` generated code depends on nothing but standard library provided modules.
+* **Supports all types:** `ffjson` has native support for most of Go's types -- for any type it doesn't support with fast paths, it falls back to using `encoding/json`.  This means all structures should work out of the box.
+
+## Improving, bugs, adding features, and taking ffjson new directions!
 
 Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
