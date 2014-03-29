@@ -65,11 +65,20 @@ func extractFields(obj interface{}) []*StructField {
 	for i := 0; i < typ.NumField(); i++ {
 		f := typ.Field(i)
 
+		// based on checks in encoding/json/encode.go, we don't export everything.
+		if f.PkgPath != "" { // unexported
+			continue
+		}
+
 		jsonName := f.Name
 		omitEmpty := false
 		forceString := false
 
 		tag := f.Tag.Get("json")
+
+		if tag == "-" {
+			continue
+		}
 
 		if tag != "" {
 			tagName, opts := parseTag(tag)
