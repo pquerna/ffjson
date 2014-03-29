@@ -172,8 +172,6 @@ func (im *InceptionMain) Run() error {
 				string(errOut.Bytes())))
 	}
 
-	defer func() {
-		os.Remove(im.TempMainPath)
-	}()
+	os.Remove(im.TempMainPath)
 	return nil
 }
