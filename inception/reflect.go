@@ -18,7 +18,9 @@
 package ffjsoninception
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/pquerna/ffjson/pills"
 	"reflect"
 )
 
@@ -73,9 +75,12 @@ func extractFields(obj interface{}) []*StructField {
 			forceString = opts.Contains("string")
 		}
 
+		var buf bytes.Buffer
+		pills.WriteJsonString(&buf, jsonName)
+
 		sf := &StructField{
 			Name:             f.Name,
-			JsonName:         jsonName,
+			JsonName:         string(buf.Bytes()),
 			Typ:              f.Type,
 			HasMarshalJSON:   f.Type.Implements(marshalerType),
 			HasUnmarshalJSON: f.Type.Implements(unmarshalerType),

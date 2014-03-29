@@ -103,9 +103,8 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "}"
 		out += "buf.WriteString(`]`)" + "\n"
 	case reflect.String:
-		out += "buf.WriteString(`\"`)" + "\n"
-		out += "buf.WriteString(" + name + ")" + "\n"
-		out += "buf.WriteString(`\"`)" + "\n"
+		ic.WriteString = true
+		out += "ffjson_WriteJsonString(&buf, " + name + ")" + "\n"
 	default:
 		// println(sf.Typ)
 		ic.OutputImports[`"encoding/json"`] = true
@@ -149,13 +148,13 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 		out += "if first == true {" + "\n"
 		out += "first = false" + "\n"
-		out += "buf.WriteString(`\"`)" + "\n"
 		out += "} else {" + "\n"
-		out += "buf.WriteString(`,\"`)" + "\n"
+		out += "buf.WriteString(`,`)" + "\n"
 		out += "}" + "\n"
 
+		// JsonName is already escaped and quoted.
 		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
-		out += "buf.WriteString(`\":`)" + "\n"
+		out += "buf.WriteString(`:`)" + "\n"
 		out += getValue(ic, f)
 		if f.OmitEmpty {
 			out += "}" + "\n"
