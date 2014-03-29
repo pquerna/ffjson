@@ -15,10 +15,10 @@ test: ffize
 
 ffize: install
 	ffjson tests/goser/ff/goser.go
+	ffjson tests/go.stripe/ff/customer.go
 
 bench: ffize all
-	ffjson tests/goser/ff/goser.go
-	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests/goser
+	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests/goser github.com/pquerna/ffjson/tests/go.stripe
 
 clean:
 	go clean -i github.com/pquerna/ffjson/...
