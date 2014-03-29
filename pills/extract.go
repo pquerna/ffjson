@@ -33,14 +33,17 @@ type Pill int32
 
 const (
 	Pill_WriteJsonString Pill = 0
+	Pill_FormatBits      Pill = 1
 )
 
 var PillFiles = map[Pill]string{
 	Pill_WriteJsonString: "jsonstring.go",
+	Pill_FormatBits:      "iota.go",
 }
 
 var PillNames = map[Pill]string{
 	Pill_WriteJsonString: "WriteJsonString",
+	Pill_FormatBits:      "FormatBits",
 }
 
 func extractFunc(funcName string, inputPath string) ([]string, string, error) {

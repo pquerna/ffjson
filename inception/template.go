@@ -59,9 +59,8 @@ func RenderTemplate(ic *Inception) ([]byte, error) {
 		}
 	}()
 
-	// TODO(pquerna): re-org this to be cleaner.
-	if ic.WriteString {
-		imports, funcBody, err := pills.GetPill(pills.Pill_WriteJsonString)
+	for pill, _ := range ic.OutputPills {
+		imports, funcBody, err := pills.GetPill(pill)
 		if err != nil {
 			return nil, err
 		}
