@@ -4,11 +4,14 @@
 
 When you change your `struct`, you will need to run `ffjson` again (or make it part of your build tools).
 
-## Installation
+## Getting Started
 
-    go install github.com/pquerna/ffjson
+If `myfile.go` contains the `struct` types you would like to be faster, and assuming GOPATH is set to a reasonable value for an existing project, you can just run:
 
-## Running
+    go get -u github.com/pquerna/ffjson
+    ffjson myfile.go
+
+## Details
 
 `ffjson` generates code based on an existing `struct` in go.  For example, `ffjson mypackage/foo.go` will by default create a new file `mypackage/foo_ffjson.go` that contains serialization funcions for all structs found in `foo.go`.
 
