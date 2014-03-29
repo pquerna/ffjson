@@ -67,10 +67,18 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
-	if typ.Implements(marshalerType) || typeInInception(ic, typ) {
+	if typ.Implements(marshalerBufType) || typeInInception(ic, typ) {
+		out += "err = " + name + ".MarshalJSONBuf(buf)" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return err" + "\n"
+		out += "}" + "\n"
+		return out
+	}
+
+	if typ.Implements(marshalerType) {
 		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
 		out += "if err != nil {" + "\n"
-		out += "  return nil, err" + "\n"
+		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
 		return out
@@ -104,13 +112,13 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "buf.WriteString(`]`)" + "\n"
 	case reflect.String:
 		ic.WriteString = true
-		out += "ffjson_WriteJsonString(&buf, " + name + ")" + "\n"
+		out += "ffjson_WriteJsonString(buf, " + name + ")" + "\n"
 	default:
 		// println(sf.Typ)
 		ic.OutputImports[`"encoding/json"`] = true
 		out += "obj, err = json.Marshal(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
-		out += "  return nil, err" + "\n"
+		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
 	}
@@ -128,13 +136,21 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"
+	out += "buf.Grow(1024)" + "\n" // TOOD(pquerna): automatically calc a good size!
+	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
+	out += `if err != nil {` + "\n"
+	out += "  return nil, err" + "\n"
+	out += `}` + "\n"
+	out += `return buf.Bytes(), nil` + "\n"
+	out += `}` + "\n"
+
+	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf *bytes.Buffer) (error) {` + "\n"
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
 	out += `var first bool = true` + "\n"
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
 	out += `_ = first` + "\n"
-	out += "buf.Grow(1024)" + "\n" // TOOD(pquerna): automatically calc a good size!
 	out += "buf.WriteString(`{`)" + "\n"
 
 	for _, f := range si.Fields {
@@ -162,8 +178,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	out += "buf.WriteString(`}`)" + "\n"
-	// out += "println(string(buf.Bytes()))" + "\n"
-	out += `return buf.Bytes(), nil` + "\n"
+	out += `return nil` + "\n"
 	out += `}` + "\n"
 	ic.OutputFuncs = append(ic.OutputFuncs, out)
 	return nil

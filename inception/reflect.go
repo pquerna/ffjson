@@ -51,7 +51,12 @@ func NewStructInfo(obj interface{}) *StructInfo {
 	}
 }
 
+type MarshalerBuf interface {
+	MarshalJSONBuf(buf *bytes.Buffer) error
+}
+
 var marshalerType = reflect.TypeOf(new(json.Marshaler)).Elem()
+var marshalerBufType = reflect.TypeOf(new(MarshalerBuf)).Elem()
 var unmarshalerType = reflect.TypeOf(new(json.Unmarshaler)).Elem()
 
 func extractFields(obj interface{}) []*StructField {
