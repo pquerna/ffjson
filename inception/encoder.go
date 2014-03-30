@@ -190,8 +190,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		out += "}" + "\n"
 
 		// JsonName is already escaped and quoted.
-		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
-		out += "buf.WriteString(`:`)" + "\n"
+		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
 		out += getValue(ic, f)
 		if f.OmitEmpty {
 			out += "}" + "\n"
