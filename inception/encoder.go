@@ -120,7 +120,8 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	case reflect.String:
 		ic.OutputPills[pills.Pill_WriteJsonString] = true
 		out += "ffjson_WriteJsonString(buf, " + name + ")" + "\n"
-	case reflect.Ptr:
+	case reflect.Ptr,
+		reflect.Interface:
 		out += "if " + name + "!= nil {" + "\n"
 		out += getGetInnerValue(ic, "v", typ.Elem())
 		out += "}" + "\n"
