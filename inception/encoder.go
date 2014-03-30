@@ -18,6 +18,7 @@
 package ffjsoninception
 
 import (
+	"fmt"
 	"github.com/pquerna/ffjson/pills"
 	"reflect"
 )
@@ -105,18 +106,37 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Float64:
 		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
-	case reflect.Array:
+	case reflect.Array,
+		reflect.Slice:
+		out += "if " + name + "!= nil {" + "\n"
 		out += "buf.WriteString(`[`)" + "\n"
 		out += "for _, v := range " + name + "{" + "\n"
 		out += getGetInnerValue(ic, "v", typ.Elem())
-		out += "}"
+		out += "}" + "\n"
 		out += "buf.WriteString(`]`)" + "\n"
+		out += "} else {" + "\n"
+		out += "buf.WriteString(`null`)" + "\n"
+		out += "}" + "\n"
 	case reflect.String:
 		ic.OutputPills[pills.Pill_WriteJsonString] = true
 		out += "ffjson_WriteJsonString(buf, " + name + ")" + "\n"
+	case reflect.Ptr:
+		out += "if " + name + "!= nil {" + "\n"
+		out += getGetInnerValue(ic, "v", typ.Elem())
+		out += "}" + "\n"
+		out += "buf.WriteString(`]`)" + "\n"
+		out += "} else {" + "\n"
+		out += "buf.WriteString(`null`)" + "\n"
+		out += "}" + "\n"
+	case reflect.Bool:
+		out += "if " + name + " {" + "\n"
+		out += "buf.WriteString(`true`)" + "\n"
+		out += "} else {" + "\n"
+		out += "buf.WriteString(`false`)" + "\n"
+		out += "}" + "\n"
 	default:
-		// println(sf.Typ)
 		ic.OutputImports[`"encoding/json"`] = true
+		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
 		out += "obj, err = json.Marshal(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
@@ -170,8 +190,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		out += "}" + "\n"
 
 		// JsonName is already escaped and quoted.
-		out += "buf.WriteString(`" + f.JsonName + "`)" + "\n"
-		out += "buf.WriteString(`:`)" + "\n"
+		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
 		out += getValue(ic, f)
 		if f.OmitEmpty {
 			out += "}" + "\n"
