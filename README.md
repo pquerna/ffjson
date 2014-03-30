@@ -28,7 +28,7 @@ ffjson generates Go code for optimized JSON serialization.
 ## Performance Status:
 
 * `MarshalJSON` is **2x to 3x** faster than `encoding/json`, depending on the structure.
-* `UnmarshalJSON` is not yet implemented, but similiar performance increases are expected.
+* `UnmarshalJSON` is not yet implemented.
 
 ## Features
 
