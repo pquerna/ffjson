@@ -20,7 +20,6 @@ package generator
 import (
 	"errors"
 	"fmt"
-	"os"
 )
 
 func GenerateFiles(inputPath string, outputPath string) error {
@@ -35,8 +34,6 @@ func GenerateFiles(inputPath string, outputPath string) error {
 	if err != nil {
 		return errors.New(fmt.Sprintf("error=%v path=%q", err, im.TempMainPath))
 	}
-
-	defer os.Remove(im.TempMainPath)
 
 	err = im.Run()
 	if err != nil {
