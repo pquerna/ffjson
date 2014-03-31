@@ -4,6 +4,8 @@
 
 When you change your `struct`, you will need to run `ffjson` again (or make it part of your build tools).
 
+### [Blog Post explaining more backgorund](https://journal.paul.querna.org/articles/2014/03/31/ffjson-faster-json-in-go/)
+
 ## Getting Started
 
 If `myfile.go` contains the `struct` types you would like to be faster, and assuming `GOPATH` is set to a reasonable value for an existing project, you can just run:
