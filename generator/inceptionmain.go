@@ -103,7 +103,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	importName, err := getImportName(im.inputPath)
 
 	if err != nil {
-		return nil
+		return err
 	}
 
 	// for `go run` to work, we must have a file ending in ".go".
