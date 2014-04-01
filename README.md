@@ -15,7 +15,7 @@ If `myfile.go` contains the `struct` types you would like to be faster, and assu
 
 ## Details
 
-`ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization funcions for all structs found in `foo.go`.
+`ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization functions for all structs found in `foo.go`.
 
 ```sh
 Usage of ffjson:
