@@ -97,7 +97,6 @@ func getImportName(inputPath string) (string, error) {
 
 		if len(rel) < 4 || rel[:4] != "src/" {
 			continue
-			return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gpath, rel))
 		}
 		return rel[4:], nil
 	}
