@@ -21,12 +21,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/shared"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/pquerna/ffjson/shared"
 )
 
 const inceptionMainTemplate = `
