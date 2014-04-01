@@ -21,11 +21,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/shared"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
+
+	"github.com/pquerna/ffjson/shared"
 )
 
 const inceptionMainTemplate = `
@@ -81,20 +83,26 @@ func getImportName(inputPath string) (string, error) {
 
 	dpath := filepath.Dir(p)
 
-	gpath, err := filepath.Abs(os.Getenv("GOPATH"))
-	if err != nil {
-		return "", err
-	}
+	gopaths := strings.Split(os.Getenv("GOPATH"), ":")
 
-	rel, err := filepath.Rel(gpath, dpath)
-	if err != nil {
-		return "", err
-	}
+	for _, path := range gopaths {
+		gpath, err := filepath.Abs(path)
+		if err != nil {
+			continue
+		}
+		rel, err := filepath.Rel(gpath, dpath)
+		if err != nil {
+			return "", err
+		}
 
-	if len(rel) < 4 || rel[:4] != "src/" {
-		return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gpath, rel))
+		if len(rel) < 4 || rel[:4] != "src/" {
+			continue
+			return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gpath, rel))
+		}
+		return rel[4:], nil
 	}
-	return rel[4:], nil
+	return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gopaths, dpath))
+
 }
 
 func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
