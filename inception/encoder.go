@@ -123,9 +123,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	case reflect.Ptr,
 		reflect.Interface:
 		out += "if " + name + "!= nil {" + "\n"
-		out += getGetInnerValue(ic, "v", typ.Elem())
-		out += "}" + "\n"
-		out += "buf.WriteString(`]`)" + "\n"
+		out += getGetInnerValue(ic, name, typ.Elem())
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
