@@ -27,6 +27,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Pill int32
@@ -82,18 +83,24 @@ func extractFunc(funcName string, inputPath string) ([]string, string, error) {
 }
 
 func getPath(p Pill) (string, error) {
-	gpath, err := filepath.Abs(os.Getenv("GOPATH"))
-	if err != nil {
-		return "", err
+	gopaths := strings.Split(os.Getenv("GOPATH"), ":")
+	rvs := make([]string, 0)
+	for _, path := range gopaths {
+		gpath, err := filepath.Abs(path)
+		if err != nil {
+			continue
+		}
+
+		rv := filepath.Join(gpath, "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
+
+		if _, err := os.Stat(rv); os.IsNotExist(err) {
+			rvs = append(rvs, rv)
+			continue
+		}
+
+		return rv, nil
 	}
-
-	rv := filepath.Join(gpath, "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
-
-	if _, err := os.Stat(rv); os.IsNotExist(err) {
-		return "", errors.New(fmt.Sprintf("no such file or directory: %s  GOPATH=%s", rv, gpath))
-	}
-
-	return rv, nil
+	return "", errors.New(fmt.Sprintf("no such file or directory: %s  GOPATH=%s", rvs, gopaths))
 }
 
 func GetPill(p Pill) ([]string, string, error) {
