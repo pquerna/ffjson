@@ -102,15 +102,20 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Uintptr:
 		ic.OutputPills[pills.Pill_FormatBits] = true
 		out += "ffjson_FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
-	case reflect.Float32,
-		reflect.Float64:
+	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
-		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 'f', 10, 32))" + "\n"
+	case reflect.Float64:
+		ic.OutputImports[`"strconv"`] = true
+		out += "buf.Write(strconv.AppendFloat([]byte{}, " + name + ", 'f', 10, 64))" + "\n"
 	case reflect.Array,
 		reflect.Slice:
 		out += "if " + name + "!= nil {" + "\n"
 		out += "buf.WriteString(`[`)" + "\n"
-		out += "for _, v := range " + name + "{" + "\n"
+		out += "for i, v := range " + name + "{" + "\n"
+		out += "if i != 0 {" + "\n"
+		out += "buf.WriteString(`,`)" + "\n"
+		out += "}" + "\n"
 		out += getGetInnerValue(ic, "v", typ.Elem())
 		out += "}" + "\n"
 		out += "buf.WriteString(`]`)" + "\n"
