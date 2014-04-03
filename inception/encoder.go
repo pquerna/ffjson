@@ -168,7 +168,7 @@ func getTotalSize(si *StructInfo) uintptr {
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	var out = ""
+	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
 

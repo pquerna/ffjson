@@ -51,9 +51,13 @@ func (i *Inception) Add(obj interface{}) {
 	i.objs = append(i.objs, NewStructInfo(obj))
 }
 
-func (i *Inception) generateMarshalJSON() error {
+func (i *Inception) generateCode() error {
 	for _, si := range i.objs {
 		err := CreateMarshalJSON(i, si)
+		if err != nil {
+			return err
+		}
+		err = CreateUnmarshalJSON(i, si)
 		if err != nil {
 			return err
 		}
@@ -72,7 +76,7 @@ func (i *Inception) Execute() {
 		return
 	}
 
-	err := i.generateMarshalJSON()
+	err := i.generateCode()
 	if err != nil {
 		i.handleError(err)
 		return

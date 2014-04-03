@@ -23,6 +23,7 @@ import (
 	"github.com/pquerna/ffjson/generator"
 	_ "github.com/pquerna/ffjson/inception"
 	_ "github.com/pquerna/ffjson/pills"
+	_ "github.com/pquerna/ffjson/scanner"
 	"os"
 	"path/filepath"
 	"regexp"

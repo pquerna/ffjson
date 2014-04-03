@@ -10,8 +10,11 @@ deps:
 fmt:
 	go fmt github.com/pquerna/ffjson/...
 
-test: ffize
-	go test -v github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/pills github.com/pquerna/ffjson/tests/...
+test-core:
+	go test -v github.com/pquerna/ffjson/scanner github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/pills
+
+test: ffize test-core
+	go test -v github.com/pquerna/ffjson/tests/...
 
 ffize: install
 	ffjson tests/ff.go
@@ -24,6 +27,6 @@ bench: ffize all
 
 clean:
 	go clean -i github.com/pquerna/ffjson/...
-	rm -f tests/*/ff/*_ffjson.go
+	rm -f tests/*/ff/*_ffjson.go tests/*_ffjson.go
 
 .PHONY: deps clean test fmt install all

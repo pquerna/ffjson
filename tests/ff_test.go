@@ -54,3 +54,34 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkSimpleUnmarshal(b *testing.B) {
+	record := newLogFFRecord()
+	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	err := record.XUnmarshalJSON(buf)
+	if err != nil {
+		b.Fatalf("XUnmarshalJSON: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := record.XUnmarshalJSON(buf)
+		if err != nil {
+			b.Fatalf("XUnmarshalJSON: %v", err)
+		}
+	}
+}
+
+func TestSimpleUnmarshal(t *testing.T) {
+	record := newLogFFRecord()
+
+	err := record.XUnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
+	if err != nil {
+		t.Fatalf("XUnmarshalJSON: %v", err)
+	}
+
+	t.Logf("record.Timestamp: %v", record.Timestamp)
+	t.Logf("record.OriginId: %v", record.OriginId)
+	t.Logf("record.Method: %v", record.Method)
+}
