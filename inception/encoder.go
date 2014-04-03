@@ -19,8 +19,9 @@ package ffjsoninception
 
 import (
 	"fmt"
-	"github.com/pquerna/ffjson/pills"
 	"reflect"
+
+	"github.com/pquerna/ffjson/pills"
 )
 
 func typeInInception(ic *Inception, typ reflect.Type) bool {
@@ -102,10 +103,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Uintptr:
 		ic.OutputPills[pills.Pill_FormatBits] = true
 		out += "ffjson_FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
-	case reflect.Float32,
-		reflect.Float64:
+	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
-		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 10))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float32(" + name + ")," + "'f'" + ",10,32))" + "\n"
+	case reflect.Float64:
+		ic.OutputImports[`"strconv"`] = true
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + ")," + "'f'" + ",10,64))" + "\n"
 	case reflect.Array,
 		reflect.Slice:
 		out += "if " + name + "!= nil {" + "\n"
