@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"github.com/pquerna/ffjson/pills"
 	"reflect"
+	"sort"
 )
 
 type StructField struct {
@@ -33,6 +34,12 @@ type StructField struct {
 	HasMarshalJSON   bool
 	HasUnmarshalJSON bool
 }
+
+type FieldByJsonName []*StructField
+
+func (a FieldByJsonName) Len() int           { return len(a) }
+func (a FieldByJsonName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a FieldByJsonName) Less(i, j int) bool { return a[i].JsonName < a[j].JsonName }
 
 type StructInfo struct {
 	Name   string
@@ -103,5 +110,8 @@ func extractFields(obj interface{}) []*StructField {
 		}
 		rv = append(rv, sf)
 	}
+
+	sort.Sort(FieldByJsonName(rv))
+
 	return rv
 }
