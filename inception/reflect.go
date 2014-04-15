@@ -81,6 +81,10 @@ func extractFields(obj interface{}) []*StructField {
 		omitEmpty := false
 		forceString := false
 
+		// TOOD(pquerna): handle Anonymous structs.
+		//		if f.Anonymous {
+		//		}
+
 		tag := f.Tag.Get("json")
 
 		if tag == "-" {
