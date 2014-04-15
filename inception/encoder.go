@@ -179,10 +179,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += "buf.WriteString(`{`)" + "\n"
 
 	for _, f := range si.Fields {
-		if f.JsonName == "-" {
-			continue
-		}
-
 		if f.OmitEmpty {
 			out += getOmitEmpty(ic, f)
 		}
