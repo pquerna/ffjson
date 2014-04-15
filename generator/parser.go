@@ -23,57 +23,16 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"reflect"
-	"regexp"
 )
 
-type StructField struct {
-	Name        string
-	JsonName    string
-	OmitEmpty   bool
-	ForceString bool
-}
-
 type StructInfo struct {
-	Name   string
-	Fields []StructField
+	Name string
 }
 
 func NewStructInfo(name string) *StructInfo {
 	return &StructInfo{
-		Name:   name,
-		Fields: make([]StructField, 0),
+		Name: name,
 	}
-}
-
-var tagRe = regexp.MustCompile("^`(.*)`$")
-
-func (si *StructInfo) AddField(field *ast.Field) error {
-	if field.Names == nil || len(field.Names) != 1 {
-		return errors.New(fmt.Sprintf("Field contains no name: %v", field))
-	}
-
-	jsonName := field.Names[0].Name
-
-	opts := tagOptions("")
-	if field.Tag != nil {
-		var tagName string
-		// the Tag.Value contains wrapping `` which we slice off here. We hope.
-		v := tagRe.ReplaceAllString(field.Tag.Value, "$1")
-		tag := reflect.StructTag(v).Get("json")
-		tagName, opts = parseTag(tag)
-		if tagName != "" {
-			jsonName = tagName
-		}
-	}
-
-	si.Fields = append(si.Fields, StructField{
-		Name:        field.Names[0].Name,
-		JsonName:    jsonName,
-		OmitEmpty:   opts.Contains("omitempty"),
-		ForceString: opts.Contains("string"),
-	})
-	return nil
 }
 
 func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
@@ -95,21 +54,13 @@ func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 				return "", nil, errors.New(fmt.Sprintf("Unknown type without TypeSec: %v", d))
 			}
 
-			st, ok := ts.Type.(*ast.StructType)
+			_, ok = ts.Type.(*ast.StructType)
 			if !ok {
 				continue
 			}
 
 			stobj := NewStructInfo(k)
 
-			if st.Fields.List != nil {
-				for _, field := range st.Fields.List {
-					err := stobj.AddField(field)
-					if err != nil {
-						return "", nil, err
-					}
-				}
-			}
 			structs = append(structs, stobj)
 		}
 	}
