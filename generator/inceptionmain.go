@@ -82,19 +82,19 @@ func getImportName(inputPath string) (string, error) {
 
 	dpath := filepath.Dir(p)
 
-	gopaths := strings.Split(os.Getenv("GOPATH"), ":")
+	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
 	for _, path := range gopaths {
 		gpath, err := filepath.Abs(path)
 		if err != nil {
 			continue
 		}
-		rel, err := filepath.Rel(gpath, dpath)
+		rel, err := filepath.Rel(strings.Replace(gpath, "\\", "/", -1), dpath)
 		if err != nil {
 			return "", err
 		}
 
-		if len(rel) < 4 || rel[:4] != "src/" {
+		if len(rel) < 4 || rel[:4] != "src" + string(os.PathSeparator) {
 			continue
 		}
 		return rel[4:], nil
@@ -111,7 +111,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	if err != nil {
 		return err
 	}
-
+	importName = strings.Replace(importName, "\\", "/", -1)
 	// for `go run` to work, we must have a file ending in ".go".
 	im.tempMain, err = TempFileWithPostfix("", "ffjson-inception", ".go")
 	if err != nil {
@@ -164,6 +164,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 func (im *InceptionMain) Run() error {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
+
 	cmd := exec.Command("go", "run", "-a", im.TempMainPath)
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
