@@ -25,6 +25,7 @@ import (
 	_ "github.com/pquerna/ffjson/pills"
 	"os"
 	"regexp"
+	"path/filepath"
 )
 
 var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
@@ -47,7 +48,8 @@ func main() {
 		usage()
 	}
 
-	inputPath := extra[0]
+	inputPath := filepath.ToSlash(extra[0])
+
 	var outputPath string
 	if outputPathFlag == nil {
 		outputPath = *outputPathFlag

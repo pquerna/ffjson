@@ -83,7 +83,7 @@ func extractFunc(funcName string, inputPath string) ([]string, string, error) {
 }
 
 func getPath(p Pill) (string, error) {
-	gopaths := strings.Split(os.Getenv("GOPATH"), ":")
+	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 	rvs := make([]string, 0)
 	for _, path := range gopaths {
 		gpath, err := filepath.Abs(path)
@@ -91,7 +91,7 @@ func getPath(p Pill) (string, error) {
 			continue
 		}
 
-		rv := filepath.Join(gpath, "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
+		rv := filepath.Join(filepath.ToSlash(gpath), "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
 
 		if _, err := os.Stat(rv); os.IsNotExist(err) {
 			rvs = append(rvs, rv)
