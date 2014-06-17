@@ -89,7 +89,7 @@ func getImportName(inputPath string) (string, error) {
 		if err != nil {
 			continue
 		}
-		rel, err := filepath.Rel(strings.Replace(gpath, "\\", "/", -1), dpath)
+		rel, err := filepath.Rel(filepath.ToSlash(gpath), dpath)
 		if err != nil {
 			return "", err
 		}
@@ -111,7 +111,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	if err != nil {
 		return err
 	}
-	importName = strings.Replace(importName, "\\", "/", -1)
+	importName = filepath.ToSlash(importName)
 	// for `go run` to work, we must have a file ending in ".go".
 	im.tempMain, err = TempFileWithPostfix("", "ffjson-inception", ".go")
 	if err != nil {

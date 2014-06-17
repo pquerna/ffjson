@@ -91,7 +91,7 @@ func getPath(p Pill) (string, error) {
 			continue
 		}
 
-		rv := filepath.Join(strings.Replace(gpath, "\\", "/", -1), "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
+		rv := filepath.Join(filepath.ToSlash(gpath), "src", "github.com", "pquerna", "ffjson", "pills", PillFiles[p])
 
 		if _, err := os.Stat(rv); os.IsNotExist(err) {
 			rvs = append(rvs, rv)
