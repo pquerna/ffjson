@@ -24,6 +24,7 @@ import (
 	_ "github.com/pquerna/ffjson/inception"
 	_ "github.com/pquerna/ffjson/pills"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -47,7 +48,8 @@ func main() {
 		usage()
 	}
 
-	inputPath := extra[0]
+	inputPath := filepath.ToSlash(extra[0])
+
 	var outputPath string
 	if outputPathFlag == nil {
 		outputPath = *outputPathFlag
