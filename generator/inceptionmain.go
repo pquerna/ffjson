@@ -61,14 +61,16 @@ type templateCtx struct {
 }
 
 type InceptionMain struct {
+	goCmd        string
 	inputPath    string
 	outputPath   string
 	TempMainPath string
 	tempMain     *os.File
 }
 
-func NewInceptionMain(inputPath string, outputPath string) *InceptionMain {
+func NewInceptionMain(goCmd string, inputPath string, outputPath string) *InceptionMain {
 	return &InceptionMain{
+		goCmd:      goCmd,
 		inputPath:  inputPath,
 		outputPath: outputPath,
 	}
@@ -165,7 +167,7 @@ func (im *InceptionMain) Run() error {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 
-	cmd := exec.Command("go", "run", "-a", im.TempMainPath)
+	cmd := exec.Command(im.goCmd, "run", "-a", im.TempMainPath)
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
 
