@@ -22,13 +22,13 @@ import (
 	"fmt"
 )
 
-func GenerateFiles(inputPath string, outputPath string) error {
+func GenerateFiles(goCmd string, inputPath string, outputPath string) error {
 	packageName, structs, err := ExtractStructs(inputPath)
 	if err != nil {
 		return err
 	}
 
-	im := NewInceptionMain(inputPath, outputPath)
+	im := NewInceptionMain(goCmd, inputPath, outputPath)
 
 	err = im.Generate(packageName, structs)
 	if err != nil {

@@ -29,6 +29,7 @@ import (
 )
 
 var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
+var goCmdFlag = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
@@ -51,13 +52,20 @@ func main() {
 	inputPath := filepath.ToSlash(extra[0])
 
 	var outputPath string
-	if outputPathFlag == nil {
-		outputPath = *outputPathFlag
-	} else {
+	if outputPathFlag == nil || *outputPathFlag == "" {
 		outputPath = extRe.ReplaceAllString(inputPath, "${1}_ffjson.go")
+	} else {
+		outputPath = *outputPathFlag
 	}
 
-	err := generator.GenerateFiles(inputPath, outputPath)
+	var goCmd string
+	if goCmdFlag == nil || *goCmdFlag == "" {
+		goCmd = "go"
+	} else {
+		goCmd = *goCmdFlag
+	}
+
+	err := generator.GenerateFiles(goCmd, inputPath, outputPath)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
