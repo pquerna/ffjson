@@ -17,7 +17,12 @@
 
 package ff
 
+type Embed struct {
+	SuperBool bool
+}
+
 type Everything struct {
+	Embed
 	Bool    bool
 	Int     int
 	Int8    int8
@@ -38,6 +43,7 @@ type Everything struct {
 }
 
 func NewEverything(e *Everything) {
+	e.SuperBool = true
 	e.Bool = true
 	e.Int = 1
 	e.Int8 = 2
