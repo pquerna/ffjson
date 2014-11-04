@@ -39,7 +39,15 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatalf("Unmarshal: %v", err)
 	}
 
-	good := reflect.DeepEqual(record, recordTripped)
+	good := reflect.DeepEqual(record.FooStruct, recordTripped.FooStruct)
+	if !good {
+		t.Fatalf("Expected: %v\n Got: %v", *record.FooStruct, *recordTripped.FooStruct)
+	}
+
+	record.FooStruct = nil
+	recordTripped.FooStruct = nil
+
+	good = reflect.DeepEqual(record, recordTripped)
 	if !good {
 		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
 	}

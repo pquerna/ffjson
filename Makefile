@@ -14,6 +14,7 @@ test: ffize
 	go test -v github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/pills github.com/pquerna/ffjson/tests/...
 
 ffize: install
+	ffjson tests/ff.go
 	ffjson tests/goser/ff/goser.go
 	ffjson tests/go.stripe/ff/customer.go
 	ffjson tests/types/ff/everything.go

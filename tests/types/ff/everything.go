@@ -18,23 +18,30 @@
 package ff
 
 type Everything struct {
-	Bool    bool
-	Int     int
-	Int8    int8
-	Int16   int16
-	Int32   int32
-	Int64   int64
-	Uint    uint
-	Uint8   uint8
-	Uint16  uint16
-	Uint32  uint32
-	Uint64  uint64
-	Uintptr uintptr
-	Float32 float32
-	Float64 float64
-	Array   []int
-	Map     map[string]int
-	String  string
+	Bool          bool
+	Int           int
+	Int8          int8
+	Int16         int16
+	Int32         int32
+	Int64         int64
+	Uint          uint
+	Uint8         uint8
+	Uint16        uint16
+	Uint32        uint32
+	Uint64        uint64
+	Uintptr       uintptr
+	Float32       float32
+	Float64       float64
+	Array         []int
+	Map           map[string]int
+	String        string
+	StringPointer *string
+	Int64Pointer  *int64
+	FooStruct     *Foo
+}
+
+type Foo struct {
+	Bar int
 }
 
 func NewEverything(e *Everything) {
@@ -57,4 +64,5 @@ func NewEverything(e *Everything) {
 		"bar": 2,
 	}
 	e.String = "snowman->☃"
+	e.FooStruct = &Foo{Bar: 1}
 }
