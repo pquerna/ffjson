@@ -73,6 +73,24 @@ func BenchmarkSimpleUnmarshal(b *testing.B) {
 	}
 }
 
+func BenchmarkSimpleUnmarshalNative(b *testing.B) {
+	record := newLogRecord()
+	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	err := json.Unmarshal(buf, record)
+	if err != nil {
+		b.Fatalf("XUnmarshalJSON: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := json.Unmarshal(buf, record)
+		if err != nil {
+			b.Fatalf("XUnmarshalJSON: %v", err)
+		}
+	}
+}
+
 func TestSimpleUnmarshal(t *testing.T) {
 	record := newLogFFRecord()
 
