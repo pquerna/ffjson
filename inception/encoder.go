@@ -159,6 +159,14 @@ func getValue(ic *Inception, sf *StructField) string {
 	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ)
 }
 
+func getTotalSize(si *StructInfo) uintptr {
+	rv := si.Typ.Size()
+	for _, f := range si.Fields {
+		rv += f.Typ.Size()
+	}
+	return rv
+}
+
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	var out = ""
 
@@ -166,7 +174,8 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"
-	out += "buf.Grow(1024)" + "\n" // TOOD(pquerna): automatically calc a good size!
+	// TOOD(pquerna): automatically calc a good size!
+	out += fmt.Sprintf("buf.Grow(%d)\n", int(float32(getTotalSize(si))*3.0))
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
