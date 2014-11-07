@@ -52,3 +52,11 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
 	}
 }
+
+func TestUnmarshalEmpty(t *testing.T) {
+	record := ff.Everything{}
+	err := record.XUnmarshalJSON([]byte(`{}`))
+	if err != nil {
+		t.Fatalf("XUnmarshalJSON: %v", err)
+	}
+}

@@ -36,7 +36,6 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out := ""
 	ic.OutputImports[`ffjson_scanner "github.com/pquerna/ffjson/scanner"`] = true
 	ic.OutputImports[`"bytes"`] = true
-	ic.OutputImports[`"errors"`] = true
 	ic.OutputImports[`"fmt"`] = true
 
 	out += "const (" + "\n"
@@ -51,17 +50,20 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += ")" + "\n"
 
 	out += `func (uj *` + si.Name + `) XUnmarshalJSON(input []byte) error {` + "\n"
+	out += `	fs := ffjson_scanner.NewFFLexerWithBytes(input)` + "\n"
+	out += `    return uj.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_map_start)` + "\n"
+	out += `}` + "\n"
+
+	out += `func (uj *` + si.Name + `) UnmarshalJSONFFLexer(fs *ffjson_scanner.FFLexer, state ffjson_scanner.FFParseState) error {` + "\n"
 	out += `var err error = nil` + "\n"
 	out += `currentKey := ffj_t_` + si.Name + `base` + "\n"
 	out += `_ = currentKey` + "\n"
 	out += `tok := ffjson_scanner.FFTok_init` + "\n"
 	out += `wantedTok := ffjson_scanner.FFTok_init` + "\n"
-	out += `state := ffjson_scanner.FFParse_map_start` + "\n"
-	out += `fs := ffjson_scanner.NewFFLexerWithBytes(input)` + "\n"
 	out += `mainparse:` + "\n"
 	out += `for {` + "\n"
 	out += `	tok = fs.Scan()` + "\n"
-	//	out += `	println(fmt.Sprintf("tok: %v  state: %v", tok, state))` + "\n"
+	// out += `	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))` + "\n"
 	out += `	if tok == ffjson_scanner.FFTok_error {` + "\n"
 	out += `		goto tokerror` + "\n"
 	out += `	}` + "\n"
@@ -123,7 +125,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `state = ffjson_scanner.FFParse_want_value` + "\n"
 	out += `continue` + "\n"
 
-	out += `		case ffjson_scanner.FFParse_want_value:` + "\n"
+	out += `case ffjson_scanner.FFParse_want_value:` + "\n"
 
 	out += `if false `
 	for _, v := range validValues {
@@ -139,45 +141,17 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 			out += `case ffj_t_` + si.Name + `_` + f.Name + `:` + "\n"
 			out += `goto handle_` + f.Name + "\n"
 		}
+
 		out += `case ffj_t_` + si.Name + `no_such_key:` + "\n"
-		// TOOD: suck whole value out!
-		//		out += `depth := 0` + "\n"
-		out += `matchTok := ffjson_scanner.FFTok_init` + "\n"
-		out += `for {` + "\n"
-		out += `	tok = fs.Scan()` + "\n"
-		out += `	if tok == ffjson_scanner.FFTok_error {` + "\n"
-		out += `		goto tokerror` + "\n"
-		out += `	}` + "\n"
-		out += `	if matchTok == ffjson_scanner.FFTok_init {` + "\n"
-		out += `		if tok != ffjson_scanner.FFTok_left_brace && tok != ffjson_scanner.FFTok_left_bracket {` + "\n"
-		// simple value,  go back to main parser.
-		out += `			state = ffjson_scanner.FFParse_after_value` + "\n"
-		out += `			goto mainparse` + "\n"
-		out += `		}` + "\n"
-		out += `		matchTok = tok` + "\n"
-		out += `		continue` + "\n"
-		out += `	}` + "\n"
+		// TODO don't capture, skip
+		out += `err = fs.SkipField(tok)` + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return fs.WrapErr(err)" + "\n"
+		out += "}" + "\n"
+		out += `state = ffjson_scanner.FFParse_after_value` + "\n"
+		out += `goto mainparse` + "\n"
 		out += `}` + "\n"
-
-		/*
-			c := 0
-			for {
-				c++
-
-				if tok == targetTok {
-					return c, nil
-				}
-
-				if tok == FFTok_error {
-					return c, errors.New("Hit error before target token")
-				}
-				if tok == FFTok_eof {
-					return c, errors.New("Hit EOF before target token")
-				}
-			}*/
-		out += `	}` + "\n"
 	}
-
 	out += `} else {` + "\n"
 	out += `	goto wantedvalue` + "\n"
 	out += `}` + "\n"
@@ -200,13 +174,14 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += "wraperr:" + "\n"
 	// TODO: include line / byte offsets / field name
-	out += `return errors.New(fmt.Sprintf("ffjson error: %v", err))` + "\n"
+	// TODO: dont wrap all errors?
+	out += `return fs.WrapErr(err)` + "\n"
 
 	out += "wantedvalue:" + "\n"
-	out += `return errors.New(fmt.Sprintf("ffjson: wanted value token, but got token: %v", tok))` + "\n"
+	out += `return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))` + "\n"
 
 	out += "wrongtokenerror:" + "\n"
-	out += `return errors.New(fmt.Sprintf("ffjson: wanted token: %v, but got token: %v", wantedTok, tok))` + "\n"
+	out += `return fs.WrapErr(fmt.Errorf("ffjson: wanted token: %v, but got token: %v output=%s", wantedTok, tok, fs.Output.String()))` + "\n"
 
 	out += "tokerror:" + "\n"
 	out += `if fs.BigError != nil {` + "\n"
@@ -229,6 +204,29 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 
 func handleField(ic *Inception, name string, typ reflect.Type) string {
 	out := ""
+	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
+
+	if typ.Implements(unmarshalFasterType) || typeInInception(ic, typ) {
+		out += "err = uj." + name + ".UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return err" + "\n"
+		out += "}" + "\n"
+		return out
+	}
+
+	if typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType) {
+		out += `{` + "\n"
+		out += `tbuf, err := fs.CaptureField(tok)` + "\n"
+		out += "if err != nil {" + "\n"
+		out += `  return fs.WrapErr(err)` + "\n"
+		out += `}` + "\n"
+		out += `err = uj.` + name + `.UnmarshalJSON(tbuf)` + "\n"
+		out += `if err != nil {` + "\n"
+		out += `  return fs.WrapErr(err)` + "\n"
+		out += "}" + "\n"
+		out += `}` + "\n"
+		return out
+	}
 
 	// TODO(pquerna): generic handling of token type mismatching struct type
 
@@ -253,6 +251,7 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 		out += getNumberHandler(ic, name, typ, "ParseFloat")
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
+		ic.OutputImports[`"errors"`] = true
 		out += getAllowTokens(typ.Name(), "FFTok_bool", "FFTok_null")
 		out += `{` + "\n"
 		out += `tmpb := fs.Output.Bytes()` + "\n"
@@ -291,10 +290,15 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
-		// TODO: add actual byte thing here
-		out += `err = json.Unmarshal([]byte{}, &uj.` + name + `)` + "\n"
+		out += `{` + "\n"
+		out += `tbuf, err := fs.CaptureField(tok)` + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return fs.WrapErr(err)" + "\n"
+		out += "}" + "\n"
+		out += `err = json.Unmarshal(tbuf, &uj.` + name + `)` + "\n"
 		out += `if err != nil {` + "\n"
-		out += `  return err` + "\n"
+		out += `  return fs.WrapErr(err)` + "\n"
+		out += `}` + "\n"
 		out += `}` + "\n"
 	}
 
@@ -307,7 +311,7 @@ func getAllowTokens(name string, tokens ...string) string {
 		out += "&& tok != ffjson_scanner." + v
 	}
 	out += " {" + "\n"
-	out += `return fmt.Errorf("ffjson: cannot unmarshal %s into Go value for ` + name + `", tok)` + "\n"
+	out += `return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ` + name + `", tok))` + "\n"
 	out += "}\n"
 	return out
 }

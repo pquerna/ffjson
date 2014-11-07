@@ -24,6 +24,7 @@ ffize: install
 
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests/goser github.com/pquerna/ffjson/tests/go.stripe
+	go test -v -benchmem -bench UnmarshalJSON  github.com/pquerna/ffjson/tests/goser github.com/pquerna/ffjson/tests/go.stripe
 
 clean:
 	go clean -i github.com/pquerna/ffjson/...

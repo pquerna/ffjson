@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/pquerna/ffjson/pills"
+	"github.com/pquerna/ffjson/scanner"
 	"reflect"
 	"sort"
 )
@@ -62,9 +63,14 @@ type MarshalerBuf interface {
 	MarshalJSONBuf(buf *bytes.Buffer) error
 }
 
+type UnmarshalFaster interface {
+	UnmarshalJSONFFLexer(l *scanner.FFLexer, state scanner.FFParseState) error
+}
+
 var marshalerType = reflect.TypeOf(new(json.Marshaler)).Elem()
 var marshalerBufType = reflect.TypeOf(new(MarshalerBuf)).Elem()
 var unmarshalerType = reflect.TypeOf(new(json.Unmarshaler)).Elem()
+var unmarshalFasterType = reflect.TypeOf(new(UnmarshalFaster)).Elem()
 
 func extractFields(obj interface{}) []*StructField {
 	rv := make([]*StructField, 0)

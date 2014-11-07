@@ -101,14 +101,17 @@ const (
 )
 
 type FFLexer struct {
-	reader        io.ByteScanner
-	Token         FFTok
-	Error         FFErr
-	BigError      error
-	CurrentOffset int
-	CurrentLine   int
-	CurrentChar   int
-	Output        bytes.Buffer
+	reader   io.ByteScanner
+	Output   bytes.Buffer
+	Token    FFTok
+	Error    FFErr
+	BigError error
+	// TODO: convert all of this to an interface
+	CurrentOffset   int
+	CurrentLine     int
+	CurrentChar     int
+	lastCurrentChar int
+	captureAll      bool
 }
 
 func NewFFLexer(r io.Reader) *FFLexer {
@@ -138,16 +141,29 @@ func NewFFLexerWithBytes(input []byte) *FFLexer {
 	}
 }
 
-func (ffl *FFLexer) readByte() (byte, error) {
+type LexerError struct {
+	offset int
+	line   int
+	char   int
+	err    error
+}
 
-	/*
-		if ffl.empty() {
-			ffl.gather()
-			if ffl.Token != FFTok_init {
-				goto lexed
-			}
-		}
-	*/
+func (le *LexerError) Error() string {
+	return fmt.Sprintf(`ffjson error: (%T)%s offset=%d line=%d char=%d`,
+		le.err, le.err.Error(),
+		le.offset, le.line, le.char)
+}
+
+func (ffl *FFLexer) WrapErr(err error) error {
+	return &LexerError{
+		offset: ffl.CurrentOffset,
+		line:   ffl.CurrentLine,
+		char:   ffl.CurrentChar,
+		err:    err,
+	}
+}
+
+func (ffl *FFLexer) readByte() (byte, error) {
 
 	c, err := ffl.reader.ReadByte()
 	if err != nil {
@@ -157,11 +173,18 @@ func (ffl *FFLexer) readByte() (byte, error) {
 	}
 
 	ffl.CurrentOffset++
+	if c == '\n' {
+		ffl.CurrentLine++
+		ffl.lastCurrentChar = ffl.CurrentChar
+		ffl.CurrentChar = 0
+	} else {
+		ffl.CurrentChar++
+	}
 
 	return c, nil
 }
 
-func (ffl *FFLexer) unreadByte() error {
+func (ffl *FFLexer) unreadByte(c byte) error {
 	err := ffl.reader.UnreadByte()
 	if err != nil {
 		ffl.Error = FFErr_io
@@ -170,6 +193,13 @@ func (ffl *FFLexer) unreadByte() error {
 	}
 
 	ffl.CurrentOffset--
+	if c == '\n' {
+		ffl.CurrentLine--
+		ffl.CurrentChar = ffl.lastCurrentChar
+	} else {
+		ffl.CurrentChar--
+	}
+
 	return nil
 }
 
@@ -182,7 +212,7 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 		}
 
 		if c != b {
-			err = ffl.reader.UnreadByte()
+			err = ffl.unreadByte(c)
 
 			if err != nil {
 				return FFTok_error
@@ -305,7 +335,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 			}
 		}
 	} else {
-		err = ffl.unreadByte()
+		err = ffl.unreadByte(c)
 		if err != nil {
 			return FFTok_error
 		}
@@ -332,7 +362,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		}
 
 		if numRead == 0 {
-			err = ffl.unreadByte()
+			err = ffl.unreadByte(c)
 			if err != nil {
 				return FFTok_error
 			}
@@ -380,7 +410,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		tok = FFTok_double
 	}
 
-	err = ffl.unreadByte()
+	err = ffl.unreadByte(c)
 	if err != nil {
 		return FFTok_error
 	}
@@ -395,7 +425,9 @@ var null_bytes = []byte{'u', 'l', 'l'}
 func (ffl *FFLexer) Scan() FFTok {
 	tok := FFTok_error
 	startOffset := 0
-	ffl.Output.Reset()
+	if ffl.captureAll == false {
+		ffl.Output.Reset()
+	}
 	ffl.Token = FFTok_init
 
 	for {
@@ -411,24 +443,45 @@ func (ffl *FFLexer) Scan() FFTok {
 		switch c {
 		case '{':
 			tok = FFTok_left_bracket
+			if ffl.captureAll {
+				ffl.Output.WriteByte('{')
+			}
 			goto lexed
 		case '}':
 			tok = FFTok_right_bracket
+			if ffl.captureAll {
+				ffl.Output.WriteByte('}')
+			}
 			goto lexed
 		case '[':
 			tok = FFTok_left_brace
+			if ffl.captureAll {
+				ffl.Output.WriteByte('[')
+			}
 			goto lexed
 		case ']':
 			tok = FFTok_right_brace
+			if ffl.captureAll {
+				ffl.Output.WriteByte(']')
+			}
 			goto lexed
 		case ',':
 			tok = FFTok_comma
+			if ffl.captureAll {
+				ffl.Output.WriteByte(',')
+			}
 			goto lexed
 		case ':':
 			tok = FFTok_colon
+			if ffl.captureAll {
+				ffl.Output.WriteByte(':')
+			}
 			goto lexed
 		case '\t', '\n', '\v', '\f', '\r', ' ':
 			startOffset++
+			if ffl.captureAll {
+				ffl.Output.WriteByte(c)
+			}
 			break
 		case 't':
 			ffl.Output.WriteByte('t')
@@ -443,10 +496,16 @@ func (ffl *FFLexer) Scan() FFTok {
 			tok = ffl.wantBytes(null_bytes, FFTok_null)
 			goto lexed
 		case '"':
+			if ffl.captureAll {
+				ffl.Output.WriteByte('"')
+			}
 			tok = ffl.lexString()
+			if ffl.captureAll {
+				ffl.Output.WriteByte('"')
+			}
 			goto lexed
 		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			err = ffl.unreadByte()
+			err = ffl.unreadByte(c)
 			if err != nil {
 				return FFTok_error
 			}
@@ -464,6 +523,101 @@ func (ffl *FFLexer) Scan() FFTok {
 lexed:
 	ffl.Token = tok
 	return tok
+}
+
+func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
+	switch start {
+	case FFTok_left_brace,
+		FFTok_left_bracket:
+		{
+			end := FFTok_right_brace
+			if start == FFTok_left_bracket {
+				end = FFTok_right_bracket
+				if capture {
+					ffl.Output.WriteByte('{')
+				}
+			} else {
+				if capture {
+					ffl.Output.WriteByte('[')
+				}
+			}
+
+			depth := 1
+			if capture {
+				ffl.captureAll = true
+			}
+			// TODO: work.
+		scanloop:
+			for {
+				tok := ffl.Scan()
+				//fmt.Printf("capture-token: %v end: %v depth: %v\n", tok, end, depth)
+				switch tok {
+				case FFTok_eof:
+					return nil, errors.New("ffjson: unexpected EOF")
+				case FFTok_error:
+					if ffl.BigError != nil {
+						return nil, ffl.BigError
+					}
+					return nil, ffl.Error.ToError()
+				case end:
+					depth--
+					if depth == 0 {
+						break scanloop
+					}
+				case start:
+					depth++
+				}
+			}
+			if capture {
+				ffl.captureAll = false
+			}
+
+			if capture {
+				return ffl.Output.Bytes(), nil
+			} else {
+				return nil, nil
+			}
+		}
+	case FFTok_bool,
+		FFTok_integer,
+		FFTok_null,
+		FFTok_double:
+		// simple value, return it.
+		if capture {
+			return ffl.Output.Bytes(), nil
+		} else {
+			return nil, nil
+		}
+
+	case FFTok_string,
+		FFTok_string_with_escapes:
+		//TODO(pquerna): so, other users expect this to be a quoted string :(
+		if capture {
+			rv := make([]byte, 0, ffl.Output.Len()+2)
+			rv = append(rv, '"')
+			rv = append(rv, ffl.Output.Bytes()...)
+			rv = append(rv, '"')
+			return rv, nil
+		} else {
+			return nil, nil
+		}
+
+	default:
+		return nil, fmt.Errorf("ffjson: invalid capture type: %v", start)
+	}
+	panic("not reached")
+}
+
+// Captures an entire field value, including recursive objects,
+// and converts them to a []byte suitable to pass to a sub-object's
+// UnmarshalJSON
+func (ffl *FFLexer) CaptureField(start FFTok) ([]byte, error) {
+	return ffl.scanField(start, true)
+}
+
+func (ffl *FFLexer) SkipField(start FFTok) error {
+	_, err := ffl.scanField(start, false)
+	return err
 }
 
 // TODO(pquerna): return line number and offset.

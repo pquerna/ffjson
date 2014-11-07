@@ -19,6 +19,7 @@ package goser
 
 import (
 	"encoding/json"
+	"fmt"
 	base "github.com/pquerna/ffjson/tests/goser/base"
 	ff "github.com/pquerna/ffjson/tests/goser/ff"
 	"reflect"
@@ -81,5 +82,66 @@ func BenchmarkFFMarshalJSON(b *testing.B) {
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
+	}
+}
+
+type fatalFer interface {
+	Fatalf(format string, args ...interface{})
+}
+
+func getBaseData(b fatalFer) []byte {
+	var record base.Log
+	base.NewLog(&record)
+	buf, err := json.MarshalIndent(&record, "", "    ")
+	if err != nil {
+		b.Fatalf("Marshal: %v", err)
+	}
+	return buf
+}
+
+func BenchmarkUnmarshalJSON(b *testing.B) {
+	rec := base.Log{}
+	buf := getBaseData(b)
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := json.Unmarshal(buf, &rec)
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+	}
+}
+
+func BenchmarkFFUnmarshalJSON(b *testing.B) {
+	rec := ff.Log{}
+	buf := getBaseData(b)
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := rec.XUnmarshalJSON(buf)
+		if err != nil {
+			b.Fatalf("XUnmarshalJSON: %v", err)
+		}
+	}
+}
+
+func TestUnmarshal(t *testing.T) {
+	rec := ff.Log{}
+	buf := getBaseData(t)
+
+	err := rec.XUnmarshalJSON(buf)
+	if err != nil {
+		t.Fatalf("Unmarshal: %v from %s", err, string(buf))
+	}
+
+	rec2 := base.Log{}
+	json.Unmarshal(buf, &rec2)
+
+	a := fmt.Sprintf("%v", rec)
+	b := fmt.Sprintf("%v", rec2)
+	if a != b {
+		t.Fatalf("Expected: %v\n Got: %v\n from: %s", rec2, rec, string(buf))
 	}
 }

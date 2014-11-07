@@ -266,3 +266,26 @@ func TestBroken(t *testing.T) {
 	tError(t, `{"a": nul}`, 4, FFErr_invalid_string)
 	tError(t, `{"a": 1.a}`, 4, FFErr_missing_integer_after_decimal)
 }
+
+func TestCapture(t *testing.T) {
+	ffl := NewFFLexer(bytes.NewBufferString(`{"hello": {"blah": null}}`))
+
+	err := scanToTok(ffl, FFTok_left_bracket)
+	if err != nil {
+		t.Fatalf("scanToTok failed: %v", err)
+	}
+
+	err = scanToTok(ffl, FFTok_left_bracket)
+	if err != nil {
+		t.Fatalf("scanToTok failed: %v", err)
+	}
+
+	buf, err := ffl.CaptureField(FFTok_left_bracket)
+	if err != nil {
+		t.Fatalf("CaptureField failed: %v", err)
+	}
+
+	if bytes.Compare(buf, []byte(`{"blah": null}`)) != 0 {
+		t.Fatalf("didnt capture subfield: buf: %v", string(buf))
+	}
+}
