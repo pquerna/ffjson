@@ -101,7 +101,7 @@ const (
 )
 
 type FFLexer struct {
-	reader        *bufio.Reader
+	reader        io.ByteScanner
 	Token         FFTok
 	Error         FFErr
 	BigError      error
@@ -118,6 +118,16 @@ func NewFFLexer(r io.Reader) *FFLexer {
 		CurrentLine: 1,
 		CurrentChar: 1,
 		reader:      bufio.NewReader(r),
+	}
+}
+
+func NewFFLexerWithBytes(input []byte) *FFLexer {
+	return &FFLexer{
+		Token:       FFTok_init,
+		Error:       FFErr_e_ok,
+		CurrentLine: 1,
+		CurrentChar: 1,
+		reader:      bytes.NewReader(input),
 	}
 }
 

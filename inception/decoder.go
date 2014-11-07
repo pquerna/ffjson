@@ -57,7 +57,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `tok := ffjson_scanner.FFTok_init` + "\n"
 	out += `wantedTok := ffjson_scanner.FFTok_init` + "\n"
 	out += `state := ffjson_scanner.FFParse_map_start` + "\n"
-	out += `fs := ffjson_scanner.NewFFLexer(bytes.NewReader(input))` + "\n"
+	out += `fs := ffjson_scanner.NewFFLexerWithBytes(input)` + "\n"
 	out += `mainparse:` + "\n"
 	out += `for {` + "\n"
 	out += `	tok = fs.Scan()` + "\n"
