@@ -112,12 +112,19 @@ type FFLexer struct {
 }
 
 func NewFFLexer(r io.Reader) *FFLexer {
+	var bs io.ByteScanner
+	if bstmp, ok := r.(io.ByteScanner); ok {
+		bs = bstmp
+	} else {
+		bs = bufio.NewReader(r)
+	}
+
 	return &FFLexer{
 		Token:       FFTok_init,
 		Error:       FFErr_e_ok,
 		CurrentLine: 1,
 		CurrentChar: 1,
-		reader:      bufio.NewReader(r),
+		reader:      bs,
 	}
 }
 
