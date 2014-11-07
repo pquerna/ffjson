@@ -36,6 +36,7 @@ package scanner
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -107,7 +108,7 @@ type FFLexer struct {
 	CurrentOffset int
 	CurrentLine   int
 	CurrentChar   int
-	Output        []byte
+	Output        bytes.Buffer
 }
 
 func NewFFLexer(r io.Reader) *FFLexer {
@@ -175,7 +176,7 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 		}
 
 		// TODO: bytes.buffer? FIX THIS. rethink this.
-		ffl.Output = append(ffl.Output, c)
+		ffl.Output.WriteByte(c)
 	}
 
 	return iftrue
@@ -237,7 +238,7 @@ func (ffl *FFLexer) lexString() FFTok {
 		}
 
 		if charLookupTable[c]&mask == 0 {
-			ffl.Output = append(ffl.Output, c)
+			ffl.Output.WriteByte(c)
 			continue
 		}
 
@@ -264,7 +265,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	/* optional leading minus */
 	if c == '-' {
-		ffl.Output = append(ffl.Output, c)
+		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
@@ -273,14 +274,14 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	/* a single zero, or a series of integers */
 	if c == '0' {
-		ffl.Output = append(ffl.Output, c)
+		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
 		}
 	} else if c >= '1' && c <= '9' {
 		for c >= '0' && c <= '9' {
-			ffl.Output = append(ffl.Output, c)
+			ffl.Output.WriteByte(c)
 			c, err = ffl.readByte()
 			if err != nil {
 				return FFTok_error
@@ -298,14 +299,14 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	if c == '.' {
 		numRead = 0
-		ffl.Output = append(ffl.Output, c)
+		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
 		}
 
 		for c >= '0' && c <= '9' {
-			ffl.Output = append(ffl.Output, c)
+			ffl.Output.WriteByte(c)
 			numRead++
 			c, err = ffl.readByte()
 			if err != nil {
@@ -329,7 +330,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 	/* optional exponent (indicates this is floating point) */
 	if c == 'e' || c == 'E' {
 		numRead = 0
-		ffl.Output = append(ffl.Output, c)
+		ffl.Output.WriteByte(c)
 
 		c, err = ffl.readByte()
 		if err != nil {
@@ -338,7 +339,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 		/* optional sign */
 		if c == '+' || c == '-' {
-			ffl.Output = append(ffl.Output, c)
+			ffl.Output.WriteByte(c)
 			c, err = ffl.readByte()
 			if err != nil {
 				return FFTok_error
@@ -346,7 +347,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		}
 
 		for c >= '0' && c <= '9' {
-			ffl.Output = append(ffl.Output, c)
+			ffl.Output.WriteByte(c)
 			numRead++
 			c, err = ffl.readByte()
 			if err != nil {
@@ -377,7 +378,7 @@ var null_bytes = []byte{'u', 'l', 'l'}
 func (ffl *FFLexer) Scan() FFTok {
 	tok := FFTok_error
 	startOffset := 0
-	ffl.Output = make([]byte, 0, 0)
+	ffl.Output.Reset()
 	ffl.Token = FFTok_init
 
 	for {
@@ -413,15 +414,15 @@ func (ffl *FFLexer) Scan() FFTok {
 			startOffset++
 			break
 		case 't':
-			ffl.Output = append(ffl.Output, 't')
+			ffl.Output.WriteByte('t')
 			tok = ffl.wantBytes(true_bytes, FFTok_bool)
 			goto lexed
 		case 'f':
-			ffl.Output = append(ffl.Output, 'f')
+			ffl.Output.WriteByte('f')
 			tok = ffl.wantBytes(false_bytes, FFTok_bool)
 			goto lexed
 		case 'n':
-			ffl.Output = append(ffl.Output, 'n')
+			ffl.Output.WriteByte('n')
 			tok = ffl.wantBytes(null_bytes, FFTok_null)
 			goto lexed
 		case '"':

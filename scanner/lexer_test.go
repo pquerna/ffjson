@@ -190,14 +190,14 @@ func tDouble(t *testing.T, input string, target float64) {
 		t.Fatalf("scanToTok failed, couldnt find double: %v input: %v", err, input)
 	}
 
-	f64, err := strconv.ParseFloat(string(ffl.Output), 64)
+	f64, err := strconv.ParseFloat(ffl.Output.String(), 64)
 	if err != nil {
 		t.Fatalf("ParseFloat failed, shouldnt of: %v input: %v", err, input)
 	}
 
 	if int64(f64*1000) != int64(target*1000) {
 		t.Fatalf("ffl.Output: expected f64 '%v', got: %v from: %v input: %v",
-			target, f64, string(ffl.Output), input)
+			target, f64, ffl.Output.String(), input)
 	}
 
 	err = scanToTok(ffl, FFTok_eof)
@@ -222,13 +222,13 @@ func tInt(t *testing.T, input string, target int64) {
 	}
 
 	// Bit sizes 0, 8, 16, 32, and 64 correspond to int, int8, int16, int32, and int64.
-	i64, err := strconv.ParseInt(string(ffl.Output), 10, 64)
+	i64, err := strconv.ParseInt(ffl.Output.String(), 10, 64)
 	if err != nil {
 		t.Fatalf("ParseInt failed, shouldnt of: %v input: %v", err, input)
 	}
 
 	if i64 != target {
-		t.Fatalf("ffl.Output: expected i64 '%v', got: %v from: %v", target, i64, string(ffl.Output))
+		t.Fatalf("ffl.Output: expected i64 '%v', got: %v from: %v", target, i64, ffl.Output.String())
 	}
 
 	err = scanToTok(ffl, FFTok_eof)

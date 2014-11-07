@@ -96,7 +96,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `	goto wrongtokenerror` + "\n"
 	out += `}` + "\n"
 	// TODO(pquerna): convert keynames to bytes at generation time.
-	out += `kn := string(fs.Output)` + "\n"
+	out += `kn := fs.Output.String()` + "\n"
 	out += `switch kn {` + "\n"
 	for _, f := range si.Fields {
 		if f.JsonName == "-" {
@@ -254,13 +254,16 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
 		out += getAllowTokens(typ.Name(), "FFTok_bool", "FFTok_null")
-		out += `if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, fs.Output) == 0 {` + "\n"
+		out += `{` + "\n"
+		out += `tmpb := fs.Output.Bytes()` + "\n"
+		out += `if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {` + "\n"
 		out += `	uj.` + name + ` = true` + "\n"
-		out += `} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, fs.Output) == 0 {` + "\n"
+		out += `} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {` + "\n"
 		out += `	uj.` + name + ` = false` + "\n"
 		out += `} else {` + "\n"
 		out += `	err = errors.New("unexpected bytes for true/false value")` + "\n"
 		out += `    goto wraperr` + "\n"
+		out += `}` + "\n"
 		out += `}` + "\n"
 	case reflect.Ptr,
 		reflect.Interface:
@@ -281,9 +284,9 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 		out += getAllowTokens(typ.Name(), "FFTok_string", "FFTok_string_with_escapes")
 		out += `if tok == ffjson_scanner.FFTok_string_with_escapes {` + "\n"
 		// TODO: decoding escapes.
-		out += `	uj.` + name + ` = string(fs.Output)` + "\n"
+		out += `	uj.` + name + ` = fs.Output.String()` + "\n"
 		out += `} else {` + "\n"
-		out += `	uj.` + name + ` = string(fs.Output)` + "\n"
+		out += `	uj.` + name + ` = fs.Output.String()` + "\n"
 		out += `}` + "\n"
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
@@ -315,10 +318,10 @@ func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc st
 	// TODO: make native byte verions of ParseInt/ParseUint
 	out += `{` + "\n"
 	if parsefunc == "ParseFloat" {
-		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), %d)\n",
+		out += fmt.Sprintf("tval, err := strconv.%s(fs.Output.String(), %d)\n",
 			parsefunc, getNumberSize(typ))
 	} else {
-		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), 10, %d)\n",
+		out += fmt.Sprintf("tval, err := strconv.%s(fs.Output.String(), 10, %d)\n",
 			parsefunc, getNumberSize(typ))
 	}
 	out += `if err != nil {` + "\n"
