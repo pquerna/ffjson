@@ -193,7 +193,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 		out += `handle_` + f.Name + `:` + "\n"
 		// TODO: write handler.
 		//out += `println("got: ` + f.Name + `")` + "\n"
-		out += handleField(ic, f)
+		out += handleField(ic, f.Name, f.Typ)
 		out += `state = ffjson_scanner.FFParse_after_value` + "\n"
 		out += `goto mainparse` + "\n"
 	}
@@ -227,37 +227,37 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	return nil
 }
 
-func handleField(ic *Inception, sf *StructField) string {
+func handleField(ic *Inception, name string, typ reflect.Type) string {
 	out := ""
 
 	// TODO(pquerna): generic handling of token type mismatching struct type
 
-	switch sf.Typ.Kind() {
+	switch typ.Kind() {
 	case reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_integer")
-		out += getNumberHandler(ic, sf, "ParseInt")
+		out += getAllowTokens(typ.Name(), "FFTok_integer")
+		out += getNumberHandler(ic, name, typ, "ParseInt")
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64:
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_integer", "FFTok_null")
-		out += getNumberHandler(ic, sf, "ParseUint")
+		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
+		out += getNumberHandler(ic, name, typ, "ParseUint")
 	case reflect.Float32,
 		reflect.Float64:
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_double", "FFTok_null")
-		out += getNumberHandler(ic, sf, "ParseFloat")
+		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_null")
+		out += getNumberHandler(ic, name, typ, "ParseFloat")
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_bool", "FFTok_null")
+		out += getAllowTokens(typ.Name(), "FFTok_bool", "FFTok_null")
 		out += `if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, fs.Output) == 0 {` + "\n"
-		out += `	uj.` + sf.Name + ` = true` + "\n"
+		out += `	uj.` + name + ` = true` + "\n"
 		out += `} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, fs.Output) == 0 {` + "\n"
-		out += `	uj.` + sf.Name + ` = false` + "\n"
+		out += `	uj.` + name + ` = false` + "\n"
 		out += `} else {` + "\n"
 		out += `	err = errors.New("unexpected bytes for true/false value")` + "\n"
 		out += `    goto wraperr` + "\n"
@@ -265,31 +265,31 @@ func handleField(ic *Inception, sf *StructField) string {
 	case reflect.Ptr,
 		reflect.Interface:
 		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	uj.` + sf.Name + `= nil`
+		out += `	uj.` + name + `= nil`
 		out += `} else {` + "\n"
 		// TODO: ptr/interface .Elem()
 		out += `}` + "\n"
 	case reflect.Array,
 		reflect.Slice:
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_left_brace", "FFTok_null")
+		out += getAllowTokens(typ.Name(), "FFTok_left_brace", "FFTok_null")
 		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	uj.` + sf.Name + `= nil`
+		out += `	uj.` + name + `= nil`
 		out += `} else {` + "\n"
 		// TODO: Array .Elem()
 		out += `}` + "\n"
 	case reflect.String:
-		out += getAllowTokens(sf.Typ.Name(), "FFTok_string", "FFTok_string_with_escapes")
+		out += getAllowTokens(typ.Name(), "FFTok_string", "FFTok_string_with_escapes")
 		out += `if tok == ffjson_scanner.FFTok_string_with_escapes {` + "\n"
 		// TODO: decoding escapes.
-		out += `	uj.` + sf.Name + ` = string(fs.Output)` + "\n"
+		out += `	uj.` + name + ` = string(fs.Output)` + "\n"
 		out += `} else {` + "\n"
-		out += `	uj.` + sf.Name + ` = string(fs.Output)` + "\n"
+		out += `	uj.` + name + ` = string(fs.Output)` + "\n"
 		out += `}` + "\n"
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
-		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", sf.Typ, sf.Typ.Kind())
+		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
 		// TODO: add actual byte thing here
-		out += `err = json.Unmarshal([]byte{}, &uj.` + sf.Name + `)` + "\n"
+		out += `err = json.Unmarshal([]byte{}, &uj.` + name + `)` + "\n"
 		out += `if err != nil {` + "\n"
 		out += `  return err` + "\n"
 		out += `}` + "\n"
@@ -304,37 +304,39 @@ func getAllowTokens(name string, tokens ...string) string {
 		out += "&& tok != ffjson_scanner." + v
 	}
 	out += " {" + "\n"
-	out += `return fmt.Errorf("ffjson: cannot unmarshal %s into Go value of type ` + name + `", tok)` + "\n"
+	out += `return fmt.Errorf("ffjson: cannot unmarshal %s into Go value for ` + name + `", tok)` + "\n"
 	out += "}\n"
 	return out
 }
 
-func getNumberHandler(ic *Inception, sf *StructField, parsefunc string) string {
+func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc string) string {
 	ic.OutputImports[`"strconv"`] = true
 	out := ""
 	// TODO: make native byte verions of ParseInt/ParseUint
 	out += `{` + "\n"
 	if parsefunc == "ParseFloat" {
-		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), %d)\n", parsefunc, getNumberSize(sf))
+		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), %d)\n",
+			parsefunc, getNumberSize(typ))
 	} else {
-		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), 10, %d)\n", parsefunc, getNumberSize(sf))
+		out += fmt.Sprintf("tval, err := strconv.%s(string(fs.Output), 10, %d)\n",
+			parsefunc, getNumberSize(typ))
 	}
 	out += `if err != nil {` + "\n"
 	out += ` 	goto wraperr` + "\n"
 	out += `}` + "\n"
-	out += fmt.Sprintf("uj.%s = %s(tval)\n", sf.Name, getNumberCast(sf))
+	out += fmt.Sprintf("uj.%s = %s(tval)\n", name, getNumberCast(name, typ))
 	out += `}` + "\n"
 	return out
 }
 
-func getNumberSize(sf *StructField) int {
-	return sf.Typ.Bits()
+func getNumberSize(typ reflect.Type) int {
+	return typ.Bits()
 }
 
-func getNumberCast(sf *StructField) string {
-	s := sf.Typ.Name()
+func getNumberCast(name string, typ reflect.Type) string {
+	s := typ.Name()
 	if s == "" {
-		panic("non-numeric type passed in w/o name: " + sf.Name)
+		panic("non-numeric type passed in w/o name: " + name)
 	}
 	return s
 }
