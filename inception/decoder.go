@@ -49,6 +49,13 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 	out += ")" + "\n"
 
+	for _, f := range si.Fields {
+		if f.JsonName == "-" {
+			continue
+		}
+		out += `var ffj_key_` + si.Name + `_` + f.Name + ` = []byte(` + f.JsonName + `)` + "\n"
+	}
+
 	out += `func (uj *` + si.Name + `) XUnmarshalJSON(input []byte) error {` + "\n"
 	out += `	fs := ffjson_scanner.NewFFLexerWithBytes(input)` + "\n"
 	out += `    return uj.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_map_start)` + "\n"
@@ -98,20 +105,21 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `	goto wrongtokenerror` + "\n"
 	out += `}` + "\n"
 	// TODO(pquerna): convert keynames to bytes at generation time.
-	out += `kn := fs.Output.String()` + "\n"
-	out += `switch kn {` + "\n"
+	out += `kn := fs.Output.Bytes()` + "\n"
+
+	out += `if false {` + "\n"
 	for _, f := range si.Fields {
 		if f.JsonName == "-" {
 			continue
 		}
-		out += `case ` + f.JsonName + `:` + "\n"
+		out += `} else if bytes.Equal(ffj_key_` + si.Name + `_` + f.Name + `, kn) {` + "\n"
 		out += `currentKey = ffj_t_` + si.Name + `_` + f.Name + "\n"
 		out += `state = ffjson_scanner.FFParse_want_colon` + "\n"
 		out += `continue` + "\n"
 	}
 	// a JSON name we didn't know about.
 	// TOOD(pquerna): suck whole value.
-	out += "default:"
+	out += "} else {"
 	out += `	currentKey = ffj_t_` + si.Name + `no_such_key` + "\n"
 	out += `	state = ffjson_scanner.FFParse_want_colon` + "\n"
 	out += `	continue` + "\n"
