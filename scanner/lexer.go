@@ -122,23 +122,29 @@ func NewFFLexer(r io.Reader) *FFLexer {
 		bs = bufio.NewReader(r)
 	}
 
-	return &FFLexer{
+	fl := &FFLexer{
 		Token:       FFTok_init,
 		Error:       FFErr_e_ok,
 		CurrentLine: 1,
 		CurrentChar: 1,
 		reader:      bs,
 	}
+	// TODO: guess size?
+	fl.Output.Grow(512)
+	return fl
 }
 
 func NewFFLexerWithBytes(input []byte) *FFLexer {
-	return &FFLexer{
+	fl := &FFLexer{
 		Token:       FFTok_init,
 		Error:       FFErr_e_ok,
 		CurrentLine: 1,
 		CurrentChar: 1,
 		reader:      bytes.NewReader(input),
 	}
+	// TODO: guess size?
+	fl.Output.Grow(512)
+	return fl
 }
 
 type LexerError struct {
