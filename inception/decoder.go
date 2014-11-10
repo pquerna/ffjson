@@ -35,6 +35,7 @@ var validValues []string = []string{
 func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out := ""
 	ic.OutputImports[`ffjson_scanner "github.com/pquerna/ffjson/scanner"`] = true
+	ic.OutputImports[`ffjson_pills "github.com/pquerna/ffjson/pills"`] = true
 	ic.OutputImports[`"bytes"`] = true
 	ic.OutputImports[`"fmt"`] = true
 
@@ -325,15 +326,15 @@ func getAllowTokens(name string, tokens ...string) string {
 }
 
 func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc string) string {
-	ic.OutputImports[`"strconv"`] = true
 	out := ""
-	// TODO: make native byte verions of ParseInt/ParseUint
 	out += `{` + "\n"
 	if parsefunc == "ParseFloat" {
+		// TODO: make native byte verions of ParseFloat
+		ic.OutputImports[`"strconv"`] = true
 		out += fmt.Sprintf("tval, err := strconv.%s(fs.Output.String(), %d)\n",
 			parsefunc, getNumberSize(typ))
 	} else {
-		out += fmt.Sprintf("tval, err := strconv.%s(fs.Output.String(), 10, %d)\n",
+		out += fmt.Sprintf("tval, err := ffjson_pills.%s(fs.Output.Bytes(), 10, %d)\n",
 			parsefunc, getNumberSize(typ))
 	}
 	out += `if err != nil {` + "\n"
