@@ -18,7 +18,6 @@
 package scanner
 
 import (
-	"errors"
 	"io"
 )
 
@@ -66,10 +65,9 @@ func (r *FFReader) ReadByte() (byte, error) {
 	return r.s[r.i-1], nil
 }
 
-func (r *FFReader) UnreadByte() error {
+func (r *FFReader) UnreadByte() {
 	if r.i <= 0 {
-		return errors.New("FFReader.UnreadByte: at beginning of slice")
+		panic("FFReader.UnreadByte: at beginning of slice")
 	}
 	r.i--
-	return nil
 }

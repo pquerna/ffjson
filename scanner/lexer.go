@@ -157,15 +157,8 @@ func (ffl *FFLexer) readByte() (byte, error) {
 	return c, nil
 }
 
-func (ffl *FFLexer) unreadByte(c byte) error {
-	err := ffl.reader.UnreadByte()
-	if err != nil {
-		ffl.Error = FFErr_io
-		ffl.BigError = err
-		return err
-	}
-
-	return nil
+func (ffl *FFLexer) unreadByte() {
+	ffl.reader.UnreadByte()
 }
 
 func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
@@ -177,11 +170,7 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 		}
 
 		if c != b {
-			err = ffl.unreadByte(c)
-
-			if err != nil {
-				return FFTok_error
-			}
+			ffl.unreadByte()
 
 			ffl.Error = FFErr_invalid_string
 			return FFTok_error
@@ -317,11 +306,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 			}
 		}
 	} else {
-		err = ffl.unreadByte(c)
-		if err != nil {
-			return FFTok_error
-		}
-
+		ffl.unreadByte()
 		ffl.Error = FFErr_missing_integer_after_minus
 		return FFTok_error
 	}
@@ -344,10 +329,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		}
 
 		if numRead == 0 {
-			err = ffl.unreadByte(c)
-			if err != nil {
-				return FFTok_error
-			}
+			ffl.unreadByte()
 
 			ffl.Error = FFErr_missing_integer_after_decimal
 			return FFTok_error
@@ -392,10 +374,7 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		tok = FFTok_double
 	}
 
-	err = ffl.unreadByte(c)
-	if err != nil {
-		return FFTok_error
-	}
+	ffl.unreadByte()
 
 	return tok
 }
@@ -487,10 +466,7 @@ func (ffl *FFLexer) Scan() FFTok {
 			}
 			goto lexed
 		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			err = ffl.unreadByte(c)
-			if err != nil {
-				return FFTok_error
-			}
+			ffl.unreadByte()
 			tok = ffl.lexNumber()
 			goto lexed
 		case '/':
