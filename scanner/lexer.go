@@ -35,7 +35,6 @@
 package scanner
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -114,27 +113,7 @@ type FFLexer struct {
 	captureAll      bool
 }
 
-func NewFFLexer(r io.Reader) *FFLexer {
-	var bs io.ByteScanner
-	if bstmp, ok := r.(io.ByteScanner); ok {
-		bs = bstmp
-	} else {
-		bs = bufio.NewReader(r)
-	}
-
-	fl := &FFLexer{
-		Token:       FFTok_init,
-		Error:       FFErr_e_ok,
-		CurrentLine: 1,
-		CurrentChar: 1,
-		reader:      bs,
-	}
-	// TODO: guess size?
-	fl.Output.Grow(512)
-	return fl
-}
-
-func NewFFLexerWithBytes(input []byte) *FFLexer {
+func NewFFLexer(input []byte) *FFLexer {
 	fl := &FFLexer{
 		Token:       FFTok_init,
 		Error:       FFErr_e_ok,
@@ -143,7 +122,7 @@ func NewFFLexerWithBytes(input []byte) *FFLexer {
 		reader:      bytes.NewReader(input),
 	}
 	// TODO: guess size?
-	fl.Output.Grow(512)
+	fl.Output.Grow(64)
 	return fl
 }
 

@@ -73,7 +73,7 @@ func BenchmarkSimpleUnmarshal(b *testing.B) {
 	}
 }
 
-func BenchmarkSimpleUnmarshalNative(b *testing.B) {
+func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 	record := newLogRecord()
 	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
 	err := json.Unmarshal(buf, record)

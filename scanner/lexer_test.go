@@ -80,7 +80,7 @@ func scanToTokCount(ffl *FFLexer, targetTok FFTok) (int, error) {
 }
 
 func TestBasicLexing(t *testing.T) {
-	ffl := NewFFLexer(bytes.NewBufferString(`{}`))
+	ffl := NewFFLexer([]byte(`{}`))
 	toks := scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -90,7 +90,7 @@ func TestBasicLexing(t *testing.T) {
 }
 
 func TestHelloWorld(t *testing.T) {
-	ffl := NewFFLexer(bytes.NewBufferString(`{"hello":"world"}`))
+	ffl := NewFFLexer([]byte(`{"hello":"world"}`))
 	toks := scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -101,7 +101,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": 1}`))
+	ffl = NewFFLexer([]byte(`{"hello": 1}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -112,7 +112,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": 1.0}`))
+	ffl = NewFFLexer([]byte(`{"hello": 1.0}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -123,7 +123,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": 1e2}`))
+	ffl = NewFFLexer([]byte(`{"hello": 1e2}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -134,7 +134,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": {}}`))
+	ffl = NewFFLexer([]byte(`{"hello": {}}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -146,7 +146,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": {"blah": null}}`))
+	ffl = NewFFLexer([]byte(`{"hello": {"blah": null}}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -161,7 +161,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": /* comment */ 0}`))
+	ffl = NewFFLexer([]byte(`{"hello": /* comment */ 0}`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -173,7 +173,7 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_eof,
 	}, toks)
 
-	ffl = NewFFLexer(bytes.NewBufferString(`{"hello": / comment`))
+	ffl = NewFFLexer([]byte(`{"hello": / comment`))
 	toks = scanAll(ffl)
 	assertTokensEqual(t, []FFTok{
 		FFTok_left_bracket,
@@ -184,7 +184,7 @@ func TestHelloWorld(t *testing.T) {
 }
 
 func tDouble(t *testing.T, input string, target float64) {
-	ffl := NewFFLexer(bytes.NewBufferString(input))
+	ffl := NewFFLexer([]byte(input))
 	err := scanToTok(ffl, FFTok_double)
 	if err != nil {
 		t.Fatalf("scanToTok failed, couldnt find double: %v input: %v", err, input)
@@ -215,7 +215,7 @@ func TestDouble(t *testing.T) {
 }
 
 func tInt(t *testing.T, input string, target int64) {
-	ffl := NewFFLexer(bytes.NewBufferString(input))
+	ffl := NewFFLexer([]byte(input))
 	err := scanToTok(ffl, FFTok_integer)
 	if err != nil {
 		t.Fatalf("scanToTok failed, couldnt find int: %v input: %v", err, input)
@@ -245,7 +245,7 @@ func TestInt(t *testing.T) {
 }
 
 func tError(t *testing.T, input string, targetCount int, targetError FFErr) {
-	ffl := NewFFLexer(bytes.NewBufferString(input))
+	ffl := NewFFLexer([]byte(input))
 	count, err := scanToTokCount(ffl, FFTok_error)
 	if err != nil {
 		t.Fatalf("scanToTok failed, couldnt find error token: %v input: %v", err, input)
@@ -268,7 +268,7 @@ func TestBroken(t *testing.T) {
 }
 
 func TestCapture(t *testing.T) {
-	ffl := NewFFLexer(bytes.NewBufferString(`{"hello": {"blah": null}}`))
+	ffl := NewFFLexer([]byte(`{"hello": {"blah": null}}`))
 
 	err := scanToTok(ffl, FFTok_left_bracket)
 	if err != nil {
