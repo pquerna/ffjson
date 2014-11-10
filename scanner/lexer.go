@@ -100,26 +100,21 @@ const (
 )
 
 type FFLexer struct {
-	reader   io.ByteScanner
+	reader   *FFReader
 	Output   bytes.Buffer
 	Token    FFTok
 	Error    FFErr
 	BigError error
 	// TODO: convert all of this to an interface
-	CurrentOffset   int
-	CurrentLine     int
-	CurrentChar     int
 	lastCurrentChar int
 	captureAll      bool
 }
 
 func NewFFLexer(input []byte) *FFLexer {
 	fl := &FFLexer{
-		Token:       FFTok_init,
-		Error:       FFErr_e_ok,
-		CurrentLine: 1,
-		CurrentChar: 1,
-		reader:      bytes.NewReader(input),
+		Token:  FFTok_init,
+		Error:  FFErr_e_ok,
+		reader: NewFFReader(input),
 	}
 	// TODO: guess size?
 	fl.Output.Grow(64)
@@ -140,10 +135,12 @@ func (le *LexerError) Error() string {
 }
 
 func (ffl *FFLexer) WrapErr(err error) error {
+	line, char := ffl.reader.PosWithLine()
+	// TOOD: calcualte lines/characters based on offset
 	return &LexerError{
-		offset: ffl.CurrentOffset,
-		line:   ffl.CurrentLine,
-		char:   ffl.CurrentChar,
+		offset: ffl.reader.Pos(),
+		line:   line,
+		char:   char,
 		err:    err,
 	}
 }
@@ -157,15 +154,6 @@ func (ffl *FFLexer) readByte() (byte, error) {
 		return 0, err
 	}
 
-	ffl.CurrentOffset++
-	if c == '\n' {
-		ffl.CurrentLine++
-		ffl.lastCurrentChar = ffl.CurrentChar
-		ffl.CurrentChar = 0
-	} else {
-		ffl.CurrentChar++
-	}
-
 	return c, nil
 }
 
@@ -175,14 +163,6 @@ func (ffl *FFLexer) unreadByte(c byte) error {
 		ffl.Error = FFErr_io
 		ffl.BigError = err
 		return err
-	}
-
-	ffl.CurrentOffset--
-	if c == '\n' {
-		ffl.CurrentLine--
-		ffl.CurrentChar = ffl.lastCurrentChar
-	} else {
-		ffl.CurrentChar--
 	}
 
 	return nil

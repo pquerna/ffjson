@@ -57,7 +57,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	out += `func (uj *` + si.Name + `) XUnmarshalJSON(input []byte) error {` + "\n"
-	out += `	fs := ffjson_scanner.NewFFLexerWithBytes(input)` + "\n"
+	out += `	fs := ffjson_scanner.NewFFLexer(input)` + "\n"
 	out += `    return uj.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_map_start)` + "\n"
 	out += `}` + "\n"
 
