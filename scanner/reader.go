@@ -18,6 +18,8 @@
 package scanner
 
 import (
+	"bytes"
+	"fmt"
 	"io"
 )
 
@@ -70,4 +72,35 @@ func (r *FFReader) UnreadByte() {
 		panic("FFReader.UnreadByte: at beginning of slice")
 	}
 	r.i--
+}
+
+func (r *FFReader) SliceString(out *bytes.Buffer, mask int8, lt [255]int8) error {
+	// TODO(pquerna): string_with_escapes?  escape here?
+	j := r.i
+
+	for {
+		if j >= r.l || r.i >= r.l {
+			return io.EOF
+		}
+
+		c := r.s[j]
+		j++
+		if lt[c]&mask == 0 {
+			continue
+		}
+
+		if c == '"' {
+			if j != r.i {
+				out.Write(r.s[r.i : j-1])
+				r.i = j
+			}
+			return nil
+		}
+
+		// TODO(pquerna): rest of string parsing.
+		fmt.Printf("FFTok_error lexString char=%d\n", c)
+		return nil
+	}
+
+	panic("ffjson: SliceString unreached exit")
 }

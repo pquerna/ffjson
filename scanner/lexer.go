@@ -230,46 +230,16 @@ func (ffl *FFLexer) lexComment() FFTok {
 	}
 }
 
-const (
-	LBUF_SIZE = 16
-)
-
 func (ffl *FFLexer) lexString() FFTok {
-	var lbuf [LBUF_SIZE]byte
-	j := 0
-
 	mask := IJC | NFP
-	for {
-		c, err := ffl.readByte()
-		if err != nil {
-			return FFTok_error
-		}
 
-		if byteLookupTable[c]&mask == 0 {
-			lbuf[j] = c
-			j++
-			//			ffl.Output.WriteByte(c)
-			//			continue
-			if j == LBUF_SIZE {
-				ffl.Output.Write(lbuf[:j])
-				j = 0
-			}
-			continue
-		}
-
-		if c == '"' {
-			if j != 0 {
-				ffl.Output.Write(lbuf[:j])
-			}
-			return FFTok_string
-		}
-
-		// TODO(pquerna): rest of string parsing.
-		fmt.Printf("FFTok_error lexString char=%d\n", c)
+	err := ffl.reader.SliceString(&ffl.Output, mask, byteLookupTable)
+	if err != nil {
+		ffl.BigError = err
 		return FFTok_error
 	}
 
-	return FFTok_error
+	return FFTok_string
 }
 
 func (ffl *FFLexer) lexNumber() FFTok {
@@ -526,6 +496,7 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 					depth++
 				}
 			}
+
 			if capture {
 				ffl.captureAll = false
 			}
