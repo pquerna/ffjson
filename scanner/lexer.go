@@ -355,7 +355,6 @@ var null_bytes = []byte{'u', 'l', 'l'}
 
 func (ffl *FFLexer) Scan() FFTok {
 	tok := FFTok_error
-	startOffset := 0
 	if ffl.captureAll == false {
 		ffl.Output.Reset()
 	}
@@ -409,7 +408,6 @@ func (ffl *FFLexer) Scan() FFTok {
 			}
 			goto lexed
 		case '\t', '\n', '\v', '\f', '\r', ' ':
-			startOffset++
 			if ffl.captureAll {
 				ffl.Output.WriteByte(c)
 			}
