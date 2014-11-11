@@ -19,7 +19,6 @@ package scanner
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 )
 
@@ -101,8 +100,10 @@ func (r *FFReader) UnreadByte() {
 	r.i--
 }
 
-func (r *FFReader) SliceString(out *bytes.Buffer, mask int8, lt [255]int8) error {
-	// TODO(pquerna): string_with_escapes?  escape here?
+func (r *FFReader) SliceString(out *bytes.Buffer, lt [255]int8) error {
+	mask := IJC | NFP
+
+	// TODO(pquerna): string_with_escapes? de-escape here?
 	j := r.i
 
 	for {
@@ -122,11 +123,44 @@ func (r *FFReader) SliceString(out *bytes.Buffer, mask int8, lt [255]int8) error
 				r.i = j
 			}
 			return nil
+		} else if c == '\\' {
+			if j >= r.l {
+				return io.EOF
+			}
+
+			c = r.s[j]
+			j++
+
+			if c == 'u' {
+				for i := 0; i < 4; i++ {
+					if j >= r.l {
+						return io.EOF
+					}
+					c = r.s[j]
+					j++
+					if lt[c]&VHC == 0 {
+						continue
+					} else {
+						// yajl_lex_string_invalid_hex_char
+					}
+				}
+			} else if lt[c]&VEC != 0 {
+				// yajl_lex_string_invalid_escaped_char;
+			}
 		}
 
+		/**
+		 * VEC - valid escaped control char
+		 * note.  the solidus '/' may be escaped or not.
+		 * IJC - invalid json char
+		 * VHC - valid hex char
+		 * NFP - needs further processing (from a string scanning perspective)
+		 * NUC - needs utf8 checking when enabled (from a string scanning perspective)
+		 */
+
 		// TODO(pquerna): rest of string parsing.
-		fmt.Printf("FFTok_error lexString char=%d\n", c)
-		return nil
+		// fmt.Printf("FFTok_error lexString char=%d string=%s\n", c, string(r.s[r.i:j-1]))
+		continue
 	}
 
 	panic("ffjson: SliceString unreached exit")

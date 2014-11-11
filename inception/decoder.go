@@ -177,7 +177,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 		out += `handle_` + f.Name + `:` + "\n"
 		// TODO: write handler.
 		//out += `println("got: ` + f.Name + `")` + "\n"
-		out += handleField(ic, f.Name, f.Typ)
+		out += handleField(ic, "uj."+f.Name, f.Typ)
 		out += `state = ffjson_scanner.FFParse_after_value` + "\n"
 		out += `goto mainparse` + "\n"
 	}
@@ -199,7 +199,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 	out += `err = fs.Error.ToError()` + "\n"
 	out += `if err != nil {` + "\n"
-	out += `return err` + "\n"
+	out += `return fs.WrapErr(err)` + "\n"
 	out += `}` + "\n"
 	out += `panic("ffjson-generated: unreachable, please report bug.")` + "\n"
 
@@ -213,11 +213,15 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 }
 
 func handleField(ic *Inception, name string, typ reflect.Type) string {
+	return handleFieldAddr(ic, name, false, typ)
+}
+
+func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type) string {
 	out := ""
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
 	if typ.Implements(unmarshalFasterType) || typeInInception(ic, typ) {
-		out += "err = uj." + name + ".UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)" + "\n"
+		out += "err = " + name + ".UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
 		out += "}" + "\n"
@@ -230,7 +234,7 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 		out += "if err != nil {" + "\n"
 		out += `  return fs.WrapErr(err)` + "\n"
 		out += `}` + "\n"
-		out += `err = uj.` + name + `.UnmarshalJSON(tbuf)` + "\n"
+		out += `err = ` + name + `.UnmarshalJSON(tbuf)` + "\n"
 		out += `if err != nil {` + "\n"
 		out += `  return fs.WrapErr(err)` + "\n"
 		out += "}" + "\n"
@@ -247,56 +251,98 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Int32,
 		reflect.Int64:
 		out += getAllowTokens(typ.Name(), "FFTok_integer")
-		out += getNumberHandler(ic, name, typ, "ParseInt")
+		out += getNumberHandler(ic, name, takeAddr, typ, "ParseInt")
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64:
 		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
-		out += getNumberHandler(ic, name, typ, "ParseUint")
+		out += getNumberHandler(ic, name, takeAddr, typ, "ParseUint")
 	case reflect.Float32,
 		reflect.Float64:
 		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_null")
-		out += getNumberHandler(ic, name, typ, "ParseFloat")
+		out += getNumberHandler(ic, name, takeAddr, typ, "ParseFloat")
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
 		ic.OutputImports[`"errors"`] = true
 		out += getAllowTokens(typ.Name(), "FFTok_bool", "FFTok_null")
 		out += `{` + "\n"
 		out += `tmpb := fs.Output.Bytes()` + "\n"
+		out += `var tval bool` + "\n"
 		out += `if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {` + "\n"
-		out += `	uj.` + name + ` = true` + "\n"
+		out += `	tval = true` + "\n"
 		out += `} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {` + "\n"
-		out += `	uj.` + name + ` = false` + "\n"
+		out += `	tval  = false` + "\n"
 		out += `} else {` + "\n"
 		out += `	err = errors.New("unexpected bytes for true/false value")` + "\n"
 		out += `    goto wraperr` + "\n"
 		out += `}` + "\n"
+		if takeAddr {
+			out += `` + name + ` = &tval`
+		} else {
+			out += `` + name + ` = tval`
+		}
 		out += `}` + "\n"
 	case reflect.Ptr,
 		reflect.Interface:
 		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	uj.` + name + `= nil`
+		out += `	` + name + `= nil`
 		out += `} else {` + "\n"
+		out += `if ` + name + ` == nil {` + "\n"
+		out += `	` + name + `= new(` + typ.Elem().Name() + `)` + "\n"
+		out += `}` + "\n"
 		// TODO: ptr/interface .Elem()
+		out += handleFieldAddr(ic, name, true, typ.Elem())
 		out += `}` + "\n"
 	case reflect.Array,
 		reflect.Slice:
 		out += getAllowTokens(typ.Name(), "FFTok_left_brace", "FFTok_null")
 		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	uj.` + name + `= nil`
+		out += `	` + name + `= nil` + "\n"
 		out += `} else {` + "\n"
-		// TODO: Array .Elem()
+		out += `  ` + name + `= make([]` + typ.Elem().Name() + `, 0)` + "\n"
+		// TODO(pquerna): clean this up, lots of duplicated logic. merge with main parser?
+		out += `  for {` + "\n"
+		out += `	var v ` + typ.Elem().Name() + "\n"
+		out += `	tok = fs.Scan()` + "\n"
+		//		out += `    fmt.Printf("array-tok: %s\n", tok)` + "\n"
+		//		out += `    fmt.Printf("array-output: %s\n", fs.Output.String())` + "\n"
+		// out += `	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))` + "\n"
+		out += `	if tok == ffjson_scanner.FFTok_error {` + "\n"
+		out += `		goto tokerror` + "\n"
+		out += `	}` + "\n"
+		out += `	if tok == ffjson_scanner.FFTok_right_brace {` + "\n"
+		out += `		break` + "\n"
+		out += `	}` + "\n"
+		// TODO(pquerna): this allows invalid json like [,,,,]
+		out += `	if tok == ffjson_scanner.FFTok_comma {` + "\n"
+		out += `		continue` + "\n"
+		out += `	}` + "\n"
+		out += handleField(ic, "v", typ.Elem())
+		out += `  ` + name + ` = append(` + name + `, v)` + "\n"
+		out += `  }` + "\n"
 		out += `}` + "\n"
+
 	case reflect.String:
+		out += `{` + "\n"
+		tname := name
 		out += getAllowTokens(typ.Name(), "FFTok_string", "FFTok_string_with_escapes")
+		if takeAddr {
+			tname = "tval"
+			out += `var tval string` + "\n"
+		}
 		out += `if tok == ffjson_scanner.FFTok_string_with_escapes {` + "\n"
 		// TODO: decoding escapes.
-		out += `	uj.` + name + ` = fs.Output.String()` + "\n"
+		out += `	` + tname + ` = fs.Output.String()` + "\n"
 		out += `} else {` + "\n"
-		out += `	uj.` + name + ` = fs.Output.String()` + "\n"
+		out += `	` + tname + ` = fs.Output.String()` + "\n"
 		out += `}` + "\n"
+		if takeAddr {
+			out += `  ` + name + ` = &tval` + "\n"
+		}
+		out += `}` + "\n"
+
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
@@ -305,7 +351,7 @@ func handleField(ic *Inception, name string, typ reflect.Type) string {
 		out += "if err != nil {" + "\n"
 		out += "  return fs.WrapErr(err)" + "\n"
 		out += "}" + "\n"
-		out += `err = json.Unmarshal(tbuf, &uj.` + name + `)` + "\n"
+		out += `err = json.Unmarshal(tbuf, &` + name + `)` + "\n"
 		out += `if err != nil {` + "\n"
 		out += `  return fs.WrapErr(err)` + "\n"
 		out += `}` + "\n"
@@ -326,7 +372,7 @@ func getAllowTokens(name string, tokens ...string) string {
 	return out
 }
 
-func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc string) string {
+func getNumberHandler(ic *Inception, name string, takeAddr bool, typ reflect.Type, parsefunc string) string {
 	out := ""
 	out += `{` + "\n"
 	if parsefunc == "ParseFloat" {
@@ -339,7 +385,12 @@ func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc st
 	out += `if err != nil {` + "\n"
 	out += ` 	goto wraperr` + "\n"
 	out += `}` + "\n"
-	out += fmt.Sprintf("uj.%s = %s(tval)\n", name, getNumberCast(name, typ))
+	if takeAddr {
+		out += fmt.Sprintf("ttypval := %s(tval)\n", getNumberCast(name, typ))
+		out += fmt.Sprintf("%s = &ttypval\n", name)
+	} else {
+		out += fmt.Sprintf("%s = %s(tval)\n", name, getNumberCast(name, typ))
+	}
 	out += `}` + "\n"
 	return out
 }

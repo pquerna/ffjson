@@ -61,35 +61,45 @@ func TestUnmarshalEmpty(t *testing.T) {
 	}
 }
 
+const (
+	everythingJson = `{
+  "Bool": true,
+  "Int": 1,
+  "Int8": 2,
+  "Int16": 3,
+  "Int32": -4,
+  "Int64": 57,
+  "Uint": 100,
+  "Uint8": 101,
+  "Uint16": 102,
+  "Uint32": 0,
+  "Uint64": 103,
+  "Uintptr": 104,
+  "Float32": 3.14,
+  "Float64": 3.15,
+  "Array": [
+    1,
+    2,
+    3
+  ],
+  "Map": {
+    "bar": 2,
+    "foo": 1
+  },
+  "String": "snowman-\u003e☃",
+  "StringPointer": null,
+  "Int64Pointer": null,
+  "FooStruct": {
+    "Bar": 1
+  }
+}`
+)
+
 func TestUnmarshalFull(t *testing.T) {
 	record := ff.Everything{}
 	// TODO(pquerna): add unicode snowman
-	// TODO(pquerna): handle arrays
 	// TODO(pquerna): handle Bar subtype
-	err := record.XUnmarshalJSON([]byte(`{
-    "Bool": true,
-    "Int": 1,
-    "Int8": 2,
-    "Int16": 3,
-    "Int32": -4,
-    "Int64": 57,
-    "Uint": 100,
-    "Uint8": 101,
-    "Uint16": 102,
-    "Uint32": 0,
-    "Uint64": 103,
-    "Uintptr": 104,
-    "Float32": 3.14,
-    "Float64": 3.15,
-    "Array": null,
-    "Map": {
-        "bar": 2,
-        "foo": 1
-    },
-    "String": "snowman-not-here-yet",
-    "StringPointer": null,
-    "Int64Pointer": null
-}`))
+	err := record.XUnmarshalJSON([]byte(everythingJson))
 	if err != nil {
 		t.Fatalf("XUnmarshalJSON: %v", err)
 	}
