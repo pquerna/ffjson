@@ -57,14 +57,41 @@ func (r *FFReader) PosWithLine() (int, int) {
 	return currentLine, currentChar
 }
 
-func (r *FFReader) ReadByte() (byte, error) {
+// TODO(pquerna): consider mask approach
+var whitespace_bytes = []byte{'\t', '\n', '\v', '\f', '\r', ' '}
+
+func (r *FFReader) ReadByte(skipWhitespace bool) (byte, error) {
 	if r.i >= r.l {
 		return 0, io.EOF
 	}
 
-	r.i++
+	if skipWhitespace {
+		j := r.i
 
-	return r.s[r.i-1], nil
+		for {
+			if j >= r.l || r.i >= r.l {
+				return 0, io.EOF
+			}
+			c := r.s[j]
+			j++
+
+			// inline whitespace parsing gives another ~8% performance boost
+			// for many kinds of nicely indented JSON.
+			if c != '\t' &&
+				c != '\n' &&
+				c != '\v' &&
+				c != '\f' &&
+				c != '\r' &&
+				c != ' ' {
+				r.i = j
+				return c, nil
+			}
+		}
+	} else {
+		r.i++
+
+		return r.s[r.i-1], nil
+	}
 }
 
 func (r *FFReader) UnreadByte() {

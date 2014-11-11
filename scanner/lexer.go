@@ -100,11 +100,12 @@ const (
 )
 
 type FFLexer struct {
-	reader   *FFReader
-	Output   bytes.Buffer
-	Token    FFTok
-	Error    FFErr
-	BigError error
+	reader       *FFReader
+	Output       bytes.Buffer
+	OutputString string
+	Token        FFTok
+	Error        FFErr
+	BigError     error
 	// TODO: convert all of this to an interface
 	lastCurrentChar int
 	captureAll      bool
@@ -145,9 +146,21 @@ func (ffl *FFLexer) WrapErr(err error) error {
 	}
 }
 
+func (ffl *FFLexer) scanReadByte() (byte, error) {
+
+	c, err := ffl.reader.ReadByte(!ffl.captureAll)
+	if err != nil {
+		ffl.Error = FFErr_io
+		ffl.BigError = err
+		return 0, err
+	}
+
+	return c, nil
+}
+
 func (ffl *FFLexer) readByte() (byte, error) {
 
-	c, err := ffl.reader.ReadByte()
+	c, err := ffl.reader.ReadByte(false)
 	if err != nil {
 		ffl.Error = FFErr_io
 		ffl.BigError = err
@@ -234,6 +247,7 @@ func (ffl *FFLexer) lexString() FFTok {
 	mask := IJC | NFP
 
 	err := ffl.reader.SliceString(&ffl.Output, mask, byteLookupTable)
+
 	if err != nil {
 		ffl.BigError = err
 		return FFTok_error
@@ -361,7 +375,7 @@ func (ffl *FFLexer) Scan() FFTok {
 	ffl.Token = FFTok_init
 
 	for {
-		c, err := ffl.readByte()
+		c, err := ffl.scanReadByte()
 		if err != nil {
 			if err == io.EOF {
 				return FFTok_eof
