@@ -40,6 +40,10 @@ func (r *FFReader) Pos() int {
 	return r.i
 }
 
+// Calcuates the Position with line and line offset,
+// because this isn't counted for performance reasons,
+// it will iterate the buffer from the begining, and should
+// only be used in error-paths.
 func (r *FFReader) PosWithLine() (int, int) {
 	currentLine := 1
 	currentChar := 0
@@ -56,18 +60,14 @@ func (r *FFReader) PosWithLine() (int, int) {
 	return currentLine, currentChar
 }
 
-var whitespace_bytes = []byte{'\t', '\n', '\v', '\f', '\r', ' '}
-
 func (r *FFReader) ReadByteNoWS() (byte, error) {
 	if r.i >= r.l {
 		return 0, io.EOF
 	}
+
 	j := r.i
 
 	for {
-		if j >= r.l || r.i >= r.l {
-			return 0, io.EOF
-		}
 		c := r.s[j]
 		j++
 
@@ -89,6 +89,10 @@ func (r *FFReader) ReadByteNoWS() (byte, error) {
 			r.i = j
 			return c, nil
 		}
+
+		if j >= r.l {
+			return 0, io.EOF
+		}
 	}
 }
 
@@ -109,7 +113,7 @@ func (r *FFReader) UnreadByte() {
 	r.i--
 }
 
-func (r *FFReader) SliceString(out *bytes.Buffer, lt [255]int8) error {
+func (r *FFReader) SliceString(out *bytes.Buffer) error {
 	mask := IJC | NFP
 
 	// TODO(pquerna): string_with_escapes? de-escape here?
@@ -122,7 +126,7 @@ func (r *FFReader) SliceString(out *bytes.Buffer, lt [255]int8) error {
 
 		c := r.s[j]
 		j++
-		if lt[c]&mask == 0 {
+		if byteLookupTable[c]&mask == 0 {
 			continue
 		}
 
@@ -147,13 +151,13 @@ func (r *FFReader) SliceString(out *bytes.Buffer, lt [255]int8) error {
 					}
 					c = r.s[j]
 					j++
-					if lt[c]&VHC == 0 {
+					if byteLookupTable[c]&VHC == 0 {
 						continue
 					} else {
 						// yajl_lex_string_invalid_hex_char
 					}
 				}
-			} else if lt[c]&VEC != 0 {
+			} else if byteLookupTable[c]&VEC != 0 {
 				// yajl_lex_string_invalid_escaped_char;
 			}
 		}
@@ -175,6 +179,7 @@ func (r *FFReader) SliceString(out *bytes.Buffer, lt [255]int8) error {
 	panic("ffjson: SliceString unreached exit")
 }
 
+// TODO(pquerna): consider combining wibth the normal byte mask.
 var whitespaceLookupTable [255]bool = [255]bool{
 	false, /* 0 */
 	false, /* 1 */

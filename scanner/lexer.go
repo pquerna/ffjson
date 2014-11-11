@@ -250,7 +250,7 @@ func (ffl *FFLexer) lexComment() FFTok {
 }
 
 func (ffl *FFLexer) lexString() FFTok {
-	err := ffl.reader.SliceString(&ffl.Output, byteLookupTable)
+	err := ffl.reader.SliceString(&ffl.Output)
 
 	if err != nil {
 		ffl.BigError = err
