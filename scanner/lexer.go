@@ -147,8 +147,14 @@ func (ffl *FFLexer) WrapErr(err error) error {
 }
 
 func (ffl *FFLexer) scanReadByte() (byte, error) {
+	var c byte
+	var err error
+	if ffl.captureAll {
+		c, err = ffl.reader.ReadByte()
+	} else {
+		c, err = ffl.reader.ReadByteNoWS()
+	}
 
-	c, err := ffl.reader.ReadByte(!ffl.captureAll)
 	if err != nil {
 		ffl.Error = FFErr_io
 		ffl.BigError = err
@@ -160,7 +166,7 @@ func (ffl *FFLexer) scanReadByte() (byte, error) {
 
 func (ffl *FFLexer) readByte() (byte, error) {
 
-	c, err := ffl.reader.ReadByte(false)
+	c, err := ffl.reader.ReadByte()
 	if err != nil {
 		ffl.Error = FFErr_io
 		ffl.BigError = err
