@@ -301,10 +301,19 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
 		out += `	` + name + `= nil` + "\n"
 		out += `} else {` + "\n"
-		out += `  ` + name + `= make([]` + typ.Elem().Name() + `, 0)` + "\n"
+		// TODO(pquerna): THIS IS A HORRIBLE HACK. FIX ME.
+		if typ.Elem().Kind() == reflect.Ptr {
+			out += `  ` + name + `= make([]*` + typ.Elem().Elem().Name() + `, 0)` + "\n"
+		} else {
+			out += `  ` + name + `= make([]` + typ.Elem().Name() + `, 0)` + "\n"
+		}
 		// TODO(pquerna): clean this up, lots of duplicated logic. merge with main parser?
 		out += `  for {` + "\n"
-		out += `	var v ` + typ.Elem().Name() + "\n"
+		if typ.Elem().Kind() == reflect.Ptr {
+			out += `	var v *` + typ.Elem().Elem().Name() + "\n"
+		} else {
+			out += `	var v ` + typ.Elem().Name() + "\n"
+		}
 		out += `	tok = fs.Scan()` + "\n"
 		//		out += `    fmt.Printf("array-tok: %s\n", tok)` + "\n"
 		//		out += `    fmt.Printf("array-output: %s\n", fs.Output.String())` + "\n"
