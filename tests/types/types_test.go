@@ -60,3 +60,37 @@ func TestUnmarshalEmpty(t *testing.T) {
 		t.Fatalf("XUnmarshalJSON: %v", err)
 	}
 }
+
+func TestUnmarshalFull(t *testing.T) {
+	record := ff.Everything{}
+	// TODO(pquerna): add unicode snowman
+	// TODO(pquerna): handle arrays
+	// TODO(pquerna): handle Bar subtype
+	err := record.XUnmarshalJSON([]byte(`{
+    "Bool": true,
+    "Int": 1,
+    "Int8": 2,
+    "Int16": 3,
+    "Int32": -4,
+    "Int64": 57,
+    "Uint": 100,
+    "Uint8": 101,
+    "Uint16": 102,
+    "Uint32": 0,
+    "Uint64": 103,
+    "Uintptr": 104,
+    "Float32": 3.14,
+    "Float64": 3.15,
+    "Array": null,
+    "Map": {
+        "bar": 2,
+        "foo": 1
+    },
+    "String": "snowman-not-here-yet",
+    "StringPointer": null,
+    "Int64Pointer": null
+}`))
+	if err != nil {
+		t.Fatalf("XUnmarshalJSON: %v", err)
+	}
+}

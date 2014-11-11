@@ -29,6 +29,7 @@ var validValues []string = []string{
 	"FFTok_double",
 	"FFTok_string",
 	"FFTok_string_with_escapes",
+	"FFTok_bool",
 	"FFTok_null",
 }
 
@@ -329,9 +330,7 @@ func getNumberHandler(ic *Inception, name string, typ reflect.Type, parsefunc st
 	out := ""
 	out += `{` + "\n"
 	if parsefunc == "ParseFloat" {
-		// TODO: make native byte verions of ParseFloat
-		ic.OutputImports[`"strconv"`] = true
-		out += fmt.Sprintf("tval, err := strconv.%s(fs.Output.String(), %d)\n",
+		out += fmt.Sprintf("tval, err := ffjson_pills.%s(fs.Output.Bytes(), %d)\n",
 			parsefunc, getNumberSize(typ))
 	} else {
 		out += fmt.Sprintf("tval, err := ffjson_pills.%s(fs.Output.Bytes(), 10, %d)\n",
