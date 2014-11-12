@@ -40,16 +40,10 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	ic.OutputImports[`"bytes"`] = true
 	ic.OutputImports[`"fmt"`] = true
 
-	out += "const (" + "\n"
-	out += "ffj_t_" + si.Name + "base" + "= iota" + "\n"
-	out += "ffj_t_" + si.Name + "no_such_key" + "\n"
-	for _, f := range si.Fields {
-		if f.JsonName == "-" {
-			continue
-		}
-		out += "ffj_t_" + si.Name + "_" + f.Name + "\n"
-	}
-	out += ")" + "\n"
+	out += tplStr(constKeysTpl, constKeys{
+		IC: ic,
+		SI: si,
+	})
 
 	for _, f := range si.Fields {
 		if f.JsonName == "-" {
@@ -221,6 +215,12 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
 	if typ.Implements(unmarshalFasterType) || typeInInception(ic, typ) {
+		if typ.Kind() == reflect.Ptr {
+			out += `if ` + name + ` == nil {` + "\n"
+			out += `   ` + name + ` = new(` + typ.Elem().Name() + `)` + "\n"
+			out += `}` + "\n"
+		}
+
 		out += "err = " + name + ".UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
@@ -250,8 +250,9 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		out += getAllowTokens(typ.Name(), "FFTok_integer")
+		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
 		out += getNumberHandler(ic, name, takeAddr, typ, "ParseInt")
+
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
@@ -259,153 +260,74 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Uint64:
 		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
 		out += getNumberHandler(ic, name, takeAddr, typ, "ParseUint")
+
 	case reflect.Float32,
 		reflect.Float64:
 		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_null")
 		out += getNumberHandler(ic, name, takeAddr, typ, "ParseFloat")
+
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
 		ic.OutputImports[`"errors"`] = true
-		out += getAllowTokens(typ.Name(), "FFTok_bool", "FFTok_null")
-		out += `{` + "\n"
-		out += `tmpb := fs.Output.Bytes()` + "\n"
-		out += `var tval bool` + "\n"
-		out += `if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {` + "\n"
-		out += `	tval = true` + "\n"
-		out += `} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {` + "\n"
-		out += `	tval  = false` + "\n"
-		out += `} else {` + "\n"
-		out += `	err = errors.New("unexpected bytes for true/false value")` + "\n"
-		out += `    goto wraperr` + "\n"
-		out += `}` + "\n"
-		if takeAddr {
-			out += `` + name + ` = &tval`
-		} else {
-			out += `` + name + ` = tval`
-		}
-		out += `}` + "\n"
+		out += tplStr(handleBoolTpl, handleBool{
+			Name: name,
+			Typ:  typ,
+		})
+
 	case reflect.Ptr,
 		reflect.Interface:
-		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	` + name + `= nil`
-		out += `} else {` + "\n"
-		out += `if ` + name + ` == nil {` + "\n"
-		out += `	` + name + `= new(` + typ.Elem().Name() + `)` + "\n"
-		out += `}` + "\n"
-		// TODO: ptr/interface .Elem()
-		out += handleFieldAddr(ic, name, true, typ.Elem())
-		out += `}` + "\n"
+		out += tplStr(handlePtrTpl, handlePtr{
+			IC:   ic,
+			Name: name,
+			Typ:  typ,
+		})
+
 	case reflect.Array,
 		reflect.Slice:
-		out += getAllowTokens(typ.Name(), "FFTok_left_brace", "FFTok_null")
-		out += `if tok == ffjson_scanner.FFTok_null {` + "\n"
-		out += `	` + name + `= nil` + "\n"
-		out += `} else {` + "\n"
-		// TODO(pquerna): THIS IS A HORRIBLE HACK. FIX ME.
-		if typ.Elem().Kind() == reflect.Ptr {
-			out += `  ` + name + `= make([]*` + typ.Elem().Elem().Name() + `, 0)` + "\n"
-		} else {
-			out += `  ` + name + `= make([]` + typ.Elem().Name() + `, 0)` + "\n"
-		}
-		// TODO(pquerna): clean this up, lots of duplicated logic. merge with main parser?
-		out += `  for {` + "\n"
-		if typ.Elem().Kind() == reflect.Ptr {
-			out += `	var v *` + typ.Elem().Elem().Name() + "\n"
-		} else {
-			out += `	var v ` + typ.Elem().Name() + "\n"
-		}
-		out += `	tok = fs.Scan()` + "\n"
-		//		out += `    fmt.Printf("array-tok: %s\n", tok)` + "\n"
-		//		out += `    fmt.Printf("array-output: %s\n", fs.Output.String())` + "\n"
-		// out += `	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))` + "\n"
-		out += `	if tok == ffjson_scanner.FFTok_error {` + "\n"
-		out += `		goto tokerror` + "\n"
-		out += `	}` + "\n"
-		out += `	if tok == ffjson_scanner.FFTok_right_brace {` + "\n"
-		out += `		break` + "\n"
-		out += `	}` + "\n"
-		// TODO(pquerna): this allows invalid json like [,,,,]
-		out += `	if tok == ffjson_scanner.FFTok_comma {` + "\n"
-		out += `		continue` + "\n"
-		out += `	}` + "\n"
-		out += handleField(ic, "v", typ.Elem())
-		out += `  ` + name + ` = append(` + name + `, v)` + "\n"
-		out += `  }` + "\n"
-		out += `}` + "\n"
+		out += tplStr(handleArrayTpl, handleArray{
+			IC:   ic,
+			Name: name,
+			Typ:  typ,
+			Ptr:  reflect.Ptr,
+		})
 
 	case reflect.String:
-		out += `{` + "\n"
-		tname := name
-		out += getAllowTokens(typ.Name(), "FFTok_string", "FFTok_string_with_escapes")
-		if takeAddr {
-			tname = "tval"
-			out += `var tval string` + "\n"
-		}
-		out += `if tok == ffjson_scanner.FFTok_string_with_escapes {` + "\n"
-		// TODO: decoding escapes.
-		out += `	` + tname + ` = fs.Output.String()` + "\n"
-		out += `} else {` + "\n"
-		out += `	` + tname + ` = fs.Output.String()` + "\n"
-		out += `}` + "\n"
-		if takeAddr {
-			out += `  ` + name + ` = &tval` + "\n"
-		}
-		out += `}` + "\n"
-
+		out += tplStr(handleStringTpl, handleString{
+			Name:     name,
+			Typ:      typ,
+			TakeAddr: takeAddr,
+		})
 	default:
+		// TODO(pquerna): layering. let templates declare their needed modules?
 		ic.OutputImports[`"encoding/json"`] = true
-		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
-		out += `{` + "\n"
-		out += `tbuf, err := fs.CaptureField(tok)` + "\n"
-		out += "if err != nil {" + "\n"
-		out += "  return fs.WrapErr(err)" + "\n"
-		out += "}" + "\n"
-		out += `err = json.Unmarshal(tbuf, &` + name + `)` + "\n"
-		out += `if err != nil {` + "\n"
-		out += `  return fs.WrapErr(err)` + "\n"
-		out += `}` + "\n"
-		out += `}` + "\n"
+		out += tplStr(handleFallbackTpl, handleFallback{
+			Name: name,
+			Typ:  typ,
+			Kind: typ.Kind(),
+		})
 	}
 
 	return out
 }
 
 func getAllowTokens(name string, tokens ...string) string {
-	out := "if true "
-	for _, v := range tokens {
-		out += "&& tok != ffjson_scanner." + v
-	}
-	out += " {" + "\n"
-	out += `return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ` + name + `", tok))` + "\n"
-	out += "}\n"
-	return out
+	return tplStr(allowTokensTpl, allowTokens{
+		Name:   name,
+		Tokens: tokens,
+	})
 }
 
 func getNumberHandler(ic *Inception, name string, takeAddr bool, typ reflect.Type, parsefunc string) string {
-	out := ""
-	out += `{` + "\n"
-	if parsefunc == "ParseFloat" {
-		out += fmt.Sprintf("tval, err := ffjson_pills.%s(fs.Output.Bytes(), %d)\n",
-			parsefunc, getNumberSize(typ))
-	} else {
-		out += fmt.Sprintf("tval, err := ffjson_pills.%s(fs.Output.Bytes(), 10, %d)\n",
-			parsefunc, getNumberSize(typ))
-	}
-	out += `if err != nil {` + "\n"
-	out += ` 	goto wraperr` + "\n"
-	out += `}` + "\n"
-	if takeAddr {
-		out += fmt.Sprintf("ttypval := %s(tval)\n", getNumberCast(name, typ))
-		out += fmt.Sprintf("%s = &ttypval\n", name)
-	} else {
-		out += fmt.Sprintf("%s = %s(tval)\n", name, getNumberCast(name, typ))
-	}
-	out += `}` + "\n"
-	return out
+	return tplStr(handlerNumericTpl, handlerNumeric{
+		Name:      name,
+		ParseFunc: parsefunc,
+		TakeAddr:  takeAddr,
+		Typ:       typ,
+	})
 }
 
-func getNumberSize(typ reflect.Type) int {
-	return typ.Bits()
+func getNumberSize(typ reflect.Type) string {
+	return fmt.Sprintf("%d", typ.Bits())
 }
 
 func getNumberCast(name string, typ reflect.Type) string {

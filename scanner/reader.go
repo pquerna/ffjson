@@ -18,8 +18,12 @@
 package scanner
 
 import (
+	"github.com/pquerna/ffjson/pills"
+
 	"bytes"
+	"fmt"
 	"io"
+	"unicode/utf16"
 )
 
 type FFReader struct {
@@ -113,6 +117,32 @@ func (r *FFReader) UnreadByte() {
 	r.i--
 }
 
+func (r *FFReader) readU4(j int) (rune, error) {
+
+	var u4 [4]byte
+	for i := 0; i < 4; i++ {
+		if j >= r.l {
+			return -1, io.EOF
+		}
+		c := r.s[j]
+		if byteLookupTable[c]&VHC != 0 {
+			u4[i] = c
+			j++
+			continue
+		} else {
+			// TODO(pquerna): handle errors better.
+			return -1, fmt.Errorf("lex_string_invalid_hex_char: %v %v", c, string(u4[:]))
+		}
+	}
+
+	// TODO(pquerna): utf16.IsSurrogate
+	rr, err := pills.ParseUint(u4[:], 16, 64)
+	if err != nil {
+		return -1, err
+	}
+	return rune(rr), nil
+}
+
 func (r *FFReader) SliceString(out *bytes.Buffer) error {
 	mask := IJC | NFP
 
@@ -145,18 +175,27 @@ func (r *FFReader) SliceString(out *bytes.Buffer) error {
 			j++
 
 			if c == 'u' {
-				for i := 0; i < 4; i++ {
-					if j >= r.l {
-						return io.EOF
-					}
-					c = r.s[j]
-					j++
-					if byteLookupTable[c]&VHC == 0 {
-						continue
-					} else {
-						// yajl_lex_string_invalid_hex_char
-					}
+				ru, err := r.readU4(j)
+				if err != nil {
+					return err
 				}
+				if utf16.IsSurrogate(ru) {
+					ru2, err := r.readU4(j + 6)
+					if err != nil {
+						return err
+					}
+					out.Write(r.s[r.i : j-2])
+					r.i = j + 10
+					j = r.i
+					out.WriteRune(utf16.DecodeRune(ru, ru2))
+				} else {
+					out.Write(r.s[r.i : j-2])
+					r.i = j + 4
+					j = r.i
+					out.WriteRune(ru)
+				}
+
+				continue
 			} else if byteLookupTable[c]&VEC != 0 {
 				// yajl_lex_string_invalid_escaped_char;
 			}

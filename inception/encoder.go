@@ -28,6 +28,11 @@ func typeInInception(ic *Inception, typ reflect.Type) bool {
 		if v.Typ == typ {
 			return true
 		}
+		if typ.Kind() == reflect.Ptr {
+			if v.Typ == typ.Elem() {
+				return true
+			}
+		}
 	}
 
 	return false

@@ -86,7 +86,7 @@ const (
     "bar": 2,
     "foo": 1
   },
-  "String": "snowman-\u003e☃",
+  "String": "snowman☃\uD801\uDC37",
   "StringPointer": null,
   "Int64Pointer": null,
   "FooStruct": {
@@ -102,5 +102,10 @@ func TestUnmarshalFull(t *testing.T) {
 	err := record.XUnmarshalJSON([]byte(everythingJson))
 	if err != nil {
 		t.Fatalf("XUnmarshalJSON: %v", err)
+	}
+
+	expect := "snowman☃𐐷"
+	if record.String != expect {
+		t.Fatalf("record.String decoding problem, expected: %v got: %v", expect, record.String)
 	}
 }
