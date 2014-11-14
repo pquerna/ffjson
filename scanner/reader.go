@@ -130,7 +130,7 @@ func (r *FFReader) readU4(j int) (rune, error) {
 			j++
 			continue
 		} else {
-			// TODO(pquerna): handle errors better.
+			// TODO(pquerna): handle errors better. layering violation.
 			return -1, fmt.Errorf("lex_string_invalid_hex_char: %v %v", c, string(u4[:]))
 		}
 	}
@@ -179,6 +179,7 @@ func (r *FFReader) SliceString(out *bytes.Buffer) error {
 				if err != nil {
 					return err
 				}
+
 				if utf16.IsSurrogate(ru) {
 					ru2, err := r.readU4(j + 6)
 					if err != nil {
@@ -197,7 +198,7 @@ func (r *FFReader) SliceString(out *bytes.Buffer) error {
 
 				continue
 			} else if byteLookupTable[c]&VEC != 0 {
-				// yajl_lex_string_invalid_escaped_char;
+				return fmt.Errorf("lex_string_invalid_escaped_char: %v", c)
 			}
 		}
 
