@@ -197,8 +197,29 @@ func (r *FFReader) SliceString(out *bytes.Buffer) error {
 				}
 
 				continue
-			} else if byteLookupTable[c]&VEC != 0 {
+			} else if byteLookupTable[c]&VEC == 0 {
 				return fmt.Errorf("lex_string_invalid_escaped_char: %v", c)
+			} else {
+				out.Write(r.s[r.i : j-2])
+				r.i = j
+				j = r.i
+
+				switch c {
+				case '"':
+					out.WriteByte('"')
+				case '\\':
+					out.WriteByte('\\')
+				case 'b':
+					out.WriteByte('\b')
+				case 'f':
+					out.WriteByte('\f')
+				case 'n':
+					out.WriteByte('\n')
+				case 'r':
+					out.WriteByte('\r')
+				case 't':
+					out.WriteByte('\t')
+				}
 			}
 		}
 

@@ -34,6 +34,7 @@ func tsliceString(t *testing.T, expected string, enc string) {
 		t.Fatalf(`failed to decode %v into %v, got: %v`, enc, expected, out.String())
 	}
 }
+
 func TestUnicode(t *testing.T) {
 	var testvecs = map[string]string{
 		"€": `\u20AC`,
@@ -42,5 +43,32 @@ func TestUnicode(t *testing.T) {
 
 	for k, v := range testvecs {
 		tsliceString(t, k, v)
+	}
+}
+
+func TestBadUnicode(t *testing.T) {
+	var out bytes.Buffer
+	ffr := NewFFReader([]byte(`\u20--"`))
+	err := ffr.SliceString(&out)
+	if err == nil {
+		t.Fatalf("expected SliceString hex decode error")
+	}
+}
+
+func TestNonUnicodeEscape(t *testing.T) {
+	var out bytes.Buffer
+	ffr := NewFFReader([]byte(`\t\n\r"`))
+	err := ffr.SliceString(&out)
+	if err != nil {
+		t.Fatalf("unexpected SliceString error: %v", err)
+	}
+}
+
+func TestInvalidEscape(t *testing.T) {
+	var out bytes.Buffer
+	ffr := NewFFReader([]byte(`\x134"`))
+	err := ffr.SliceString(&out)
+	if err == nil {
+		t.Fatalf("expected SliceString escape decode error")
 	}
 }

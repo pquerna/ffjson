@@ -266,6 +266,12 @@ func tError(t *testing.T, input string, targetCount int, targetError FFErr) {
 		t.Fatalf("ffl.PosWithLine(): expected >=0 values. line=%v char=%v",
 			line, char)
 	}
+
+	berr := ffl.WrapErr(ffl.Error.ToError())
+	if berr == nil {
+		t.Fatalf("expected error")
+	}
+
 }
 
 func TestInvalid(t *testing.T) {
@@ -274,7 +280,7 @@ func TestInvalid(t *testing.T) {
 }
 
 func TestCapture(t *testing.T) {
-	ffl := NewFFLexer([]byte(`{"hello": {"blah": [null]}}`))
+	ffl := NewFFLexer([]byte(`{"hello": {"blah": [null, 1]}}`))
 
 	err := scanToTok(ffl, FFTok_left_bracket)
 	if err != nil {
@@ -291,7 +297,7 @@ func TestCapture(t *testing.T) {
 		t.Fatalf("CaptureField failed: %v", err)
 	}
 
-	if bytes.Compare(buf, []byte(`{"blah": [null]}`)) != 0 {
+	if bytes.Compare(buf, []byte(`{"blah": [null, 1]}`)) != 0 {
 		t.Fatalf("didnt capture subfield: buf: %v", string(buf))
 	}
 }
