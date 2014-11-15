@@ -260,15 +260,21 @@ func tError(t *testing.T, input string, targetCount int, targetError FFErr) {
 		t.Fatalf("Expected error token %v, but got %v input: %v",
 			targetError, ffl.Error, input)
 	}
+
+	line, char := ffl.reader.PosWithLine()
+	if line == 0 || char == 0 {
+		t.Fatalf("ffl.PosWithLine(): expected >=0 values. line=%v char=%v",
+			line, char)
+	}
 }
 
-func TestBroken(t *testing.T) {
+func TestInvalid(t *testing.T) {
 	tError(t, `{"a": nul}`, 4, FFErr_invalid_string)
 	tError(t, `{"a": 1.a}`, 4, FFErr_missing_integer_after_decimal)
 }
 
 func TestCapture(t *testing.T) {
-	ffl := NewFFLexer([]byte(`{"hello": {"blah": null}}`))
+	ffl := NewFFLexer([]byte(`{"hello": {"blah": [null]}}`))
 
 	err := scanToTok(ffl, FFTok_left_bracket)
 	if err != nil {
@@ -285,7 +291,7 @@ func TestCapture(t *testing.T) {
 		t.Fatalf("CaptureField failed: %v", err)
 	}
 
-	if bytes.Compare(buf, []byte(`{"blah": null}`)) != 0 {
+	if bytes.Compare(buf, []byte(`{"blah": [null]}`)) != 0 {
 		t.Fatalf("didnt capture subfield: buf: %v", string(buf))
 	}
 }

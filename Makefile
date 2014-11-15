@@ -10,6 +10,16 @@ deps:
 fmt:
 	go fmt github.com/pquerna/ffjson/...
 
+cov:
+	# TODO: cleanup this make target.
+	mkdir -p coverage
+	rm -f coverage/*.html
+	gocov test github.com/pquerna/ffjson/scanner | gocov-html > coverage/scanner.html
+	# gocov test github.com/pquerna/ffjson/generator | gocov-html > coverage/generator.html
+	# gocov test github.com/pquerna/ffjson/inception | gocov-html > coverage/inception.html
+	gocov test github.com/pquerna/ffjson/pills | gocov-html > coverage/pills.html
+	@echo "coverage written"
+
 test-core:
 	go test -v github.com/pquerna/ffjson/scanner github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/pills
 
