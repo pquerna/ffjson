@@ -74,20 +74,17 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
 
-	if typ.Implements(marshalerBufType) || typeInInception(ic, typ) {
-		out += "err = " + name + ".MarshalJSONBuf(buf)" + "\n"
-		out += "if err != nil {" + "\n"
-		out += "  return err" + "\n"
-		out += "}" + "\n"
-		return out
-	}
+	if typ.Implements(marshalerBufType) ||
+		typeInInception(ic, typ) ||
+		typ.Implements(marshalerType) ||
+		reflect.PtrTo(typ).Implements(marshalerType) {
 
-	if typ.Implements(marshalerType) {
-		out += "obj, err = " + name + ".MarshalJSON()" + "\n"
-		out += "if err != nil {" + "\n"
-		out += "  return err" + "\n"
-		out += "}" + "\n"
-		out += "buf.Write(obj)" + "\n"
+		out += tplStr(encodeTpl["handleMarshaler"], handleMarshaler{
+			IC:             ic,
+			Name:           name,
+			MarshalJSONBuf: typ.Implements(marshalerBufType) || typeInInception(ic, typ),
+			Marshaler:      typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType),
+		})
 		return out
 	}
 
