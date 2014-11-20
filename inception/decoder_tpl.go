@@ -30,7 +30,9 @@ var handleArrayTpl *template.Template
 var handleStringTpl *template.Template
 var handleBoolTpl *template.Template
 var handlePtrTpl *template.Template
-var constKeysTpl *template.Template
+var headerTpl *template.Template
+var ujFuncTpl *template.Template
+var handleUnmarshalerTpl *template.Template
 
 func init() {
 	var tplFuncs = template.FuncMap{
@@ -48,7 +50,9 @@ func init() {
 	handleArrayTpl = template.Must(template.New("handleArray").Funcs(tplFuncs).Parse(handleArrayTxt))
 	handleBoolTpl = template.Must(template.New("handleBool").Funcs(tplFuncs).Parse(handleBoolTxt))
 	handlePtrTpl = template.Must(template.New("handlePtr").Funcs(tplFuncs).Parse(handlePtrTxt))
-	constKeysTpl = template.Must(template.New("constKeys").Funcs(tplFuncs).Parse(constKeysTxt))
+	headerTpl = template.Must(template.New("header").Funcs(tplFuncs).Parse(headerTxt))
+	ujFuncTpl = template.Must(template.New("ujFunc").Funcs(tplFuncs).Parse(ujFuncTxt))
+	handleUnmarshalerTpl = template.Must(template.New("handleUnmarshaler").Funcs(tplFuncs).Parse(handleUnmarshalerTxt))
 }
 
 func tplStr(t *template.Template, data interface{}) string {
@@ -252,12 +256,12 @@ var handlePtrTxt = `
 }
 `
 
-type constKeys struct {
+type header struct {
 	IC *Inception
 	SI *StructInfo
 }
 
-var constKeysTxt = `
+var headerTxt = `
 const (
 	ffj_t_{{.SI.Name}}base = iota
 	ffj_t_{{.SI.Name}}no_such_key
@@ -269,4 +273,187 @@ const (
 		{{end}}
 	{{end}}
 )
+
+{{with $si := .SI}}
+	{{range $index, $field := $si.Fields}}
+		{{if ne $field.JsonName "-"}}
+var ffj_key_{{$si.Name}}_{{$field.Name}} = []byte({{$field.JsonName}})
+		{{end}}
+	{{end}}
+{{end}}
+
+`
+
+type ujFunc struct {
+	IC          *Inception
+	SI          *StructInfo
+	ValidValues []string
+}
+
+var ujFuncTxt = `
+{{$si := .SI}}
+{{$ic := .IC}}
+
+func (uj *{{.SI.Name}}) XUnmarshalJSON(input []byte) error {
+	fs := ffjson_scanner.NewFFLexer(input)
+    return uj.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_map_start)
+}
+
+func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *ffjson_scanner.FFLexer, state ffjson_scanner.FFParseState) error {
+	var err error = nil
+	currentKey := ffj_t_{{.SI.Name}}base
+	_ = currentKey
+	tok := ffjson_scanner.FFTok_init
+	wantedTok := ffjson_scanner.FFTok_init
+
+mainparse:
+	for {
+		tok = fs.Scan()
+		//	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))
+		if tok == ffjson_scanner.FFTok_error {
+			goto tokerror
+		}
+
+		switch state {
+
+		case ffjson_scanner.FFParse_map_start:
+			if tok != ffjson_scanner.FFTok_left_bracket {
+				wantedTok = ffjson_scanner.FFTok_left_bracket
+				goto wrongtokenerror
+			}
+			state = ffjson_scanner.FFParse_want_key
+			continue
+
+		case ffjson_scanner.FFParse_after_value:
+			if tok == ffjson_scanner.FFTok_comma {
+				state = ffjson_scanner.FFParse_want_key
+			} else if tok == ffjson_scanner.FFTok_right_bracket {
+				goto done
+			} else {
+				wantedTok = ffjson_scanner.FFTok_comma
+				goto wrongtokenerror
+			}
+
+		case ffjson_scanner.FFParse_want_key:
+			// json {} ended. goto exit. woo.
+			if tok == ffjson_scanner.FFTok_right_bracket {
+				goto done
+			}
+			if tok != ffjson_scanner.FFTok_string {
+				wantedTok = ffjson_scanner.FFTok_string
+				goto wrongtokenerror
+			}
+
+			kn := fs.Output.Bytes()
+
+			{{range $index, $field := $si.Fields}}
+			{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+				currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+				state = ffjson_scanner.FFParse_want_colon
+				continue
+			{{end}}} else {
+				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				state = ffjson_scanner.FFParse_want_colon
+				continue
+			}
+
+		case ffjson_scanner.FFParse_want_colon:
+			if tok != ffjson_scanner.FFTok_colon {
+				wantedTok = ffjson_scanner.FFTok_colon
+				goto wrongtokenerror
+			}
+			state = ffjson_scanner.FFParse_want_value
+			continue
+		case ffjson_scanner.FFParse_want_value:
+
+			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == ffjson_scanner.{{$v}}{{end}} {
+				switch currentKey {
+				{{range $index, $field := $si.Fields}}
+				case ffj_t_{{$si.Name}}_{{$field.Name}}:
+					goto handle_{{$field.Name}}
+				{{end}}
+				case ffj_t_{{$si.Name}}no_such_key:
+					err = fs.SkipField(tok)
+					if err != nil {
+						return fs.WrapErr(err)
+					}
+					state = ffjson_scanner.FFParse_after_value
+					goto mainparse
+				}
+			} else {
+				goto wantedvalue
+			}
+		}
+	}
+
+{{range $index, $field := $si.Fields}}
+handle_{{$field.Name}}:
+	{{with $fieldName := $field.Name | printf "uj.%s"}}
+		{{handleField $ic $fieldName $field.Typ}}
+		state = ffjson_scanner.FFParse_after_value
+		goto mainparse
+	{{end}}
+{{end}}
+
+wraperr:
+	return fs.WrapErr(err)
+wantedvalue:
+	return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+wrongtokenerror:
+	return fs.WrapErr(fmt.Errorf("ffjson: wanted token: %v, but got token: %v output=%s", wantedTok, tok, fs.Output.String()))
+tokerror:
+	if fs.BigError != nil {
+		return fs.BigError
+	}
+	err = fs.Error.ToError()
+	if err != nil {
+		return fs.WrapErr(err)
+	}
+	panic("ffjson-generated: unreachable, please report bug.")
+done:
+	return nil
+}
+
+`
+
+type handleUnmarshaler struct {
+	IC                   *Inception
+	Name                 string
+	Type                 reflect.Type
+	Ptr                  reflect.Kind
+	UnmarshalJSONFFLexer bool
+	Unmarshaler          bool
+}
+
+var handleUnmarshalerTxt = `
+	{{if eq .UnmarshalJSONFFLexer true}}
+	{
+		{{if eq .Type.Kind .Ptr }}
+			if {{.Name}} == nil {
+				{{.Name}} = new({{.Type.Elem.Name}})
+			}
+		{{end}}
+		err = {{.Name}}.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = ffjson_scanner.FFParse_after_value
+		goto mainparse
+	}
+	{{end}}
+	{{if eq .Unmarshaler true}}
+	{
+		tbuf, err := fs.CaptureField(tok)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+
+		err = {{.Name}}.UnmarshalJSON(tbuf)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		state = ffjson_scanner.FFParse_after_value
+		goto mainparse
+	}
+	{{end}}
 `
