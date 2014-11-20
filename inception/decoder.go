@@ -40,12 +40,12 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	ic.OutputImports[`"bytes"`] = true
 	ic.OutputImports[`"fmt"`] = true
 
-	out += tplStr(headerTpl, header{
+	out += tplStr(decodeTpl["header"], header{
 		IC: ic,
 		SI: si,
 	})
 
-	out += tplStr(ujFuncTpl, ujFunc{
+	out += tplStr(decodeTpl["ujFunc"], ujFunc{
 		SI:          si,
 		IC:          ic,
 		ValidValues: validValues,
@@ -64,7 +64,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out := ""
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
-	out += tplStr(handleUnmarshalerTpl, handleUnmarshaler{
+	out += tplStr(decodeTpl["handleUnmarshaler"], handleUnmarshaler{
 		IC:                   ic,
 		Name:                 name,
 		Type:                 typ,
@@ -100,14 +100,14 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
 		ic.OutputImports[`"errors"`] = true
-		out += tplStr(handleBoolTpl, handleBool{
+		out += tplStr(decodeTpl["handleBool"], handleBool{
 			Name: name,
 			Typ:  typ,
 		})
 
 	case reflect.Ptr,
 		reflect.Interface:
-		out += tplStr(handlePtrTpl, handlePtr{
+		out += tplStr(decodeTpl["handlePtr"], handlePtr{
 			IC:   ic,
 			Name: name,
 			Typ:  typ,
@@ -115,7 +115,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Array,
 		reflect.Slice:
-		out += tplStr(handleArrayTpl, handleArray{
+		out += tplStr(decodeTpl["handleArray"], handleArray{
 			IC:   ic,
 			Name: name,
 			Typ:  typ,
@@ -123,7 +123,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		})
 
 	case reflect.String:
-		out += tplStr(handleStringTpl, handleString{
+		out += tplStr(decodeTpl["handleString"], handleString{
 			Name:     name,
 			Typ:      typ,
 			TakeAddr: takeAddr,
@@ -131,7 +131,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	default:
 		// TODO(pquerna): layering. let templates declare their needed modules?
 		ic.OutputImports[`"encoding/json"`] = true
-		out += tplStr(handleFallbackTpl, handleFallback{
+		out += tplStr(decodeTpl["handleFallback"], handleFallback{
 			Name: name,
 			Typ:  typ,
 			Kind: typ.Kind(),
@@ -142,14 +142,14 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 }
 
 func getAllowTokens(name string, tokens ...string) string {
-	return tplStr(allowTokensTpl, allowTokens{
+	return tplStr(decodeTpl["allowTokens"], allowTokens{
 		Name:   name,
 		Tokens: tokens,
 	})
 }
 
 func getNumberHandler(ic *Inception, name string, takeAddr bool, typ reflect.Type, parsefunc string) string {
-	return tplStr(handlerNumericTpl, handlerNumeric{
+	return tplStr(decodeTpl["handlerNumeric"], handlerNumeric{
 		Name:      name,
 		ParseFunc: parsefunc,
 		TakeAddr:  takeAddr,

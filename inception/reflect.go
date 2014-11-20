@@ -114,6 +114,11 @@ func extractFields(obj interface{}) []*StructField {
 			OmitEmpty:        omitEmpty,
 			ForceString:      forceString,
 		}
+
+		if sf.JsonName == "-" {
+			continue
+		}
+
 		rv = append(rv, sf)
 	}
 

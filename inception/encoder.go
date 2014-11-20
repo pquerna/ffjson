@@ -73,6 +73,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 	var out = ""
+
 	if typ.Implements(marshalerBufType) || typeInInception(ic, typ) {
 		out += "err = " + name + ".MarshalJSONBuf(buf)" + "\n"
 		out += "if err != nil {" + "\n"
@@ -96,6 +97,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, " + name + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
@@ -103,6 +105,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
 	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
@@ -125,6 +128,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
 	case reflect.String:
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.WriteJsonString(buf, " + name + ")" + "\n"
 	case reflect.Ptr,
 		reflect.Interface:
@@ -172,7 +176,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
-	ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"
@@ -195,10 +198,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += "buf.WriteString(`{`)" + "\n"
 
 	for _, f := range si.Fields {
-		if f.JsonName == "-" {
-			continue
-		}
-
 		if f.OmitEmpty {
 			out += getOmitEmpty(ic, f)
 		}

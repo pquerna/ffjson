@@ -18,24 +18,29 @@
 package ffjsoninception
 
 import (
-	"bytes"
 	"reflect"
 	"text/template"
 )
 
-var handlerNumericTpl *template.Template
-var allowTokensTpl *template.Template
-var handleFallbackTpl *template.Template
-var handleArrayTpl *template.Template
-var handleStringTpl *template.Template
-var handleBoolTpl *template.Template
-var handlePtrTpl *template.Template
-var headerTpl *template.Template
-var ujFuncTpl *template.Template
-var handleUnmarshalerTpl *template.Template
+var decodeTpl map[string]*template.Template
 
 func init() {
-	var tplFuncs = template.FuncMap{
+	decodeTpl = make(map[string]*template.Template)
+
+	funcs := map[string]string{
+		"handlerNumeric":    handlerNumericTxt,
+		"allowTokens":       allowTokensTxt,
+		"handleFallback":    handleFallbackTxt,
+		"handleString":      handleStringTxt,
+		"handleArray":       handleArrayTxt,
+		"handleBool":        handleBoolTxt,
+		"handlePtr":         handlePtrTxt,
+		"header":            headerTxt,
+		"ujFunc":            ujFuncTxt,
+		"handleUnmarshaler": handleUnmarshalerTxt,
+	}
+
+	tplFuncs := template.FuncMap{
 		"getAllowTokens":  getAllowTokens,
 		"getNumberSize":   getNumberSize,
 		"getNumberCast":   getNumberCast,
@@ -43,25 +48,9 @@ func init() {
 		"handleFieldAddr": handleFieldAddr,
 	}
 
-	handlerNumericTpl = template.Must(template.New("handlerNumeric").Funcs(tplFuncs).Parse(handlerNumericTxt))
-	allowTokensTpl = template.Must(template.New("allowTokens").Parse(allowTokensTxt))
-	handleFallbackTpl = template.Must(template.New("handleFallback").Funcs(tplFuncs).Parse(handleFallbackTxt))
-	handleStringTpl = template.Must(template.New("handleString").Funcs(tplFuncs).Parse(handleStringTxt))
-	handleArrayTpl = template.Must(template.New("handleArray").Funcs(tplFuncs).Parse(handleArrayTxt))
-	handleBoolTpl = template.Must(template.New("handleBool").Funcs(tplFuncs).Parse(handleBoolTxt))
-	handlePtrTpl = template.Must(template.New("handlePtr").Funcs(tplFuncs).Parse(handlePtrTxt))
-	headerTpl = template.Must(template.New("header").Funcs(tplFuncs).Parse(headerTxt))
-	ujFuncTpl = template.Must(template.New("ujFunc").Funcs(tplFuncs).Parse(ujFuncTxt))
-	handleUnmarshalerTpl = template.Must(template.New("handleUnmarshaler").Funcs(tplFuncs).Parse(handleUnmarshalerTxt))
-}
-
-func tplStr(t *template.Template, data interface{}) string {
-	buf := bytes.Buffer{}
-	err := t.Execute(&buf, data)
-	if err != nil {
-		panic(err)
+	for k, v := range funcs {
+		decodeTpl[k] = template.Must(template.New(k).Funcs(tplFuncs).Parse(v))
 	}
-	return buf.String()
 }
 
 type handlerNumeric struct {
