@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pills
+package internal
 
 // An extFloat represents an extended floating-point number, with more
 // precision than a float64. It does not try to save bits: the

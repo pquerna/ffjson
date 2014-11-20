@@ -36,7 +36,7 @@ var validValues []string = []string{
 func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	out := ""
 	ic.OutputImports[`ffjson_scanner "github.com/pquerna/ffjson/scanner"`] = true
-	ic.OutputImports[`ffjson_pills "github.com/pquerna/ffjson/pills"`] = true
+	ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 	ic.OutputImports[`"bytes"`] = true
 	ic.OutputImports[`"fmt"`] = true
 

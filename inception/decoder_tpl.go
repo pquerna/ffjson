@@ -74,9 +74,9 @@ type handlerNumeric struct {
 var handlerNumericTxt = `
 {
 	{{if eq .ParseFunc "ParseFloat" }}
-	tval, err := ffjson_pills.{{ .ParseFunc}}(fs.Output.Bytes(), {{getNumberSize .Typ}})
+	tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), {{getNumberSize .Typ}})
 	{{else}}
-	tval, err := ffjson_pills.{{ .ParseFunc}}(fs.Output.Bytes(), 10, {{getNumberSize .Typ}})
+	tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), 10, {{getNumberSize .Typ}})
 	{{end}}
 
 	if err != nil {

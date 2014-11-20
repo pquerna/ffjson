@@ -20,7 +20,7 @@ package ffjsoninception
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/pquerna/ffjson/pills"
+	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/pquerna/ffjson/scanner"
 	"reflect"
 	"sort"
@@ -103,7 +103,7 @@ func extractFields(obj interface{}) []*StructField {
 		}
 
 		var buf bytes.Buffer
-		pills.WriteJsonString(&buf, jsonName)
+		fflib.WriteJsonString(&buf, jsonName)
 
 		sf := &StructField{
 			Name:             f.Name,

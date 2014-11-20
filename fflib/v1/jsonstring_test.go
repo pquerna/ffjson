@@ -15,7 +15,7 @@
  *
  */
 
-package pills
+package v1
 
 import (
 	"bytes"

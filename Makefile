@@ -17,11 +17,11 @@ cov:
 	gocov test github.com/pquerna/ffjson/scanner | gocov-html > coverage/scanner.html
 	# gocov test github.com/pquerna/ffjson/generator | gocov-html > coverage/generator.html
 	# gocov test github.com/pquerna/ffjson/inception | gocov-html > coverage/inception.html
-	gocov test github.com/pquerna/ffjson/pills | gocov-html > coverage/pills.html
+	gocov test github.com/pquerna/ffjson/fflib/v1 | gocov-html > coverage/fflib.html
 	@echo "coverage written"
 
 test-core:
-	go test -v github.com/pquerna/ffjson/scanner github.com/pquerna/ffjson github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/pills
+	go test -v github.com/pquerna/ffjson/scanner github.com/pquerna/ffjson/generator github.com/pquerna/ffjson/inception github.com/pquerna/ffjson/fflib/v1
 
 test: ffize test-core
 	go test -v github.com/pquerna/ffjson/tests/...

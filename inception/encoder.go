@@ -19,7 +19,6 @@ package ffjsoninception
 
 import (
 	"fmt"
-	"github.com/pquerna/ffjson/pills"
 	"reflect"
 )
 
@@ -97,16 +96,14 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		ic.OutputPills[pills.Pill_FormatBits] = true
-		out += "ffjson_FormatBits(buf, uint64(" + name + "), 10, " + name + " < 0)" + "\n"
+		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, " + name + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
-		ic.OutputPills[pills.Pill_FormatBits] = true
-		out += "ffjson_FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
+		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
 	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 'f', 10, 32))" + "\n"
@@ -128,8 +125,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
 	case reflect.String:
-		ic.OutputPills[pills.Pill_WriteJsonString] = true
-		out += "ffjson_WriteJsonString(buf, " + name + ")" + "\n"
+		out += "fflib.WriteJsonString(buf, " + name + ")" + "\n"
 	case reflect.Ptr,
 		reflect.Interface:
 		out += "if " + name + "!= nil {" + "\n"
@@ -176,6 +172,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
+	ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"

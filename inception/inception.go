@@ -20,7 +20,6 @@ package ffjsoninception
 import (
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/pills"
 	"io/ioutil"
 	"os"
 )
@@ -32,7 +31,6 @@ type Inception struct {
 	PackageName   string
 	OutputImports map[string]bool
 	OutputFuncs   []string
-	OutputPills   map[pills.Pill]bool
 }
 
 func NewInception(inputPath string, packageName string, outputPath string) *Inception {
@@ -43,7 +41,6 @@ func NewInception(inputPath string, packageName string, outputPath string) *Ince
 		PackageName:   packageName,
 		OutputFuncs:   make([]string, 0),
 		OutputImports: make(map[string]bool),
-		OutputPills:   make(map[pills.Pill]bool),
 	}
 }
 
