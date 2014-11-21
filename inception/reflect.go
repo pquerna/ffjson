@@ -35,6 +35,7 @@ type StructField struct {
 	HasMarshalJSON   bool
 	HasUnmarshalJSON bool
 	Pointer          bool
+	Tagged           bool
 }
 
 type FieldByJsonName []*StructField
@@ -73,68 +74,7 @@ var marshalerBufType = reflect.TypeOf(new(MarshalerBuf)).Elem()
 var unmarshalerType = reflect.TypeOf(new(json.Unmarshaler)).Elem()
 var unmarshalFasterType = reflect.TypeOf(new(UnmarshalFaster)).Elem()
 
-/*
-func extractFields(obj interface{}) []*StructField {
-	rv := make([]*StructField, 0)
-	typ := reflect.TypeOf(obj)
-	for i := 0; i < typ.NumField(); i++ {
-		sf := typ.Field(i)
-		ft := sf.Type
-
-		// based on checks in encoding/json/encode.go, we don't export everything.
-		if sf.PkgPath != "" { // unexported
-			continue
-		}
-
-		jsonName := f.Name
-		omitEmpty := false
-		forceString := false
-
-		tag := sf.Tag.Get("json")
-
-		if tag != "" {
-			tagName, opts := parseTag(tag)
-			if tagName != "" {
-				jsonName = tagName
-			}
-			omitEmpty = opts.Contains("omitempty")
-			forceString = opts.Contains("string")
-		}
-
-		if jsonName == "-" {
-			continue
-		}
-
-		if ft.Name() == "" && ft.Kind() == reflect.Ptr {
-			ft = ft.Elem()
-		}
-
-		if jsonName != "" || !sf.Anonymous || ft.Kind() != reflect.Struct {
-			var buf bytes.Buffer
-			fflib.WriteJsonString(&buf, jsonName)
-
-			sf := &StructField{
-				Name:             sf.Name,
-				JsonName:         string(buf.Bytes()),
-				Typ:              ft,
-				HasMarshalJSON:   ft.Implements(marshalerType),
-				HasUnmarshalJSON: ft.Implements(unmarshalerType),
-				OmitEmpty:        omitEmpty,
-				ForceString:      forceString,
-			}
-		}
-
-		rv = append(rv, sf)
-	}
-
-	sort.Sort(FieldByJsonName(rv))
-
-	return rv
-}
-
-*/
-
-// typeFields returns a list of fields that JSON should recognize for the given type.
+// extractFields returns a list of fields that JSON should recognize for the given type.
 // The algorithm is breadth-first search over the set of structs to include - the top struct
 // and then any reachable anonymous structs.
 func extractFields(obj interface{}) []*StructField {
@@ -191,6 +131,7 @@ func extractFields(obj interface{}) []*StructField {
 
 				// Record found field and index sequence.
 				if name != "" || !sf.Anonymous || ft.Kind() != reflect.Struct {
+					tagged := name != ""
 					if name == "" {
 						name = sf.Name
 					}
@@ -207,6 +148,7 @@ func extractFields(obj interface{}) []*StructField {
 						OmitEmpty:        opts.Contains("omitempty"),
 						ForceString:      opts.Contains("string"),
 						Pointer:          ptr,
+						Tagged:           tagged,
 					}
 
 					fields = append(fields, field)
@@ -234,39 +176,66 @@ func extractFields(obj interface{}) []*StructField {
 	}
 
 	sort.Sort(FieldByJsonName(fields))
-	/*
-		// Delete all fields that are hidden by the Go rules for embedded fields,
-		// except that fields with JSON tags are promoted.
 
-		// The fields are sorted in primary order of name, secondary order
-		// of field index length. Loop over names; for each name, delete
-		// hidden fields by choosing the one dominant field that survives.
-		out := fields[:0]
-		for advance, i := 0, 0; i < len(fields); i += advance {
-			// One iteration per name.
-			// Find the sequence of fields with the name of this first field.
-			fi := fields[i]
-			name := fi.name
-			for advance = 1; i+advance < len(fields); advance++ {
-				fj := fields[i+advance]
-				if fj.name != name {
-					break
-				}
-			}
-			if advance == 1 { // Only one field with this name
-				out = append(out, fi)
-				continue
-			}
-			dominant, ok := dominantField(fields[i : i+advance])
-			if ok {
-				out = append(out, dominant)
+	// Delete all fields that are hidden by the Go rules for embedded fields,
+	// except that fields with JSON tags are promoted.
+
+	// The fields are sorted in primary order of name, secondary order
+	// of field index length. Loop over names; for each name, delete
+	// hidden fields by choosing the one dominant field that survives.
+	out := fields[:0]
+	for advance, i := 0, 0; i < len(fields); i += advance {
+		// One iteration per name.
+		// Find the sequence of fields with the name of this first field.
+		fi := fields[i]
+		name := fi.JsonName
+		for advance = 1; i+advance < len(fields); advance++ {
+			fj := fields[i+advance]
+			if fj.JsonName != name {
+				break
 			}
 		}
+		if advance == 1 { // Only one field with this name
+			out = append(out, fi)
+			continue
+		}
+		dominant, ok := dominantField(fields[i : i+advance])
+		if ok {
+			out = append(out, dominant)
+		}
+	}
 
-		fields = out
-		sort.Sort(byIndex(fields))
+	fields = out
 
-		return fields
-	*/
 	return fields
+}
+
+// dominantField looks through the fields, all of which are known to
+// have the same name, to find the single field that dominates the
+// others using Go's embedding rules, modified by the presence of
+// JSON tags. If there are multiple top-level fields, the boolean
+// will be false: This condition is an error in Go and we skip all
+// the fields.
+func dominantField(fields []*StructField) (*StructField, bool) {
+	tagged := -1 // Index of first tagged field.
+	for i, f := range fields {
+		if f.Tagged {
+			if tagged >= 0 {
+				// Multiple tagged fields at the same level: conflict.
+				// Return no field.
+				return nil, false
+			}
+			tagged = i
+		}
+	}
+	if tagged >= 0 {
+		return fields[tagged], true
+	}
+	// All remaining fields have the same length. If there's more than one,
+	// we have a conflict (two fields named "X" at the same level) and we
+	// return no field.
+	if len(fields) > 1 {
+		return nil, false
+	}
+	return fields[0], true
 }
