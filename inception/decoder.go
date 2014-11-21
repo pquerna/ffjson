@@ -56,11 +56,11 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	return nil
 }
 
-func handleField(ic *Inception, name string, typ reflect.Type) string {
-	return handleFieldAddr(ic, name, false, typ)
+func handleField(ic *Inception, name string, typ reflect.Type, ptr bool) string {
+	return handleFieldAddr(ic, name, false, typ, ptr)
 }
 
-func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type) string {
+func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type, ptr bool) string {
 	out := ""
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
@@ -69,12 +69,12 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		Name:                 name,
 		Type:                 typ,
 		Ptr:                  reflect.Ptr,
+		TakeAddr:             takeAddr || ptr,
 		UnmarshalJSONFFLexer: typ.Implements(unmarshalFasterType) || typeInInception(ic, typ),
 		Unmarshaler:          typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType),
 	})
 
 	// TODO(pquerna): generic handling of token type mismatching struct type
-
 	switch typ.Kind() {
 	case reflect.Int,
 		reflect.Int8,
@@ -82,7 +82,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Int32,
 		reflect.Int64:
 		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
-		out += getNumberHandler(ic, name, takeAddr, typ, "ParseInt")
+		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseInt")
 
 	case reflect.Uint,
 		reflect.Uint8,
@@ -90,12 +90,12 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Uint32,
 		reflect.Uint64:
 		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
-		out += getNumberHandler(ic, name, takeAddr, typ, "ParseUint")
+		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseUint")
 
 	case reflect.Float32,
 		reflect.Float64:
 		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_null")
-		out += getNumberHandler(ic, name, takeAddr, typ, "ParseFloat")
+		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseFloat")
 
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
@@ -126,7 +126,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		out += tplStr(decodeTpl["handleString"], handleString{
 			Name:     name,
 			Typ:      typ,
-			TakeAddr: takeAddr,
+			TakeAddr: takeAddr || ptr,
 		})
 	default:
 		// TODO(pquerna): layering. let templates declare their needed modules?

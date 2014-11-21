@@ -62,6 +62,12 @@ type handlerNumeric struct {
 
 var handlerNumericTxt = `
 {
+	{{if eq .TakeAddr true}}
+	if tok == ffjson_scanner.FFTok_null {
+		{{.Name}} = nil
+	} else {
+	{{end}}
+
 	{{if eq .ParseFunc "ParseFloat" }}
 	tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), {{getNumberSize .Typ}})
 	{{else}}
@@ -74,6 +80,7 @@ var handlerNumericTxt = `
 	{{if eq .TakeAddr true}}
 	ttypval := {{getNumberCast .Name .Typ }}(tval)
 	{{.Name}} = &ttypval
+	}
 	{{else}}
 	{{.Name}} = {{getNumberCast .Name .Typ}}(tval)
 	{{end}}
@@ -122,17 +129,23 @@ type handleString struct {
 
 var handleStringTxt = `
 {
-	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes"}}
 	{{if eq .TakeAddr true}}
-	var tval string
-	if tok == ffjson_scanner.FFTok_string_with_escapes {
-		// TODO: decoding escapes.
-		tval = fs.Output.String()
+	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes" "FFTok_null"}}
+	if tok == ffjson_scanner.FFTok_null {
+		{{.Name}} = nil
 	} else {
-		tval = fs.Output.String()
+		var tval string
+		if tok == ffjson_scanner.FFTok_string_with_escapes {
+			// TODO: decoding escapes.
+			tval = fs.Output.String()
+		} else {
+			tval = fs.Output.String()
+		}
+		{{.Name}} = &tval
+
 	}
-	{{.Name}} = &tval
 	{{else}}
+	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes"}}
 	if tok == ffjson_scanner.FFTok_string_with_escapes {
 		// TODO: decoding escapes.
 		{{.Name}} = fs.Output.String()
@@ -164,7 +177,9 @@ var handleArrayTxt = `
 	}
 
 	for {
+	{{$ptr := false}}
 	{{if eq .Typ.Elem.Kind .Ptr }}
+		{{$ptr := true}}
 		var v *{{.Typ.Elem.Elem.Name}}
 	{{else}}
 		var v {{.Typ.Elem.Name}}
@@ -181,7 +196,7 @@ var handleArrayTxt = `
 		if tok == ffjson_scanner.FFTok_comma {
 			continue
 		}
-		{{handleField .IC "v" .Typ.Elem}}
+		{{handleField .IC "v" .Typ.Elem $ptr}}
 		{{.Name}} = append({{.Name}}, v)
 	}
 }
@@ -196,7 +211,11 @@ type handleBool struct {
 var handleBoolTxt = `
 {
 	{{getAllowTokens .Typ.Name "FFTok_bool" "FFTok_null"}}
-
+	{{if eq .TakeAddr true}}
+	if tok == ffjson_scanner.FFTok_null {
+		{{.Name}} = nil
+	} else {
+	{{end}}
 	tmpb := fs.Output.Bytes()
 
 	{{if eq .TakeAddr true}}
@@ -218,8 +237,10 @@ var handleBoolTxt = `
 		err = errors.New("unexpected bytes for true/false value")
 		goto wraperr
 	}
+
 	{{if eq .TakeAddr true}}
 	{{.Name}} = &tval
+	}
 	{{end}}
 }
 `
@@ -239,7 +260,7 @@ var handlePtrTxt = `
 			{{.Name}} = new({{.Typ.Elem.Name}})
 		}
 
-		{{handleFieldAddr .IC .Name true .Typ.Elem}}
+		{{handleFieldAddr .IC .Name true .Typ.Elem false}}
 
 	}
 }
@@ -378,7 +399,7 @@ mainparse:
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
-		{{handleField $ic $fieldName $field.Typ}}
+		{{handleField $ic $fieldName $field.Typ $field.Pointer}}
 		state = ffjson_scanner.FFParse_after_value
 		goto mainparse
 	{{end}}
@@ -410,6 +431,7 @@ type handleUnmarshaler struct {
 	Name                 string
 	Type                 reflect.Type
 	Ptr                  reflect.Kind
+	TakeAddr             bool
 	UnmarshalJSONFFLexer bool
 	Unmarshaler          bool
 }
@@ -420,6 +442,11 @@ var handleUnmarshalerTxt = `
 		{{if eq .Type.Kind .Ptr }}
 			if {{.Name}} == nil {
 				{{.Name}} = new({{.Type.Elem.Name}})
+			}
+		{{end}}
+		{{if eq .TakeAddr true }}
+			if {{.Name}} == nil {
+				{{.Name}} = new({{.Type.Name}})
 			}
 		{{end}}
 		err = {{.Name}}.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)
@@ -437,6 +464,11 @@ var handleUnmarshalerTxt = `
 			return fs.WrapErr(err)
 		}
 
+		{{if eq .TakeAddr true }}
+		if {{.Name}} == nil {
+			{{.Name}} = new({{.Type.Name}})
+		}
+		{{end}}
 		err = {{.Name}}.UnmarshalJSON(tbuf)
 		if err != nil {
 			return fs.WrapErr(err)

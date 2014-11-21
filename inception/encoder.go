@@ -71,7 +71,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 	}
 }
 
-func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
+func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) string {
 	var out = ""
 
 	if typ.Implements(marshalerBufType) ||
@@ -88,6 +88,11 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		return out
 	}
 
+	ptname := name
+	if ptr {
+		ptname = "*" + name
+	}
+
 	switch typ.Kind() {
 	case reflect.Int,
 		reflect.Int8,
@@ -95,7 +100,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Int32,
 		reflect.Int64:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, " + name + " < 0)" + "\n"
+		out += "fflib.FormatBits(buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
@@ -103,13 +108,13 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		reflect.Uint64,
 		reflect.Uintptr:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(buf, uint64(" + name + "), 10, false)" + "\n"
+		out += "fflib.FormatBits(buf, uint64(" + ptname + "), 10, false)" + "\n"
 	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
-		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + name + "), 'f', 10, 32))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + ptname + "), 'f', 10, 32))" + "\n"
 	case reflect.Float64:
 		ic.OutputImports[`"strconv"`] = true
-		out += "buf.Write(strconv.AppendFloat([]byte{}, " + name + ", 'f', 10, 64))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, " + ptname + ", 'f', 10, 64))" + "\n"
 	case reflect.Array,
 		reflect.Slice:
 		out += "if " + name + "!= nil {" + "\n"
@@ -118,7 +123,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "if i != 0 {" + "\n"
 		out += "buf.WriteString(`,`)" + "\n"
 		out += "}" + "\n"
-		out += getGetInnerValue(ic, "v", typ.Elem())
+		out += getGetInnerValue(ic, "v", typ.Elem(), false)
 		out += "}" + "\n"
 		out += "buf.WriteString(`]`)" + "\n"
 		out += "} else {" + "\n"
@@ -126,21 +131,21 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "}" + "\n"
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.WriteJsonString(buf, " + name + ")" + "\n"
+		out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
 	case reflect.Ptr,
 		reflect.Interface:
 		out += "if " + name + "!= nil {" + "\n"
 		switch typ.Elem().Kind() {
 		case reflect.Struct:
-			out += getGetInnerValue(ic, name, typ.Elem())
+			out += getGetInnerValue(ic, name, typ.Elem(), false)
 		default:
-			out += getGetInnerValue(ic, "*"+name, typ.Elem())
+			out += getGetInnerValue(ic, "*"+name, typ.Elem(), false)
 		}
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
 	case reflect.Bool:
-		out += "if " + name + " {" + "\n"
+		out += "if " + ptname + " {" + "\n"
 		out += "buf.WriteString(`true`)" + "\n"
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`false`)" + "\n"
@@ -154,11 +159,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type) string {
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
 	}
+
 	return out
 }
 
 func getValue(ic *Inception, sf *StructField) string {
-	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ)
+	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer)
 }
 
 func getTotalSize(si *StructInfo) uintptr {
@@ -199,6 +205,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 			out += getOmitEmpty(ic, f)
 		}
 
+		if f.Pointer {
+			out += "if mj." + f.Name + " != nil {" + "\n"
+		}
+
 		out += "if first == true {" + "\n"
 		out += "first = false" + "\n"
 		out += "} else {" + "\n"
@@ -208,6 +218,11 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		// JsonName is already escaped and quoted.
 		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
 		out += getValue(ic, f)
+
+		if f.Pointer {
+			out += "}" + "\n"
+		}
+
 		if f.OmitEmpty {
 			out += "}" + "\n"
 		}
