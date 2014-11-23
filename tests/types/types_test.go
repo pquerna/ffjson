@@ -51,6 +51,10 @@ func TestRoundTrip(t *testing.T) {
 	if !good {
 		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
 	}
+
+	if recordTripped.SuperBool != true {
+		t.Fatal("Embeded struct didn't Unmarshal")
+	}
 }
 
 func TestUnmarshalEmpty(t *testing.T) {
