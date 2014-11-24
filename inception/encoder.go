@@ -167,12 +167,30 @@ func getValue(ic *Inception, sf *StructField) string {
 	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer)
 }
 
+func p2(v uint32) uint32 {
+	v--
+	v |= v >> 1
+	v |= v >> 2
+	v |= v >> 4
+	v |= v >> 8
+	v |= v >> 16
+	v++
+	return v
+}
+
 func getTotalSize(si *StructInfo) uintptr {
 	rv := si.Typ.Size()
 	for _, f := range si.Fields {
 		rv += f.Typ.Size()
 	}
 	return rv
+}
+
+func getBufGrowSize(si *StructInfo) uint32 {
+
+	// TOOD(pquerna): automatically calc a better grow size based on history
+	// of a struct.
+	return p2(uint32(float32(getTotalSize(si)) * 3.0))
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
@@ -182,8 +200,8 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"
-	// TOOD(pquerna): automatically calc a good size!
-	out += fmt.Sprintf("buf.Grow(%d)\n", int(float32(getTotalSize(si))*4.0))
+
+	out += fmt.Sprintf("buf.Grow(%d)\n", getBufGrowSize(si))
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
