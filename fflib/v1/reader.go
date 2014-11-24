@@ -227,19 +227,9 @@ func (r *ffReader) SliceString(out FFBuffer) error {
 			if err != nil {
 				return err
 			}
+		} else if byteLookupTable[c]&IJC != 0 {
+			return fmt.Errorf("lex_string_invalid_json_char: %v", c)
 		}
-
-		/**
-		 * VEC - valid escaped control char
-		 * note.  the solidus '/' may be escaped or not.
-		 * IJC - invalid json char
-		 * VHC - valid hex char
-		 * NFP - needs further processing (from a string scanning perspective)
-		 * NUC - needs utf8 checking when enabled (from a string scanning perspective)
-		 */
-
-		// TODO(pquerna): rest of string parsing.
-		// fmt.Printf("FFTok_error lexString char=%d string=%s\n", c, string(r.s[r.i:j-1]))
 		continue
 	}
 
