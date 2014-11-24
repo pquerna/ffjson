@@ -60,6 +60,15 @@ func NewStructInfo(obj interface{}) *StructInfo {
 	}
 }
 
+func (si *StructInfo) FieldsByFirstByte() map[string][]*StructField {
+	rv := make(map[string][]*StructField)
+	for _, f := range si.Fields {
+		b := string(f.JsonName[1])
+		rv[b] = append(rv[b], f)
+	}
+	return rv
+}
+
 type MarshalerBuf interface {
 	MarshalJSONBuf(buf *bytes.Buffer) error
 }

@@ -355,16 +355,26 @@ mainparse:
 			}
 
 			kn := fs.Output.Bytes()
-
-			{{range $index, $field := $si.Fields}}
-			{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
-				currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
-				state = fflib.FFParse_want_colon
-				continue
-			{{end}}} else {
+			if len(kn) < 2 {
+				// "" case. hrm.
 				currentKey = ffj_t_{{.SI.Name}}no_such_key
 				state = fflib.FFParse_want_colon
-				continue
+				goto mainparse
+			} else {
+				switch kn[0] {
+				{{range $byte, $fields := $si.FieldsByFirstByte}}
+				case '{{$byte}}':
+					{{range $index, $field := $fields}}
+						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+						currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+						state = fflib.FFParse_want_colon
+						goto mainparse
+					{{end}} }
+				{{end}}
+				}
+				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				state = fflib.FFParse_want_colon
+				goto mainparse
 			}
 
 		case fflib.FFParse_want_colon:
