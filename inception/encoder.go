@@ -183,7 +183,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf bytes.Buffer` + "\n"
 	// TOOD(pquerna): automatically calc a good size!
-	out += fmt.Sprintf("buf.Grow(%d)\n", int(float32(getTotalSize(si))*3.0))
+	out += fmt.Sprintf("buf.Grow(%d)\n", int(float32(getTotalSize(si))*4.0))
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"

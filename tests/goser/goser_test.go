@@ -35,7 +35,6 @@ func TestRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
-
 	err = json.Unmarshal(buf1, &recordTripped)
 	if err != nil {
 		t.Fatalf("Unmarshal: %v", err)
