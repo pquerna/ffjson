@@ -140,7 +140,66 @@ func (r *ffReader) readU4(j int) (rune, error) {
 	return rune(rr), nil
 }
 
+func (r *ffReader) handleEscaped(c byte, j int, out FFBuffer) (int, error) {
+	if j >= r.l {
+		return 0, io.EOF
+	}
+
+	c = r.s[j]
+	j++
+
+	if c == 'u' {
+		ru, err := r.readU4(j)
+		if err != nil {
+			return 0, err
+		}
+
+		if utf16.IsSurrogate(ru) {
+			ru2, err := r.readU4(j + 6)
+			if err != nil {
+				return 0, err
+			}
+			out.Write(r.s[r.i : j-2])
+			r.i = j + 10
+			j = r.i
+			out.WriteRune(utf16.DecodeRune(ru, ru2))
+		} else {
+			out.Write(r.s[r.i : j-2])
+			r.i = j + 4
+			j = r.i
+			out.WriteRune(ru)
+		}
+		return j, nil
+	} else if byteLookupTable[c]&VEC == 0 {
+		return 0, fmt.Errorf("lex_string_invalid_escaped_char: %v", c)
+	} else {
+		out.Write(r.s[r.i : j-2])
+		r.i = j
+		j = r.i
+
+		switch c {
+		case '"':
+			out.WriteByte('"')
+		case '\\':
+			out.WriteByte('\\')
+		case 'b':
+			out.WriteByte('\b')
+		case 'f':
+			out.WriteByte('\f')
+		case 'n':
+			out.WriteByte('\n')
+		case 'r':
+			out.WriteByte('\r')
+		case 't':
+			out.WriteByte('\t')
+		}
+	}
+
+	return j, nil
+}
+
 func (r *ffReader) SliceString(out FFBuffer) error {
+	var err error
 	mask := IJC | NFP
 
 	// TODO(pquerna): string_with_escapes? de-escape here?
@@ -164,59 +223,9 @@ func (r *ffReader) SliceString(out FFBuffer) error {
 			}
 			return nil
 		} else if c == '\\' {
-			if j >= r.l {
-				return io.EOF
-			}
-
-			c = r.s[j]
-			j++
-
-			if c == 'u' {
-				ru, err := r.readU4(j)
-				if err != nil {
-					return err
-				}
-
-				if utf16.IsSurrogate(ru) {
-					ru2, err := r.readU4(j + 6)
-					if err != nil {
-						return err
-					}
-					out.Write(r.s[r.i : j-2])
-					r.i = j + 10
-					j = r.i
-					out.WriteRune(utf16.DecodeRune(ru, ru2))
-				} else {
-					out.Write(r.s[r.i : j-2])
-					r.i = j + 4
-					j = r.i
-					out.WriteRune(ru)
-				}
-
-				continue
-			} else if byteLookupTable[c]&VEC == 0 {
-				return fmt.Errorf("lex_string_invalid_escaped_char: %v", c)
-			} else {
-				out.Write(r.s[r.i : j-2])
-				r.i = j
-				j = r.i
-
-				switch c {
-				case '"':
-					out.WriteByte('"')
-				case '\\':
-					out.WriteByte('\\')
-				case 'b':
-					out.WriteByte('\b')
-				case 'f':
-					out.WriteByte('\f')
-				case 'n':
-					out.WriteByte('\n')
-				case 'r':
-					out.WriteByte('\r')
-				case 't':
-					out.WriteByte('\t')
-				}
+			j, err = r.handleEscaped(c, j, out)
+			if err != nil {
+				return err
 			}
 		}
 
