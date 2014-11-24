@@ -1,3 +1,5 @@
+// +build !amd64
+
 /**
  *  Copyright 2014 Paul Querna
  *
@@ -17,10 +19,7 @@
 
 package v1
 
-const sliceStringMask = IJC | NFP
-
 func scanString(s []byte, j int) (int, byte) {
-
 	for {
 		if j >= len(s) {
 			return j, 0

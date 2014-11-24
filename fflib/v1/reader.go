@@ -23,6 +23,8 @@ import (
 	"unicode/utf16"
 )
 
+const sliceStringMask = IJC | NFP
+
 type ffReader struct {
 	s []byte
 	i int
