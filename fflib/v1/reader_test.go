@@ -18,13 +18,12 @@
 package v1
 
 import (
-	"bytes"
 	"testing"
 )
 
 func tsliceString(t *testing.T, expected string, enc string) {
-	var out bytes.Buffer
-	ffr := NewFFReader([]byte(enc + `"`))
+	var out Buffer
+	ffr := newffReader([]byte(enc + `"`))
 	err := ffr.SliceString(&out)
 	if err != nil {
 		t.Fatalf("unexpect SliceString error: %v from %v", err, enc)
@@ -47,8 +46,8 @@ func TestUnicode(t *testing.T) {
 }
 
 func TestBadUnicode(t *testing.T) {
-	var out bytes.Buffer
-	ffr := NewFFReader([]byte(`\u20--"`))
+	var out Buffer
+	ffr := newffReader([]byte(`\u20--"`))
 	err := ffr.SliceString(&out)
 	if err == nil {
 		t.Fatalf("expected SliceString hex decode error")
@@ -56,8 +55,8 @@ func TestBadUnicode(t *testing.T) {
 }
 
 func TestNonUnicodeEscape(t *testing.T) {
-	var out bytes.Buffer
-	ffr := NewFFReader([]byte(`\t\n\r"`))
+	var out Buffer
+	ffr := newffReader([]byte(`\t\n\r"`))
 	err := ffr.SliceString(&out)
 	if err != nil {
 		t.Fatalf("unexpected SliceString error: %v", err)
@@ -65,8 +64,8 @@ func TestNonUnicodeEscape(t *testing.T) {
 }
 
 func TestInvalidEscape(t *testing.T) {
-	var out bytes.Buffer
-	ffr := NewFFReader([]byte(`\x134"`))
+	var out Buffer
+	ffr := newffReader([]byte(`\x134"`))
 	err := ffr.SliceString(&out)
 	if err == nil {
 		t.Fatalf("expected SliceString escape decode error")

@@ -18,27 +18,26 @@
 package v1
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"unicode/utf16"
 )
 
-type FFReader struct {
+type ffReader struct {
 	s []byte
 	i int
 	l int
 }
 
-func NewFFReader(d []byte) *FFReader {
-	return &FFReader{
+func newffReader(d []byte) *ffReader {
+	return &ffReader{
 		s: d,
 		i: 0,
 		l: len(d),
 	}
 }
 
-func (r *FFReader) Pos() int {
+func (r *ffReader) Pos() int {
 	return r.i
 }
 
@@ -46,7 +45,7 @@ func (r *FFReader) Pos() int {
 // because this isn't counted for performance reasons,
 // it will iterate the buffer from the begining, and should
 // only be used in error-paths.
-func (r *FFReader) PosWithLine() (int, int) {
+func (r *ffReader) PosWithLine() (int, int) {
 	currentLine := 1
 	currentChar := 0
 
@@ -62,7 +61,7 @@ func (r *FFReader) PosWithLine() (int, int) {
 	return currentLine, currentChar
 }
 
-func (r *FFReader) ReadByteNoWS() (byte, error) {
+func (r *ffReader) ReadByteNoWS() (byte, error) {
 	if r.i >= r.l {
 		return 0, io.EOF
 	}
@@ -98,7 +97,7 @@ func (r *FFReader) ReadByteNoWS() (byte, error) {
 	}
 }
 
-func (r *FFReader) ReadByte() (byte, error) {
+func (r *ffReader) ReadByte() (byte, error) {
 	if r.i >= r.l {
 		return 0, io.EOF
 	}
@@ -108,14 +107,14 @@ func (r *FFReader) ReadByte() (byte, error) {
 	return r.s[r.i-1], nil
 }
 
-func (r *FFReader) UnreadByte() {
+func (r *ffReader) UnreadByte() {
 	if r.i <= 0 {
-		panic("FFReader.UnreadByte: at beginning of slice")
+		panic("ffReader.UnreadByte: at beginning of slice")
 	}
 	r.i--
 }
 
-func (r *FFReader) readU4(j int) (rune, error) {
+func (r *ffReader) readU4(j int) (rune, error) {
 
 	var u4 [4]byte
 	for i := 0; i < 4; i++ {
@@ -141,7 +140,7 @@ func (r *FFReader) readU4(j int) (rune, error) {
 	return rune(rr), nil
 }
 
-func (r *FFReader) SliceString(out *bytes.Buffer) error {
+func (r *ffReader) SliceString(out FFBuffer) error {
 	mask := IJC | NFP
 
 	// TODO(pquerna): string_with_escapes? de-escape here?

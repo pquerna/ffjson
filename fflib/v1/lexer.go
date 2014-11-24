@@ -35,7 +35,6 @@
 package v1
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -100,12 +99,11 @@ const (
 )
 
 type FFLexer struct {
-	reader       *FFReader
-	Output       bytes.Buffer
-	OutputString string
-	Token        FFTok
-	Error        FFErr
-	BigError     error
+	reader   *ffReader
+	Output   FFBuffer
+	Token    FFTok
+	Error    FFErr
+	BigError error
 	// TODO: convert all of this to an interface
 	lastCurrentChar int
 	captureAll      bool
@@ -115,10 +113,11 @@ func NewFFLexer(input []byte) *FFLexer {
 	fl := &FFLexer{
 		Token:  FFTok_init,
 		Error:  FFErr_e_ok,
-		reader: NewFFReader(input),
+		reader: newffReader(input),
+		Output: &Buffer{},
 	}
 	// TODO: guess size?
-	fl.Output.Grow(64)
+	//fl.Output.Grow(64)
 	return fl
 }
 
@@ -250,7 +249,7 @@ func (ffl *FFLexer) lexComment() FFTok {
 }
 
 func (ffl *FFLexer) lexString() FFTok {
-	err := ffl.reader.SliceString(&ffl.Output)
+	err := ffl.reader.SliceString(ffl.Output)
 
 	if err != nil {
 		ffl.BigError = err
