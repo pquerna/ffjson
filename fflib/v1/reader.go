@@ -199,9 +199,7 @@ func (r *ffReader) handleEscaped(c byte, j int, out FFBuffer) (int, error) {
 }
 
 func (r *ffReader) SliceString(out FFBuffer) error {
-	var err error
-	mask := IJC | NFP
-
+	var c byte
 	// TODO(pquerna): string_with_escapes? de-escape here?
 	j := r.i
 
@@ -210,11 +208,7 @@ func (r *ffReader) SliceString(out FFBuffer) error {
 			return io.EOF
 		}
 
-		c := r.s[j]
-		j++
-		if byteLookupTable[c]&mask == 0 {
-			continue
-		}
+		j, c = scanString(r.s, j)
 
 		if c == '"' {
 			if j != r.i {
@@ -223,6 +217,7 @@ func (r *ffReader) SliceString(out FFBuffer) error {
 			}
 			return nil
 		} else if c == '\\' {
+			var err error
 			j, err = r.handleEscaped(c, j, out)
 			if err != nil {
 				return err
