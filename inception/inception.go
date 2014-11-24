@@ -44,6 +44,12 @@ func NewInception(inputPath string, packageName string, outputPath string) *Ince
 	}
 }
 
+func (i *Inception) AddMany(objs []interface{}) {
+	for _, obj := range objs {
+		i.Add(obj)
+	}
+}
+
 func (i *Inception) Add(obj interface{}) {
 	i.objs = append(i.objs, NewStructInfo(obj))
 }

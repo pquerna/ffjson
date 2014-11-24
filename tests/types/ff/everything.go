@@ -43,6 +43,11 @@ type Everything struct {
 	StringPointer *string
 	Int64Pointer  *int64
 	FooStruct     *Foo
+	nonexported
+}
+
+type nonexported struct {
+	Something int8
 }
 
 type Foo struct {
@@ -71,4 +76,5 @@ func NewEverything(e *Everything) {
 	}
 	e.String = "snowman->☃"
 	e.FooStruct = &Foo{Bar: 1}
+	e.Something = 99
 }

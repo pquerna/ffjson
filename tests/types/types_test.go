@@ -55,6 +55,10 @@ func TestRoundTrip(t *testing.T) {
 	if recordTripped.SuperBool != true {
 		t.Fatal("Embeded struct didn't Unmarshal")
 	}
+
+	if recordTripped.Something != 99 {
+		t.Fatal("Embeded nonexported-struct didn't Unmarshal")
+	}
 }
 
 func TestUnmarshalEmpty(t *testing.T) {
@@ -95,7 +99,8 @@ const (
   "Int64Pointer": null,
   "FooStruct": {
     "Bar": 1
-  }
+  },
+  "Something": 99
 }`
 )
 
@@ -111,5 +116,9 @@ func TestUnmarshalFull(t *testing.T) {
 	expect := "snowman☃𐐷"
 	if record.String != expect {
 		t.Fatalf("record.String decoding problem, expected: %v got: %v", expect, record.String)
+	}
+
+	if record.Something != 99 {
+		t.Fatalf("record.Something decoding problem, expected: 99 got: %v", record.Something)
 	}
 }
