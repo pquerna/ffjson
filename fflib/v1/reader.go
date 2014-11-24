@@ -148,7 +148,7 @@ func (r *FFReader) SliceString(out *bytes.Buffer) error {
 	j := r.i
 
 	for {
-		if j >= r.l || r.i >= r.l {
+		if j >= r.l {
 			return io.EOF
 		}
 
