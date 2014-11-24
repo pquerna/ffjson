@@ -40,6 +40,20 @@ var shifts = [len(digits) + 1]uint{
 	1 << 5: 5,
 }
 
+var smallNumbers = [][]byte{
+	[]byte("0"),
+	[]byte("1"),
+	[]byte("2"),
+	[]byte("3"),
+	[]byte("4"),
+	[]byte("5"),
+	[]byte("6"),
+	[]byte("7"),
+	[]byte("8"),
+	[]byte("9"),
+	[]byte("10"),
+}
+
 // formatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
 // set, the string is appended to dst and the resulting byte slice is
@@ -50,6 +64,15 @@ func FormatBits(dst *bytes.Buffer, u uint64, base int, neg bool) {
 	if base < 2 || base > len(digits) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}
+	// fast path for small common numbers
+	if u <= 10 {
+		if neg {
+			dst.WriteByte('-')
+		}
+		dst.Write(smallNumbers[u])
+		return
+	}
+
 	// 2 <= base && base <= len(digits)
 
 	var a [64 + 1]byte // +1 for sign of 64bit value in base 2
