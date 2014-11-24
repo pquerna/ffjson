@@ -84,16 +84,11 @@ func (b *Buffer) Len() int { return len(b.buf) - b.off }
 // Truncate discards all but the first n unread bytes from the buffer.
 // It panics if n is negative or greater than the length of the buffer.
 func (b *Buffer) Truncate(n int) {
-	switch {
-	case n < 0 || n > b.Len():
-		panic("bytes.Buffer: truncation out of range")
-	case n == 0:
+	if n == 0 {
 		b.off = 0
 		// Set to nil, so that b.bootstrap is used on future grow() calls.
 		b.buf = nil
-	default:
-		// Reuse buffer space.
-		b.off = 0
+	} else {
 		b.buf = b.buf[0 : b.off+n]
 	}
 }
