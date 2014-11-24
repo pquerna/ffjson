@@ -21,7 +21,6 @@ import (
 	"bytes"
 	"encoding/json"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
-	"github.com/pquerna/ffjson/scanner"
 	"reflect"
 	"sort"
 )
@@ -66,7 +65,7 @@ type MarshalerBuf interface {
 }
 
 type UnmarshalFaster interface {
-	UnmarshalJSONFFLexer(l *scanner.FFLexer, state scanner.FFParseState) error
+	UnmarshalJSONFFLexer(l *fflib.FFLexer, state fflib.FFParseState) error
 }
 
 var marshalerType = reflect.TypeOf(new(json.Marshaler)).Elem()

@@ -18,11 +18,12 @@
 package main
 
 import (
-	"flag"
-	"fmt"
+	_ "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/pquerna/ffjson/generator"
 	_ "github.com/pquerna/ffjson/inception"
-	_ "github.com/pquerna/ffjson/scanner"
+
+	"flag"
+	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"

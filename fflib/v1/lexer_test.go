@@ -15,7 +15,7 @@
  *
  */
 
-package scanner
+package v1
 
 import (
 	"bytes"

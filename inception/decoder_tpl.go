@@ -63,7 +63,7 @@ type handlerNumeric struct {
 var handlerNumericTxt = `
 {
 	{{if eq .TakeAddr true}}
-	if tok == ffjson_scanner.FFTok_null {
+	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 	{{end}}
@@ -94,7 +94,7 @@ type allowTokens struct {
 
 var allowTokensTxt = `
 {
-	if {{range $index, $element := .Tokens}}{{if ne $index 0 }}&&{{end}} tok != ffjson_scanner.{{$element}}{{end}} {
+	if {{range $index, $element := .Tokens}}{{if ne $index 0 }}&&{{end}} tok != fflib.{{$element}}{{end}} {
 		return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for {{.Name}}", tok))
 	}
 }
@@ -131,11 +131,11 @@ var handleStringTxt = `
 {
 	{{if eq .TakeAddr true}}
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes" "FFTok_null"}}
-	if tok == ffjson_scanner.FFTok_null {
+	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 		var tval string
-		if tok == ffjson_scanner.FFTok_string_with_escapes {
+		if tok == fflib.FFTok_string_with_escapes {
 			// TODO: decoding escapes.
 			tval = fs.Output.String()
 		} else {
@@ -146,7 +146,7 @@ var handleStringTxt = `
 	}
 	{{else}}
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes"}}
-	if tok == ffjson_scanner.FFTok_string_with_escapes {
+	if tok == fflib.FFTok_string_with_escapes {
 		// TODO: decoding escapes.
 		{{.Name}} = fs.Output.String()
 	} else {
@@ -166,7 +166,7 @@ type handleArray struct {
 var handleArrayTxt = `
 {
 	{{getAllowTokens .Typ.Name "FFTok_left_brace" "FFTok_null"}}
-	if tok == ffjson_scanner.FFTok_null {
+	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 	{{if eq .Typ.Elem.Kind .Ptr }}
@@ -186,14 +186,14 @@ var handleArrayTxt = `
 	{{end}}
 
 		tok = fs.Scan()
-		if tok == ffjson_scanner.FFTok_error {
+		if tok == fflib.FFTok_error {
 			goto tokerror
 		}
-		if tok == ffjson_scanner.FFTok_right_brace {
+		if tok == fflib.FFTok_right_brace {
 			break
 		}
 		// TODO(pquerna): this allows invalid json like [,,,,]
-		if tok == ffjson_scanner.FFTok_comma {
+		if tok == fflib.FFTok_comma {
 			continue
 		}
 		{{handleField .IC "v" .Typ.Elem $ptr}}
@@ -212,7 +212,7 @@ var handleBoolTxt = `
 {
 	{{getAllowTokens .Typ.Name "FFTok_bool" "FFTok_null"}}
 	{{if eq .TakeAddr true}}
-	if tok == ffjson_scanner.FFTok_null {
+	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 	{{end}}
@@ -253,7 +253,7 @@ type handlePtr struct {
 
 var handlePtrTxt = `
 {
-	if tok == ffjson_scanner.FFTok_null {
+	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 		if {{.Name}} == nil {
@@ -305,52 +305,52 @@ var ujFuncTxt = `
 {{$ic := .IC}}
 
 func (uj *{{.SI.Name}}) XUnmarshalJSON(input []byte) error {
-	fs := ffjson_scanner.NewFFLexer(input)
-    return uj.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_map_start)
+	fs := fflib.NewFFLexer(input)
+    return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *ffjson_scanner.FFLexer, state ffjson_scanner.FFParseState) error {
+func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error = nil
 	currentKey := ffj_t_{{.SI.Name}}base
 	_ = currentKey
-	tok := ffjson_scanner.FFTok_init
-	wantedTok := ffjson_scanner.FFTok_init
+	tok := fflib.FFTok_init
+	wantedTok := fflib.FFTok_init
 
 mainparse:
 	for {
 		tok = fs.Scan()
 		//	println(fmt.Sprintf("debug: tok: %v  state: %v", tok, state))
-		if tok == ffjson_scanner.FFTok_error {
+		if tok == fflib.FFTok_error {
 			goto tokerror
 		}
 
 		switch state {
 
-		case ffjson_scanner.FFParse_map_start:
-			if tok != ffjson_scanner.FFTok_left_bracket {
-				wantedTok = ffjson_scanner.FFTok_left_bracket
+		case fflib.FFParse_map_start:
+			if tok != fflib.FFTok_left_bracket {
+				wantedTok = fflib.FFTok_left_bracket
 				goto wrongtokenerror
 			}
-			state = ffjson_scanner.FFParse_want_key
+			state = fflib.FFParse_want_key
 			continue
 
-		case ffjson_scanner.FFParse_after_value:
-			if tok == ffjson_scanner.FFTok_comma {
-				state = ffjson_scanner.FFParse_want_key
-			} else if tok == ffjson_scanner.FFTok_right_bracket {
+		case fflib.FFParse_after_value:
+			if tok == fflib.FFTok_comma {
+				state = fflib.FFParse_want_key
+			} else if tok == fflib.FFTok_right_bracket {
 				goto done
 			} else {
-				wantedTok = ffjson_scanner.FFTok_comma
+				wantedTok = fflib.FFTok_comma
 				goto wrongtokenerror
 			}
 
-		case ffjson_scanner.FFParse_want_key:
+		case fflib.FFParse_want_key:
 			// json {} ended. goto exit. woo.
-			if tok == ffjson_scanner.FFTok_right_bracket {
+			if tok == fflib.FFTok_right_bracket {
 				goto done
 			}
-			if tok != ffjson_scanner.FFTok_string {
-				wantedTok = ffjson_scanner.FFTok_string
+			if tok != fflib.FFTok_string {
+				wantedTok = fflib.FFTok_string
 				goto wrongtokenerror
 			}
 
@@ -359,24 +359,24 @@ mainparse:
 			{{range $index, $field := $si.Fields}}
 			{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
 				currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
-				state = ffjson_scanner.FFParse_want_colon
+				state = fflib.FFParse_want_colon
 				continue
 			{{end}}} else {
 				currentKey = ffj_t_{{.SI.Name}}no_such_key
-				state = ffjson_scanner.FFParse_want_colon
+				state = fflib.FFParse_want_colon
 				continue
 			}
 
-		case ffjson_scanner.FFParse_want_colon:
-			if tok != ffjson_scanner.FFTok_colon {
-				wantedTok = ffjson_scanner.FFTok_colon
+		case fflib.FFParse_want_colon:
+			if tok != fflib.FFTok_colon {
+				wantedTok = fflib.FFTok_colon
 				goto wrongtokenerror
 			}
-			state = ffjson_scanner.FFParse_want_value
+			state = fflib.FFParse_want_value
 			continue
-		case ffjson_scanner.FFParse_want_value:
+		case fflib.FFParse_want_value:
 
-			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == ffjson_scanner.{{$v}}{{end}} {
+			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == fflib.{{$v}}{{end}} {
 				switch currentKey {
 				{{range $index, $field := $si.Fields}}
 				case ffj_t_{{$si.Name}}_{{$field.Name}}:
@@ -387,7 +387,7 @@ mainparse:
 					if err != nil {
 						return fs.WrapErr(err)
 					}
-					state = ffjson_scanner.FFParse_after_value
+					state = fflib.FFParse_after_value
 					goto mainparse
 				}
 			} else {
@@ -400,7 +400,7 @@ mainparse:
 handle_{{$field.Name}}:
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
 		{{handleField $ic $fieldName $field.Typ $field.Pointer}}
-		state = ffjson_scanner.FFParse_after_value
+		state = fflib.FFParse_after_value
 		goto mainparse
 	{{end}}
 {{end}}
@@ -449,11 +449,11 @@ var handleUnmarshalerTxt = `
 				{{.Name}} = new({{.Type.Name}})
 			}
 		{{end}}
-		err = {{.Name}}.UnmarshalJSONFFLexer(fs, ffjson_scanner.FFParse_want_key)
+		err = {{.Name}}.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
 			return err
 		}
-		state = ffjson_scanner.FFParse_after_value
+		state = fflib.FFParse_after_value
 		goto mainparse
 	}
 	{{end}}
@@ -473,7 +473,7 @@ var handleUnmarshalerTxt = `
 		if err != nil {
 			return fs.WrapErr(err)
 		}
-		state = ffjson_scanner.FFParse_after_value
+		state = fflib.FFParse_after_value
 		goto mainparse
 	}
 	{{end}}

@@ -15,11 +15,9 @@
  *
  */
 
-package scanner
+package v1
 
 import (
-	fflib "github.com/pquerna/ffjson/fflib/v1"
-
 	"bytes"
 	"fmt"
 	"io"
@@ -136,7 +134,7 @@ func (r *FFReader) readU4(j int) (rune, error) {
 	}
 
 	// TODO(pquerna): utf16.IsSurrogate
-	rr, err := fflib.ParseUint(u4[:], 16, 64)
+	rr, err := ParseUint(u4[:], 16, 64)
 	if err != nil {
 		return -1, err
 	}

@@ -32,7 +32,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package scanner
+package v1
 
 import (
 	"bytes"
