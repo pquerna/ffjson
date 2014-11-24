@@ -26,6 +26,20 @@ import (
 	"bytes"
 )
 
+const (
+	digits   = "0123456789abcdefghijklmnopqrstuvwxyz"
+	digits01 = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+	digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
+)
+
+var shifts = [len(digits) + 1]uint{
+	1 << 1: 1,
+	1 << 2: 2,
+	1 << 3: 3,
+	1 << 4: 4,
+	1 << 5: 5,
+}
+
 // formatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
 // set, the string is appended to dst and the resulting byte slice is
@@ -33,20 +47,6 @@ import (
 // as the second result value.
 //
 func FormatBits(dst *bytes.Buffer, u uint64, base int, neg bool) {
-	const (
-		digits   = "0123456789abcdefghijklmnopqrstuvwxyz"
-		digits01 = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
-		digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
-	)
-
-	var shifts = [len(digits) + 1]uint{
-		1 << 1: 1,
-		1 << 2: 2,
-		1 << 3: 3,
-		1 << 4: 4,
-		1 << 5: 5,
-	}
-
 	if base < 2 || base > len(digits) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}

@@ -27,12 +27,12 @@ import (
 	"unicode/utf8"
 )
 
+const hex = "0123456789abcdef"
+
 /**
  * Function ported from encoding/json: func (e *encodeState) string(s string) (int, error)
  */
 func WriteJsonString(buf *bytes.Buffer, s string) {
-	const hex = "0123456789abcdef"
-
 	buf.WriteByte('"')
 	start := 0
 	for i := 0; i < len(s); {
