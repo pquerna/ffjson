@@ -88,14 +88,12 @@ func (b *Buffer) Truncate(n int) {
 	case n < 0 || n > b.Len():
 		panic("bytes.Buffer: truncation out of range")
 	case n == 0:
+		b.off = 0
+		// Set to nil, so that b.bootstrap is used on future grow() calls.
+		b.buf = nil
+	default:
 		// Reuse buffer space.
 		b.off = 0
-	}
-
-	// Set to nil, so that b.bootstrap is used on future grow() calls.
-	if b.off == 0 {
-		b.buf = nil
-	} else {
 		b.buf = b.buf[0 : b.off+n]
 	}
 }
