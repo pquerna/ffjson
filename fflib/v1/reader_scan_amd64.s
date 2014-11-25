@@ -3,6 +3,8 @@
 
 // func scanStringSSE(s []byte, j int) (int, byte)
 TEXT scanStringSSE(SB),NOSPLIT,$0
+	// TODO: http://www.strchr.com/strcmp_and_strlen_using_sse_4.2
+	// Equal any, operand1 set to 
 	RET
 
 // Copyright 2011 The Go Authors. All rights reserved.
