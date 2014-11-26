@@ -17,32 +17,45 @@
 
 package ff
 
+type SweetInterface interface {
+	Cats() int
+}
+
+type Cats struct {
+	FieldOnCats int
+}
+
+func (c *Cats) Cats() int {
+	return 42
+}
+
 type Embed struct {
 	SuperBool bool
 }
 
 type Everything struct {
 	Embed
-	Bool          bool
-	Int           int
-	Int8          int8
-	Int16         int16
-	Int32         int32
-	Int64         int64
-	Uint          uint
-	Uint8         uint8
-	Uint16        uint16
-	Uint32        uint32
-	Uint64        uint64
-	Uintptr       uintptr
-	Float32       float32
-	Float64       float64
-	Array         []int
-	Map           map[string]int
-	String        string
-	StringPointer *string
-	Int64Pointer  *int64
-	FooStruct     *Foo
+	Bool             bool
+	Int              int
+	Int8             int8
+	Int16            int16
+	Int32            int32
+	Int64            int64
+	Uint             uint
+	Uint8            uint8
+	Uint16           uint16
+	Uint32           uint32
+	Uint64           uint64
+	Uintptr          uintptr
+	Float32          float32
+	Float64          float64
+	Array            []int
+	Map              map[string]int
+	String           string
+	StringPointer    *string
+	Int64Pointer     *int64
+	FooStruct        *Foo
+	MySweetInterface SweetInterface
 	nonexported
 }
 
@@ -77,4 +90,5 @@ func NewEverything(e *Everything) {
 	e.String = "snowman->☃"
 	e.FooStruct = &Foo{Bar: 1}
 	e.Something = 99
+	e.MySweetInterface = &Cats{}
 }

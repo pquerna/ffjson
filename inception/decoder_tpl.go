@@ -261,7 +261,6 @@ var handlePtrTxt = `
 		}
 
 		{{handleFieldAddr .IC .Name true .Typ.Elem false}}
-
 	}
 }
 `

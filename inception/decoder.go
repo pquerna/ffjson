@@ -104,8 +104,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 			Typ:  typ,
 		})
 
-	case reflect.Ptr,
-		reflect.Interface:
+	case reflect.Ptr:
 		out += tplStr(decodeTpl["handlePtr"], handlePtr{
 			IC:   ic,
 			Name: name,
@@ -127,8 +126,14 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 			Typ:      typ,
 			TakeAddr: takeAddr || ptr,
 		})
+	case reflect.Interface:
+		ic.OutputImports[`"encoding/json"`] = true
+		out += tplStr(decodeTpl["handleFallback"], handleFallback{
+			Name: name,
+			Typ:  typ,
+			Kind: typ.Kind(),
+		})
 	default:
-		// TODO(pquerna): layering. let templates declare their needed modules?
 		ic.OutputImports[`"encoding/json"`] = true
 		out += tplStr(decodeTpl["handleFallback"], handleFallback{
 			Name: name,

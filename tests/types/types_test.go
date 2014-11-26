@@ -34,6 +34,7 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatalf("Marshal: %v", err)
 	}
 
+	recordTripped.MySweetInterface = &ff.Cats{}
 	err = json.Unmarshal(buf1, &recordTripped)
 	if err != nil {
 		t.Fatalf("Unmarshal: %v", err)

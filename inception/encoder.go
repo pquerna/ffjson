@@ -62,7 +62,6 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 		return "if mj." + sf.Name + " != false {" + "\n"
 
 	case reflect.Interface, reflect.Ptr:
-		// TODO(pquerna): pointers. oops.
 		return "if mj." + sf.Name + " != nil {" + "\n"
 
 	default:
@@ -132,8 +131,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
-	case reflect.Ptr,
-		reflect.Interface:
+	case reflect.Ptr:
 		out += "if " + name + "!= nil {" + "\n"
 		switch typ.Elem().Kind() {
 		case reflect.Struct:
@@ -150,6 +148,14 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`false`)" + "\n"
 		out += "}" + "\n"
+	case reflect.Interface:
+		ic.OutputImports[`"encoding/json"`] = true
+		out += fmt.Sprintf("/* Interface types must use runtime reflection. type=%v kind=%v */\n", typ, typ.Kind())
+		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return err" + "\n"
+		out += "}" + "\n"
+		out += "buf.Write(obj)" + "\n"
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
