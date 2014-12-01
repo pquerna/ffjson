@@ -1,6 +1,6 @@
 # ffjson: freaking fast JSON serialization for Go / Golang
 
-`ffjson` generates static `MarshalJSON` functions for structures. The generated functions reduce the reliance unpon runtime reflection to do serialization.  In cases where `ffjson` doesn't understand a Type involved, it falls back to `encoding/json`, meaning it is a safe drop in replacement.  By using `ffjson` your JSON serialization just gets faster with no additional code changes.
+`ffjson` generates static `MarshalJSON` and `UnmarshalJSON` functions for structures in Go. The generated functions reduce the reliance unpon runtime reflection to do serialization and are generally 2 to 3 times faster.  In cases where `ffjson` doesn't understand a Type involved, it falls back to `encoding/json`, meaning it is a safe drop in replacement.  By using `ffjson` your JSON serialization just gets faster with no additional code changes.
 
 When you change your `struct`, you will need to run `ffjson` again (or make it part of your build tools).
 
@@ -34,9 +34,10 @@ ffjson generates Go code for optimized JSON serialization.
 
 ## Features
 
+* **NEW** **Unmarshal Support:** Since v0.9, `ffjson` supports Unmarshaling of structures.
 * **Drop in Replacement:** Because `ffjson` implements the interfaces already defined by `encoding/json` the performance enhancements are transparent to users of your structures.
-* **No additional dependencies:** `ffjson` generated code depends on nothing but standard library provided modules.
-* **Supports all types:** `ffjson` has native support for most of Go's types -- for any type it doesn't support with fast paths, it falls back to using `encoding/json`.  This means all structures should work out of the box.
+* **Supports all types:** `ffjson` has native support for most of Go's types -- for any type it doesn't support with fast paths, it falls back to using `encoding/json`.  This means all structures should work out of the box. If they don't, [open a issue!](https://github.com/pquerna/ffjson/issues)
+
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
 
