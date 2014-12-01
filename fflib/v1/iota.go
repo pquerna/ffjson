@@ -23,7 +23,7 @@
 package v1
 
 import (
-	"bytes"
+	"io"
 )
 
 const (
@@ -54,13 +54,18 @@ var smallNumbers = [][]byte{
 	[]byte("10"),
 }
 
+type FormatBitsWriter interface {
+	io.Writer
+	io.ByteWriter
+}
+
 // formatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
 // set, the string is appended to dst and the resulting byte slice is
 // returned as the first result value; otherwise the string is returned
 // as the second result value.
 //
-func FormatBits(dst *bytes.Buffer, u uint64, base int, neg bool) {
+func FormatBits(dst FormatBitsWriter, u uint64, base int, neg bool) {
 	if base < 2 || base > len(digits) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}

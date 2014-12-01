@@ -200,12 +200,13 @@ func getBufGrowSize(si *StructInfo) uint32 {
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
+	conditionalWrites := false
 	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
-	out += `var buf bytes.Buffer` + "\n"
+	out += `var buf fflib.Buffer` + "\n"
 
 	out += fmt.Sprintf("buf.Grow(%d)\n", getBufGrowSize(si))
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
@@ -215,13 +216,27 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
 
-	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf *bytes.Buffer) (error) {` + "\n"
+	for _, f := range si.Fields {
+		if f.OmitEmpty || f.Pointer {
+			// if we have >= 1 non-conditional write, we can
+			// assume our trailing logic is reaosnable.
+			if conditionalWrites {
+				conditionalWrites = false
+				break
+			}
+			conditionalWrites = true
+		}
+	}
+
+	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
-	out += `var first bool = true` + "\n"
+	if conditionalWrites {
+		out += `var wroteAnyFields bool = false` + "\n"
+	}
+
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
-	out += `_ = first` + "\n"
 	out += "buf.WriteString(`{`)" + "\n"
 
 	for _, f := range si.Fields {
@@ -233,15 +248,14 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 			out += "if mj." + f.Name + " != nil {" + "\n"
 		}
 
-		out += "if first == true {" + "\n"
-		out += "first = false" + "\n"
-		out += "} else {" + "\n"
-		out += "buf.WriteString(`,`)" + "\n"
-		out += "}" + "\n"
+		if conditionalWrites {
+			out += `wroteAnyFields = true` + "\n"
+		}
 
 		// JsonName is already escaped and quoted.
 		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
 		out += getValue(ic, f)
+		out += "buf.WriteString(`, `)" + "\n"
 
 		if f.Pointer {
 			out += "}" + "\n"
@@ -252,7 +266,18 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
-	out += "buf.WriteString(`}`)" + "\n"
+	if conditionalWrites {
+		out += `if wroteAnyFields {` + "\n"
+		out += "  	buf.Rewind(2)" + "\n"
+		out += "	buf.WriteByte('}')" + "\n"
+		out += `} else {` + "\n"
+		out += "	buf.WriteByte('}')" + "\n"
+		out += `}` + "\n"
+	} else {
+		out += "buf.Rewind(2)" + "\n"
+		out += "buf.WriteByte('}')" + "\n"
+	}
+
 	out += `return nil` + "\n"
 	out += `}` + "\n"
 	ic.OutputFuncs = append(ic.OutputFuncs, out)

@@ -100,7 +100,7 @@ const (
 
 type FFLexer struct {
 	reader   *ffReader
-	Output   FFBuffer
+	Output   DecodingBuffer
 	Token    FFTok
 	Error    FFErr
 	BigError error

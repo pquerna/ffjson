@@ -31,21 +31,37 @@ type RuneWriter interface {
 	WriteRune(r rune) (n int, err error)
 }
 
+type StringWriter interface {
+	WriteString(s string) (n int, err error)
+}
+
 type Lener interface {
 	Len() int
 }
 
-// TODO(pquerna): reduce this interface
-type FFBuffer interface {
-	io.ReadWriter
-	io.ReaderFrom
-	//	io.ReaderAt
+type Rewinder interface {
+	Rewind(n int) (err error)
+}
+
+// TODO(pquerna): continue to reduce these interfaces
+
+type EncodingBuffer interface {
+	io.Writer
 	io.WriterTo
 	io.ByteWriter
+	StringWriter
+	Truncater
+	Grower
+	Rewinder
+}
+
+type DecodingBuffer interface {
+	io.ReadWriter
+	io.ByteWriter
+	RuneWriter
 	Truncater
 	Grower
 	BytesReader
-	RuneWriter
 	Lener
 }
 
@@ -245,6 +261,11 @@ func (b *Buffer) WriteTo(w io.Writer) (n int64, err error) {
 func (b *Buffer) WriteByte(c byte) error {
 	m := b.grow(1)
 	b.buf[m] = c
+	return nil
+}
+
+func (b *Buffer) Rewind(n int) error {
+	b.buf = b.buf[:len(b.buf)-n]
 	return nil
 }
 

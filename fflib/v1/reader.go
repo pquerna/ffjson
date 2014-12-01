@@ -142,7 +142,7 @@ func (r *ffReader) readU4(j int) (rune, error) {
 	return rune(rr), nil
 }
 
-func (r *ffReader) handleEscaped(c byte, j int, out FFBuffer) (int, error) {
+func (r *ffReader) handleEscaped(c byte, j int, out DecodingBuffer) (int, error) {
 	if j >= r.l {
 		return 0, io.EOF
 	}
@@ -200,7 +200,7 @@ func (r *ffReader) handleEscaped(c byte, j int, out FFBuffer) (int, error) {
 	return j, nil
 }
 
-func (r *ffReader) SliceString(out FFBuffer) error {
+func (r *ffReader) SliceString(out DecodingBuffer) error {
 	var c byte
 	// TODO(pquerna): string_with_escapes? de-escape here?
 	j := r.i

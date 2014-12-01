@@ -23,16 +23,22 @@
 package v1
 
 import (
-	"bytes"
+	"io"
 	"unicode/utf8"
 )
 
 const hex = "0123456789abcdef"
 
+type JsonStringWriter interface {
+	io.Writer
+	io.ByteWriter
+	StringWriter
+}
+
 /**
  * Function ported from encoding/json: func (e *encodeState) string(s string) (int, error)
  */
-func WriteJsonString(buf *bytes.Buffer, s string) {
+func WriteJsonString(buf JsonStringWriter, s string) {
 	buf.WriteByte('"')
 	start := 0
 	for i := 0; i < len(s); {

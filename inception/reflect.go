@@ -70,7 +70,7 @@ func (si *StructInfo) FieldsByFirstByte() map[string][]*StructField {
 }
 
 type MarshalerBuf interface {
-	MarshalJSONBuf(buf *bytes.Buffer) error
+	MarshalJSONBuf(buf fflib.EncodingBuffer) error
 }
 
 type UnmarshalFaster interface {
