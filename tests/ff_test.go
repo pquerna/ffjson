@@ -58,17 +58,17 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 func BenchmarkSimpleUnmarshal(b *testing.B) {
 	record := newLogFFRecord()
 	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
-	err := record.XUnmarshalJSON(buf)
+	err := record.UnmarshalJSON(buf)
 	if err != nil {
-		b.Fatalf("XUnmarshalJSON: %v", err)
+		b.Fatalf("UnmarshalJSON: %v", err)
 	}
 	b.SetBytes(int64(len(buf)))
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := record.XUnmarshalJSON(buf)
+		err := record.UnmarshalJSON(buf)
 		if err != nil {
-			b.Fatalf("XUnmarshalJSON: %v", err)
+			b.Fatalf("UnmarshalJSON: %v", err)
 		}
 	}
 }
@@ -78,7 +78,7 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
 	err := json.Unmarshal(buf, record)
 	if err != nil {
-		b.Fatalf("XUnmarshalJSON: %v", err)
+		b.Fatalf("json.Unmarshal: %v", err)
 	}
 	b.SetBytes(int64(len(buf)))
 
@@ -86,7 +86,7 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		err := json.Unmarshal(buf, record)
 		if err != nil {
-			b.Fatalf("XUnmarshalJSON: %v", err)
+			b.Fatalf("json.Unmarshal: %v", err)
 		}
 	}
 }
@@ -94,12 +94,20 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 func TestSimpleUnmarshal(t *testing.T) {
 	record := newLogFFRecord()
 
-	err := record.XUnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
+	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
 	if err != nil {
-		t.Fatalf("XUnmarshalJSON: %v", err)
+		t.Fatalf("UnmarshalJSON: %v", err)
 	}
 
-	t.Logf("record.Timestamp: %v", record.Timestamp)
-	t.Logf("record.OriginId: %v", record.OriginId)
-	t.Logf("record.Method: %v", record.Method)
+	if record.Timestamp != 0 {
+		t.Fatalf("record.Timestamp: expected: 0 got: %v", record.Timestamp)
+	}
+
+	if record.OriginId != 22 {
+		t.Fatalf("record.OriginId: expected: 22 got: %v", record.OriginId)
+	}
+
+	if record.Method != "GET" {
+		t.Fatalf("record.Method: expected: GET got: %v", record.Method)
+	}
 }

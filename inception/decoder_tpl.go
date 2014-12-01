@@ -303,7 +303,7 @@ var ujFuncTxt = `
 {{$si := .SI}}
 {{$ic := .IC}}
 
-func (uj *{{.SI.Name}}) XUnmarshalJSON(input []byte) error {
+func (uj *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
 	fs := fflib.NewFFLexer(input)
     return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }

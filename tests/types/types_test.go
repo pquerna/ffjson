@@ -64,9 +64,9 @@ func TestRoundTrip(t *testing.T) {
 
 func TestUnmarshalEmpty(t *testing.T) {
 	record := ff.Everything{}
-	err := record.XUnmarshalJSON([]byte(`{}`))
+	err := record.UnmarshalJSON([]byte(`{}`))
 	if err != nil {
-		t.Fatalf("XUnmarshalJSON: %v", err)
+		t.Fatalf("UnmarshalJSON: %v", err)
 	}
 }
 
@@ -109,9 +109,9 @@ func TestUnmarshalFull(t *testing.T) {
 	record := ff.Everything{}
 	// TODO(pquerna): add unicode snowman
 	// TODO(pquerna): handle Bar subtype
-	err := record.XUnmarshalJSON([]byte(everythingJson))
+	err := record.UnmarshalJSON([]byte(everythingJson))
 	if err != nil {
-		t.Fatalf("XUnmarshalJSON: %v", err)
+		t.Fatalf("UnmarshalJSON: %v", err)
 	}
 
 	expect := "snowman☃𐐷"

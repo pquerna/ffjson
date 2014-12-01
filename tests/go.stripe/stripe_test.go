@@ -35,6 +35,7 @@ func TestRoundTrip(t *testing.T) {
 
 	err = json.Unmarshal(buf1, &customerTripped)
 	if err != nil {
+		print(string(buf1))
 		t.Fatalf("Unmarshal: %v", err)
 	}
 }

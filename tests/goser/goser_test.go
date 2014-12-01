@@ -119,9 +119,9 @@ func BenchmarkFFUnmarshalJSON(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := rec.XUnmarshalJSON(buf)
+		err := rec.UnmarshalJSON(buf)
 		if err != nil {
-			b.Fatalf("XUnmarshalJSON: %v", err)
+			b.Fatalf("UnmarshalJSON: %v", err)
 		}
 	}
 }
@@ -130,7 +130,7 @@ func TestUnmarshal(t *testing.T) {
 	rec := ff.Log{}
 	buf := getBaseData(t)
 
-	err := rec.XUnmarshalJSON(buf)
+	err := rec.UnmarshalJSON(buf)
 	if err != nil {
 		t.Fatalf("Unmarshal: %v from %s", err, string(buf))
 	}
