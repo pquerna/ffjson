@@ -184,10 +184,43 @@ func p2(v uint32) uint32 {
 	return v
 }
 
-func getTotalSize(si *StructInfo) uintptr {
-	rv := si.Typ.Size()
+func getTypeSize(t reflect.Type) uint32 {
+	switch t.Kind() {
+	case reflect.String:
+		// TODO: consider runtime analysis.
+		return 32
+	case reflect.Array, reflect.Map, reflect.Slice:
+		// TODO: consider runtime analysis.
+		return 4 * getTypeSize(t.Elem())
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32:
+		return 8
+	case reflect.Int64,
+		reflect.Uint64,
+		reflect.Uintptr:
+		return 16
+	case reflect.Float32,
+		reflect.Float64:
+		return 16
+	case reflect.Bool:
+		return 4
+	case reflect.Ptr:
+		return getTypeSize(t.Elem())
+	default:
+		return 16
+	}
+}
+
+func getTotalSize(si *StructInfo) uint32 {
+	rv := uint32(si.Typ.Size())
 	for _, f := range si.Fields {
-		rv += f.Typ.Size()
+		rv += getTypeSize(f.Typ)
 	}
 	return rv
 }
@@ -196,7 +229,7 @@ func getBufGrowSize(si *StructInfo) uint32 {
 
 	// TOOD(pquerna): automatically calc a better grow size based on history
 	// of a struct.
-	return p2(uint32(float32(getTotalSize(si)) * 3.0))
+	return p2(getTotalSize(si))
 }
 
 func isInt(t reflect.Type) bool {
