@@ -23,7 +23,7 @@ import (
 	"unicode/utf16"
 )
 
-const sliceStringMask = IJC | NFP
+const sliceStringMask = cIJC | cNFP
 
 type ffReader struct {
 	s []byte
@@ -124,7 +124,7 @@ func (r *ffReader) readU4(j int) (rune, error) {
 			return -1, io.EOF
 		}
 		c := r.s[j]
-		if byteLookupTable[c]&VHC != 0 {
+		if byteLookupTable[c]&cVHC != 0 {
 			u4[i] = c
 			j++
 			continue
@@ -172,7 +172,7 @@ func (r *ffReader) handleEscaped(c byte, j int, out DecodingBuffer) (int, error)
 			out.WriteRune(ru)
 		}
 		return j, nil
-	} else if byteLookupTable[c]&VEC == 0 {
+	} else if byteLookupTable[c]&cVEC == 0 {
 		return 0, fmt.Errorf("lex_string_invalid_escaped_char: %v", c)
 	} else {
 		out.Write(r.s[r.i : j-2])
@@ -224,7 +224,7 @@ func (r *ffReader) SliceString(out DecodingBuffer) error {
 			if err != nil {
 				return err
 			}
-		} else if byteLookupTable[c]&IJC != 0 {
+		} else if byteLookupTable[c]&cIJC != 0 {
 			return fmt.Errorf("lex_string_invalid_json_char: %v", c)
 		}
 		continue
