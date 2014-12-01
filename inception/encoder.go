@@ -99,7 +99,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		reflect.Int32,
 		reflect.Int64:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
+		out += "fflib.FormatBits(&scratch, buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
@@ -107,7 +107,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		reflect.Uint64,
 		reflect.Uintptr:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(buf, uint64(" + ptname + "), 10, false)" + "\n"
+		out += "fflib.FormatBits(&scratch, buf, uint64(" + ptname + "), 10, false)" + "\n"
 	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + ptname + "), 'f', 10, 32))" + "\n"
@@ -199,8 +199,16 @@ func getBufGrowSize(si *StructInfo) uint32 {
 	return p2(uint32(float32(getTotalSize(si)) * 3.0))
 }
 
+func isInt(t reflect.Type) bool {
+	if t.Kind() >= reflect.Int && t.Kind() <= reflect.Uintptr {
+		return true
+	}
+	return false
+}
+
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	conditionalWrites := false
+	needScratch := false
 	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
@@ -217,6 +225,12 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 
 	for _, f := range si.Fields {
+		if isInt(f.Typ) {
+			needScratch = true
+		}
+	}
+
+	for _, f := range si.Fields {
 		if f.OmitEmpty || f.Pointer {
 			// if we have >= 1 non-conditional write, we can
 			// assume our trailing logic is reaosnable.
@@ -231,6 +245,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
+	if needScratch {
+		out += `var scratch fflib.FormatBitsScratch` + "\n"
+	}
+
 	if conditionalWrites {
 		out += `var wroteAnyFields bool = false` + "\n"
 	}
