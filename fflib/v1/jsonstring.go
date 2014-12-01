@@ -32,7 +32,7 @@ const hex = "0123456789abcdef"
 type JsonStringWriter interface {
 	io.Writer
 	io.ByteWriter
-	StringWriter
+	stringWriter
 }
 
 /**

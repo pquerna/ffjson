@@ -13,33 +13,33 @@ import (
 	"unicode/utf8"
 )
 
-type Grower interface {
+type grower interface {
 	Grow(n int)
 }
 
-type Truncater interface {
+type truncater interface {
 	Truncate(n int)
 	Reset()
 }
 
-type BytesReader interface {
+type bytesReader interface {
 	Bytes() []byte
 	String() string
 }
 
-type RuneWriter interface {
+type runeWriter interface {
 	WriteRune(r rune) (n int, err error)
 }
 
-type StringWriter interface {
+type stringWriter interface {
 	WriteString(s string) (n int, err error)
 }
 
-type Lener interface {
+type lener interface {
 	Len() int
 }
 
-type Rewinder interface {
+type rewinder interface {
 	Rewind(n int) (err error)
 }
 
@@ -49,20 +49,20 @@ type EncodingBuffer interface {
 	io.Writer
 	io.WriterTo
 	io.ByteWriter
-	StringWriter
-	Truncater
-	Grower
-	Rewinder
+	stringWriter
+	truncater
+	grower
+	rewinder
 }
 
 type DecodingBuffer interface {
 	io.ReadWriter
 	io.ByteWriter
-	RuneWriter
-	Truncater
-	Grower
-	BytesReader
-	Lener
+	runeWriter
+	truncater
+	grower
+	bytesReader
+	lener
 }
 
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
@@ -75,7 +75,7 @@ type Buffer struct {
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
-var ErrTooLarge = errors.New("bytes.Buffer: too large")
+var ErrTooLarge = errors.New("fflib.v1.Buffer: too large")
 
 // Bytes returns a slice of the contents of the unread portion of the buffer;
 // len(b.Bytes()) == b.Len().  If the caller changes the contents of the
