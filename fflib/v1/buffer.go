@@ -178,7 +178,7 @@ func (b *Buffer) WriteString(s string) (n int, err error) {
 // Buffer.ReadFrom.  As long as the Buffer has at least MinRead bytes beyond
 // what is required to hold the contents of r, ReadFrom will not grow the
 // underlying buffer.
-const MinRead = 512
+const minRead = 512
 
 // ReadFrom reads data from r until EOF and appends it to the buffer, growing
 // the buffer as needed. The return value n is the number of bytes read. Any
@@ -190,13 +190,13 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 		b.Truncate(0)
 	}
 	for {
-		if free := cap(b.buf) - len(b.buf); free < MinRead {
+		if free := cap(b.buf) - len(b.buf); free < minRead {
 			// not enough space at end
 			newBuf := b.buf
-			if b.off+free < MinRead {
+			if b.off+free < minRead {
 				// not enough space using beginning of buffer;
 				// double buffer capacity
-				newBuf = makeSlice(2*cap(b.buf) + MinRead)
+				newBuf = makeSlice(2*cap(b.buf) + minRead)
 			}
 			copy(newBuf, b.buf[b.off:])
 			b.buf = newBuf[:len(b.buf)-b.off]
