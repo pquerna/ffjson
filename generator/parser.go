@@ -18,11 +18,12 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
+	"go/doc"
 	"go/parser"
 	"go/token"
+	"regexp"
 )
 
 type StructField struct {
@@ -42,23 +43,25 @@ func NewStructInfo(name string) *StructInfo {
 	}
 }
 
+var skipre = regexp.MustCompile("(.*)ffjson:(\\s*)((skip)|(ignore))(.*)")
+
 func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 	fset := token.NewFileSet()
 
-	f, err := parser.ParseFile(fset, inputPath, nil, 0)
+	f, err := parser.ParseFile(fset, inputPath, nil, parser.ParseComments)
 
 	if err != nil {
 		return "", nil, err
 	}
 
 	packageName := f.Name.String()
-	structs := make([]*StructInfo, 0)
+	structs := make(map[string]*StructInfo)
 
 	for k, d := range f.Scope.Objects {
 		if d.Kind == ast.Typ {
 			ts, ok := d.Decl.(*ast.TypeSpec)
 			if !ok {
-				return "", nil, errors.New(fmt.Sprintf("Unknown type without TypeSec: %v", d))
+				return "", nil, fmt.Errorf("Unknown type without TypeSec: %v", d)
 			}
 
 			_, ok = ts.Type.(*ast.StructType)
@@ -69,9 +72,26 @@ func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 			// TODO(pquerna): Add // ffjson:skip or similiar tagging.
 			stobj := NewStructInfo(k)
 
-			structs = append(structs, stobj)
+			structs[k] = stobj
 		}
 	}
 
-	return packageName, structs, nil
+	files := map[string]*ast.File{
+		inputPath: f,
+	}
+
+	pkg, _ := ast.NewPackage(fset, files, nil, nil)
+
+	d := doc.New(pkg, f.Name.String(), doc.AllDecls)
+	for _, t := range d.Types {
+		if skipre.MatchString(t.Doc) {
+			delete(structs, t.Name)
+		}
+	}
+
+	rv := make([]*StructInfo, 0)
+	for _, v := range structs {
+		rv = append(rv, v)
+	}
+	return packageName, rv, nil
 }

@@ -18,9 +18,10 @@
 package ffjsoninception
 
 import (
+	fflib "github.com/pquerna/ffjson/fflib/v1"
+
 	"bytes"
 	"encoding/json"
-	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"reflect"
 	"sort"
 )
