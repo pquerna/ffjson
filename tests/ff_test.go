@@ -99,7 +99,7 @@ func TestSimpleUnmarshal(t *testing.T) {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
 
-	if record.Timestamp != 0 {
+	if record.Timestamp != 123213 {
 		t.Fatalf("record.Timestamp: expected: 0 got: %v", record.Timestamp)
 	}
 

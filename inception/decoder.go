@@ -63,15 +63,22 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out := ""
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
+	umlx := typ.Implements(unmarshalFasterType) || typeInInception(ic, typ)
+	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
+
 	out += tplStr(decodeTpl["handleUnmarshaler"], handleUnmarshaler{
 		IC:                   ic,
 		Name:                 name,
 		Type:                 typ,
 		Ptr:                  reflect.Ptr,
 		TakeAddr:             takeAddr || ptr,
-		UnmarshalJSONFFLexer: typ.Implements(unmarshalFasterType) || typeInInception(ic, typ),
-		Unmarshaler:          typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType),
+		UnmarshalJSONFFLexer: umlx,
+		Unmarshaler:          umlstd,
 	})
+
+	if umlx || umlstd {
+		return out
+	}
 
 	// TODO(pquerna): generic handling of token type mismatching struct type
 	switch typ.Kind() {

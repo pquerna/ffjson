@@ -463,9 +463,8 @@ var handleUnmarshalerTxt = `
 			return err
 		}
 		state = fflib.FFParse_after_value
-		goto mainparse
 	}
-	{{end}}
+	{{else}}
 	{{if eq .Unmarshaler true}}
 	{
 		tbuf, err := fs.CaptureField(tok)
@@ -483,7 +482,7 @@ var handleUnmarshalerTxt = `
 			return fs.WrapErr(err)
 		}
 		state = fflib.FFParse_after_value
-		goto mainparse
 	}
+	{{end}}
 	{{end}}
 `
