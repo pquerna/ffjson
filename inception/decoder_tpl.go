@@ -75,7 +75,7 @@ var handlerNumericTxt = `
 	{{end}}
 
 	if err != nil {
-		goto wraperr
+		return fs.WrapErr(err)
 	}
 	{{if eq .TakeAddr true}}
 	ttypval := {{getNumberCast .Name .Typ }}(tval)
@@ -235,7 +235,7 @@ var handleBoolTxt = `
 	{{end}}
 	} else {
 		err = errors.New("unexpected bytes for true/false value")
-		goto wraperr
+		return fs.WrapErr(err)
 	}
 
 	{{if eq .TakeAddr true}}
@@ -414,8 +414,6 @@ handle_{{$field.Name}}:
 	{{end}}
 {{end}}
 
-wraperr:
-	return fs.WrapErr(err)
 wantedvalue:
 	return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
 wrongtokenerror:
