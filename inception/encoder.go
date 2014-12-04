@@ -232,9 +232,12 @@ func getBufGrowSize(si *StructInfo) uint32 {
 	return p2(getTotalSize(si))
 }
 
-func isInt(t reflect.Type) bool {
+func isIntish(t reflect.Type) bool {
 	if t.Kind() >= reflect.Int && t.Kind() <= reflect.Uintptr {
 		return true
+	}
+	if t.Kind() == reflect.Array || t.Kind() == reflect.Slice || t.Kind() == reflect.Ptr {
+		return isIntish(t.Elem())
 	}
 	return false
 }
@@ -258,7 +261,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 
 	for _, f := range si.Fields {
-		if isInt(f.Typ) {
+		if isIntish(f.Typ) {
 			needScratch = true
 		}
 	}

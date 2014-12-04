@@ -130,6 +130,18 @@ func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
 	require.Equal(t, bufbase, bufff, "json.Marshal of base[%T] != ff[%T]", base, ff)
 }
 
+func testCycle(t *testing.T, base interface{}, ff interface{}) {
+	setXValue(t, base)
+
+	buf, err := json.Marshal(base)
+	require.NoError(t, err, "base[%T] failed to Marshal", base)
+
+	err = json.Unmarshal(buf, ff)
+	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
+
+	require.Equal(t, getXValue(base), getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
+}
+
 func setXValue(t *testing.T, thing interface{}) {
 	v := reflect.ValueOf(thing)
 	v = reflect.Indirect(v)
@@ -168,16 +180,12 @@ func getXValue(thing interface{}) interface{} {
 	return nil
 }
 
-func testCycle(t *testing.T, base interface{}, ff interface{}) {
-	setXValue(t, base)
+func TestArray(t *testing.T) {
+	testType(t, &Tarray{X: []int{}}, &Xarray{Tarray{X: []int{}}})
+}
 
-	buf, err := json.Marshal(base)
-	require.NoError(t, err, "base[%T] failed to Marshal", base)
-
-	err = json.Unmarshal(buf, ff)
-	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
-
-	require.Equal(t, getXValue(base), getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
+func TestArrayPtr(t *testing.T) {
+	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{TarrayPtr{X: []*int{}}})
 }
 
 func TestBool(t *testing.T) {

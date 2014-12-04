@@ -16,6 +16,22 @@ type FFRecord struct {
 }
 
 // fjson: skip
+type Tarray struct {
+	X []int
+}
+type Xarray struct {
+	Tarray
+}
+
+// fjson: skip
+type TarrayPtr struct {
+	X []*int
+}
+type XarrayPtr struct {
+	TarrayPtr
+}
+
+// fjson: skip
 type Tbool struct {
 	X bool
 }
