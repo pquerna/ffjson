@@ -189,7 +189,7 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 
 		if c != b {
 			ffl.unreadByte()
-			fmt.Printf("wanted bytes: %s\n", string(want))
+			// fmt.Printf("wanted bytes: %s\n", string(want))
 			// TODO(pquerna): thsi is a bad error message
 			ffl.Error = FFErr_invalid_string
 			return FFTok_error
