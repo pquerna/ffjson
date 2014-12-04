@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -177,15 +178,15 @@ func getXValue(thing interface{}) interface{} {
 		return f.String()
 	}
 
-	return nil
+	return fmt.Sprintf("%v", thing)
 }
 
 func TestArray(t *testing.T) {
-	testType(t, &Tarray{X: []int{}}, &Xarray{Tarray{X: []int{}}})
+	testType(t, &Tarray{X: []int{}}, &Xarray{X: []int{}})
 }
 
 func TestArrayPtr(t *testing.T) {
-	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{TarrayPtr{X: []*int{}}})
+	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{X: []*int{}})
 }
 
 func TestBool(t *testing.T) {

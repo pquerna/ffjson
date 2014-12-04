@@ -27,10 +27,7 @@ import (
 )
 
 type StructField struct {
-	Name        string
-	JsonName    string
-	OmitEmpty   bool
-	ForceString bool
+	Name string
 }
 
 type StructInfo struct {

@@ -20,7 +20,7 @@ type Tarray struct {
 	X []int
 }
 type Xarray struct {
-	Tarray
+	X []int
 }
 
 // fjson: skip
@@ -28,7 +28,7 @@ type TarrayPtr struct {
 	X []*int
 }
 type XarrayPtr struct {
-	TarrayPtr
+	X []*int
 }
 
 // fjson: skip
