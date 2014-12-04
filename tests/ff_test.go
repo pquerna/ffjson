@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -136,8 +135,16 @@ func setXValue(t *testing.T, thing interface{}) {
 	v = reflect.Indirect(v)
 	f := v.FieldByName("X")
 	switch f.Kind() {
+	case reflect.Bool:
+		f.SetBool(true)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		f.SetInt(-42)
+	case reflect.Uint, reflect.Uintptr, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		f.SetUint(42)
+	case reflect.Float32, reflect.Float64:
+		f.SetFloat(3.141592653)
+	case reflect.String:
+		f.SetString("hello world")
 	}
 }
 
@@ -146,11 +153,18 @@ func getXValue(thing interface{}) interface{} {
 	v = reflect.Indirect(v)
 	f := v.FieldByName("X")
 	switch f.Kind() {
+	case reflect.Bool:
+		return f.Bool()
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return f.Int()
+	case reflect.Uint, reflect.Uintptr, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return f.Uint()
+	case reflect.Float32, reflect.Float64:
+		return f.Float()
+	case reflect.String:
+		return f.String()
 	}
 
-	fmt.Printf("%v\n", v.FieldByName("X"))
 	return nil
 }
 
