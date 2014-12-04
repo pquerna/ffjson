@@ -354,7 +354,7 @@ mainparse:
 			}
 
 			kn := fs.Output.Bytes()
-			if len(kn) < 2 {
+			if len(kn) <= 0 {
 				// "" case. hrm.
 				currentKey = ffj_t_{{.SI.Name}}no_such_key
 				state = fflib.FFParse_want_colon
