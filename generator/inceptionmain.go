@@ -228,6 +228,14 @@ func (im *InceptionMain) Run() error {
 	}
 
 	defer func() {
+		if im.tempExpose != nil {
+			im.tempExpose.Close()
+		}
+
+		if im.tempMain != nil {
+			im.tempMain.Close()
+		}
+
 		os.Remove(im.TempMainPath)
 		os.Remove(im.exposePath)
 	}()
