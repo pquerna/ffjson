@@ -51,7 +51,7 @@ func (r *ffReader) PosWithLine() (int, int) {
 	currentLine := 1
 	currentChar := 0
 
-	for i := 0; i <= r.i; i++ {
+	for i := 0; i < r.i; i++ {
 		c := r.s[i]
 		currentChar++
 		if c == '\n' {
