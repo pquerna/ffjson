@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 )
 
 type Inception struct {
@@ -54,15 +55,42 @@ func (i *Inception) Add(obj interface{}) {
 	i.objs = append(i.objs, NewStructInfo(obj))
 }
 
+func (i *Inception) wantUnmarshal(si *StructInfo) bool {
+	typ := si.Typ
+	umlx := typ.Implements(unmarshalFasterType)
+	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
+	if umlstd && !umlx {
+		// structure has UnmarshalJSON, but not our faster version -- skip it.
+		return false
+	}
+	return true
+}
+
+func (i *Inception) wantMarshal(si *StructInfo) bool {
+	typ := si.Typ
+	mlx := typ.Implements(unmarshalFasterType)
+	mlstd := typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType)
+	if mlstd && !mlx {
+		// structure has MarshalJSON, but not our faster version -- skip it.
+		return false
+	}
+	return true
+}
+
 func (i *Inception) generateCode() error {
 	for _, si := range i.objs {
-		err := CreateMarshalJSON(i, si)
-		if err != nil {
-			return err
+		if i.wantMarshal(si) {
+			err := CreateMarshalJSON(i, si)
+			if err != nil {
+				return err
+			}
 		}
-		err = CreateUnmarshalJSON(i, si)
-		if err != nil {
-			return err
+
+		if i.wantUnmarshal(si) {
+			err := CreateUnmarshalJSON(i, si)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
