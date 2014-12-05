@@ -1,3 +1,20 @@
+/**
+ *  Copyright 2014 Paul Querna
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
+
 package tff
 
 import (
@@ -144,6 +161,24 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	require.Equal(t, getXValue(base), getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
 }
 
+func testExpectedX(t *testing.T, expected interface{}, base interface{}, ff interface{}) {
+	buf, err := json.Marshal(base)
+	require.NoError(t, err, "base[%T] failed to Marshal", base)
+
+	err = json.Unmarshal(buf, ff)
+	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
+
+	require.Equal(t, expected, getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
+}
+
+func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interface{}) {
+	buf := []byte(`{"X":"` + xval + `"}`)
+	err := json.Unmarshal(buf, ff)
+	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
+
+	require.Equal(t, expected, getXValue(ff), "json.Unmarshal of %T into ff[%T]", xval, ff)
+}
+
 func setXValue(t *testing.T, thing interface{}) {
 	v := reflect.ValueOf(thing)
 	v = reflect.Indirect(v)
@@ -194,10 +229,6 @@ func TestArrayPtr(t *testing.T) {
 	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{X: []*int{}})
 	v := 33
 	testCycle(t, &TarrayPtr{X: []*int{&v}}, &XarrayPtr{X: []*int{}})
-}
-
-func TestString(t *testing.T) {
-	testType(t, &Tstring{}, &Xstring{})
 }
 
 func TestBool(t *testing.T) {
