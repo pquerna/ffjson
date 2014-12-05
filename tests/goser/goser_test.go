@@ -84,11 +84,11 @@ func BenchmarkFFMarshalJSON(b *testing.B) {
 	}
 }
 
-type fatalFer interface {
+type fatalF interface {
 	Fatalf(format string, args ...interface{})
 }
 
-func getBaseData(b fatalFer) []byte {
+func getBaseData(b fatalF) []byte {
 	var record base.Log
 	base.NewLog(&record)
 	buf, err := json.MarshalIndent(&record, "", "    ")

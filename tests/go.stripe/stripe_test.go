@@ -75,3 +75,44 @@ func BenchmarkFFMarshalJSON(b *testing.B) {
 		}
 	}
 }
+
+type fatalF interface {
+	Fatalf(format string, args ...interface{})
+}
+
+func getBaseData(b fatalF) []byte {
+	cust := base.NewCustomer()
+	buf, err := json.MarshalIndent(&cust, "", "    ")
+	if err != nil {
+		b.Fatalf("Marshal: %v", err)
+	}
+	return buf
+}
+
+func BenchmarkUnmarshalJSON(b *testing.B) {
+	rec := base.Customer{}
+	buf := getBaseData(b)
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := json.Unmarshal(buf, &rec)
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+	}
+}
+
+func BenchmarkFFUnmarshalJSON(b *testing.B) {
+	rec := ff.Customer{}
+	buf := getBaseData(b)
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := rec.UnmarshalJSON(buf)
+		if err != nil {
+			b.Fatalf("UnmarshalJSON: %v", err)
+		}
+	}
+}
