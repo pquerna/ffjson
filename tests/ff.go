@@ -32,6 +32,14 @@ type XarrayPtr struct {
 }
 
 // fjson: skip
+type Tstring struct {
+	X string
+}
+type Xstring struct {
+	X string
+}
+
+// fjson: skip
 type Tbool struct {
 	X bool
 }
