@@ -184,6 +184,8 @@ func (r *ffReader) handleEscaped(c byte, j int, out DecodingBuffer) (int, error)
 			out.WriteByte('"')
 		case '\\':
 			out.WriteByte('\\')
+		case '/':
+			out.WriteByte('/')
 		case 'b':
 			out.WriteByte('\b')
 		case 'f':
@@ -226,6 +228,12 @@ func (r *ffReader) SliceString(out DecodingBuffer) error {
 			}
 		} else if byteLookupTable[c]&cIJC != 0 {
 			return fmt.Errorf("lex_string_invalid_json_char: %v", c)
+		} else {
+			if j != r.i {
+				out.Write(r.s[r.i : j-2])
+				r.i = j
+			}
+			out.WriteByte(c)
 		}
 		continue
 	}
