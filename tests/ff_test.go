@@ -183,6 +183,13 @@ func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interf
 	testExpectedXValBare(t, expected, `"`+xval+`"`, ff)
 }
 
+func testExpectedError(t *testing.T, expected error, xval string, ff json.Unmarshaler) {
+	buf := []byte(`{"X":` + xval + `}`)
+	err := ff.UnmarshalJSON(buf)
+	require.Error(t, err, "ff[%T] failed to Unmarshal", ff)
+	require.IsType(t, expected, err)
+}
+
 func setXValue(t *testing.T, thing interface{}) {
 	v := reflect.ValueOf(thing)
 	v = reflect.Indirect(v)
