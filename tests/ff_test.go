@@ -171,12 +171,16 @@ func testExpectedX(t *testing.T, expected interface{}, base interface{}, ff inte
 	require.Equal(t, expected, getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
 }
 
-func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interface{}) {
-	buf := []byte(`{"X":"` + xval + `"}`)
+func testExpectedXValBare(t *testing.T, expected interface{}, xval string, ff interface{}) {
+	buf := []byte(`{"X":` + xval + `}`)
 	err := json.Unmarshal(buf, ff)
 	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
 
 	require.Equal(t, expected, getXValue(ff), "json.Unmarshal of %T into ff[%T]", xval, ff)
+}
+
+func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interface{}) {
+	testExpectedXValBare(t, expected, `"`+xval+`"`, ff)
 }
 
 func setXValue(t *testing.T, thing interface{}) {

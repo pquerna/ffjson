@@ -43,6 +43,20 @@ func TestStringOneByteUTF8(t *testing.T) {
 		&Xstring{})
 }
 
+func TestStringTwoByteUTF8(t *testing.T) {
+	testExpectedXVal(t,
+		"ģ two-byte UTF-8",
+		`\u0123 two-byte UTF-8`,
+		&Xstring{})
+}
+
+func TestStringThreeByteUTF8(t *testing.T) {
+	testExpectedXVal(t,
+		"ࠡ three-byte UTF-8",
+		`\u0821 three-byte UTF-8`,
+		&Xstring{})
+}
+
 func TestStringEsccapes(t *testing.T) {
 	testExpectedXVal(t,
 		`"\`+"\b\f\n\r\t",
