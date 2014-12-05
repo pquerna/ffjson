@@ -228,12 +228,6 @@ func (r *ffReader) SliceString(out DecodingBuffer) error {
 			}
 		} else if byteLookupTable[c]&cIJC != 0 {
 			return fmt.Errorf("lex_string_invalid_json_char: %v", c)
-		} else {
-			if j != r.i {
-				out.Write(r.s[r.i : j-2])
-				r.i = j
-			}
-			out.WriteByte(c)
 		}
 		continue
 	}
