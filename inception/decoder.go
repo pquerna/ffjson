@@ -28,7 +28,6 @@ var validValues []string = []string{
 	"FFTok_integer",
 	"FFTok_double",
 	"FFTok_string",
-	"FFTok_string_with_escapes",
 	"FFTok_bool",
 	"FFTok_null",
 }

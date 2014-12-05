@@ -70,10 +70,7 @@ const (
 	FFTok_integer FFTok = iota
 	FFTok_double  FFTok = iota
 
-	/* we differentiate between strings which require further processing,
-	 * and strings that do not */
-	FFTok_string              FFTok = iota
-	FFTok_string_with_escapes FFTok = iota
+	FFTok_string FFTok = iota
 
 	/* comment tokens are not currently returned to the parser, ever */
 	FFTok_comment FFTok = iota
@@ -533,8 +530,7 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 			return nil, nil
 		}
 
-	case FFTok_string,
-		FFTok_string_with_escapes:
+	case FFTok_string:
 		//TODO(pquerna): so, other users expect this to be a quoted string :(
 		if capture {
 			rv := make([]byte, 0, ffl.Output.Len()+2)
@@ -647,8 +643,6 @@ func (tok FFTok) String() string {
 		return "tok:double"
 	case FFTok_string:
 		return "tok:string"
-	case FFTok_string_with_escapes:
-		return "tok:string_with_escapes"
 	case FFTok_comment:
 		return "comment"
 	}

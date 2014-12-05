@@ -130,28 +130,18 @@ type handleString struct {
 var handleStringTxt = `
 {
 	{{if eq .TakeAddr true}}
-	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes" "FFTok_null"}}
+	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 		var tval string
-		if tok == fflib.FFTok_string_with_escapes {
-			// TODO: decoding escapes.
-			tval = fs.Output.String()
-		} else {
-			tval = fs.Output.String()
-		}
+		tval = fs.Output.String()
 		{{.Name}} = &tval
 
 	}
 	{{else}}
-	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_string_with_escapes"}}
-	if tok == fflib.FFTok_string_with_escapes {
-		// TODO: decoding escapes.
-		{{.Name}} = fs.Output.String()
-	} else {
-		{{.Name}} = fs.Output.String()
-	}
+	{{getAllowTokens .Typ.Name "FFTok_string"}}
+	{{.Name}} = fs.Output.String()
 	{{end}}
 }
 `
