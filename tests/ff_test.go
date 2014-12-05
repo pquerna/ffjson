@@ -3,8 +3,9 @@ package tff
 import (
 	"github.com/stretchr/testify/require"
 
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -178,15 +179,21 @@ func getXValue(thing interface{}) interface{} {
 		return f.String()
 	}
 
-	return fmt.Sprintf("%v", thing)
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	enc.Encode(f)
+	return buf.String()
 }
 
 func TestArray(t *testing.T) {
 	testType(t, &Tarray{X: []int{}}, &Xarray{X: []int{}})
+	testCycle(t, &Tarray{X: []int{42, -42, 44}}, &Xarray{X: []int{}})
 }
 
 func TestArrayPtr(t *testing.T) {
 	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{X: []*int{}})
+	v := 33
+	testCycle(t, &TarrayPtr{X: []*int{&v}}, &XarrayPtr{X: []*int{}})
 }
 
 func TestBool(t *testing.T) {
