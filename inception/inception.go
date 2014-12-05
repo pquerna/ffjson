@@ -57,7 +57,7 @@ func (i *Inception) Add(obj interface{}) {
 
 func (i *Inception) wantUnmarshal(si *StructInfo) bool {
 	typ := si.Typ
-	umlx := typ.Implements(unmarshalFasterType)
+	umlx := typ.Implements(unmarshalFasterType) || reflect.PtrTo(typ).Implements(unmarshalFasterType)
 	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
 	if umlstd && !umlx {
 		// structure has UnmarshalJSON, but not our faster version -- skip it.
@@ -68,7 +68,7 @@ func (i *Inception) wantUnmarshal(si *StructInfo) bool {
 
 func (i *Inception) wantMarshal(si *StructInfo) bool {
 	typ := si.Typ
-	mlx := typ.Implements(unmarshalFasterType)
+	mlx := typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType)
 	mlstd := typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType)
 	if mlstd && !mlx {
 		// structure has MarshalJSON, but not our faster version -- skip it.
