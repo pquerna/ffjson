@@ -421,7 +421,7 @@ wrongtokenerror:
 	return fs.WrapErr(fmt.Errorf("ffjson: wanted token: %v, but got token: %v output=%s", wantedTok, tok, fs.Output.String()))
 tokerror:
 	if fs.BigError != nil {
-		return fs.BigError
+		return fs.WrapErr(fs.BigError)
 	}
 	err = fs.Error.ToError()
 	if err != nil {
