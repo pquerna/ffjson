@@ -125,3 +125,38 @@ func TestInvalidSecondSurrogate(t *testing.T) {
 		`"\uD888\u3210 (first surrogate and invalid second surrogate)"`,
 		&Xstring{})
 }
+
+func TestInvalidLoneOpenBrace(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`{`,
+		&Xstring{})
+}
+
+func TestInvalidLoneOpenBracket(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`[`,
+		&Xarray{})
+}
+
+func TestInvalidLoneCloseBrace(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`}`,
+		&Xstring{})
+}
+
+func TestInvalidLoneCloseBracket(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`]`,
+		&Xarray{})
+}
+
+func TestInvalidMinusSignWithoutNumber(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`-`,
+		&Xint{})
+}
