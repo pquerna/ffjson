@@ -20,6 +20,7 @@ package v1
 import (
 	"fmt"
 	"io"
+	"unicode"
 	"unicode/utf16"
 )
 
@@ -164,7 +165,12 @@ func (r *ffReader) handleEscaped(c byte, j int, out DecodingBuffer) (int, error)
 			out.Write(r.s[r.i : j-2])
 			r.i = j + 10
 			j = r.i
-			out.WriteRune(utf16.DecodeRune(ru, ru2))
+			rval := utf16.DecodeRune(ru, ru2)
+			if rval != unicode.ReplacementChar {
+				out.WriteRune(rval)
+			} else {
+				return 0, fmt.Errorf("lex_string_invalid_unicode_surrogate: %v %v", ru, ru2)
+			}
 		} else {
 			out.Write(r.s[r.i : j-2])
 			r.i = j + 4

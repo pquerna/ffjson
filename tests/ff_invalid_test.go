@@ -97,3 +97,31 @@ func TestInvalidEscape(t *testing.T) {
 		`"\a <-- invalid escape"`,
 		&Xstring{})
 }
+
+func TestInvalidIdentifier(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`troo`,
+		&Xbool{})
+}
+
+func TestInvalidNegativeInt(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`-123foo`,
+		&Xint{})
+}
+
+func TestInvalidNegativeFloat(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`-124.123foo`,
+		&Xfloat64{})
+}
+
+func TestInvalidSecondSurrogate(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`"\uD888\u3210 (first surrogate and invalid second surrogate)"`,
+		&Xstring{})
+}
