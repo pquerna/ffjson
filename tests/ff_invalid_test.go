@@ -160,3 +160,17 @@ func TestInvalidMinusSignWithoutNumber(t *testing.T) {
 		`-`,
 		&Xint{})
 }
+
+func TestInvalidNullByte(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		"\u0000",
+		&Xstring{})
+}
+
+func TestInvalidNullByteInString(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		"\"\u0000 <- null byte\"",
+		&Xstring{})
+}
