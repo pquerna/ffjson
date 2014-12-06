@@ -174,3 +174,10 @@ func TestInvalidNullByteInString(t *testing.T) {
 		"\"\u0000 <- null byte\"",
 		&Xstring{})
 }
+
+func TestInvalidFloatGarbageAfterE(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`1ea`,
+		&Xfloat64{})
+}
