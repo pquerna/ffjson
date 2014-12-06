@@ -166,6 +166,8 @@ var handleArrayTxt = `
 	{{end}}
 	}
 
+	wantVal := true
+
 	for {
 	{{$ptr := false}}
 	{{if eq .Typ.Elem.Kind .Ptr }}
@@ -182,12 +184,21 @@ var handleArrayTxt = `
 		if tok == fflib.FFTok_right_brace {
 			break
 		}
-		// TODO(pquerna): this allows invalid json like [,,,,]
+
 		if tok == fflib.FFTok_comma {
+			if wantVal == true {
+				// TODO(pquerna): this isn't an ideal error message, this handles 
+				// things like [,,,] as an array value.
+				return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+			}
 			continue
+		} else {
+			wantVal = true
 		}
+
 		{{handleField .IC "v" .Typ.Elem $ptr}}
 		{{.Name}} = append({{.Name}}, v)
+		wantVal = false
 	}
 }
 `

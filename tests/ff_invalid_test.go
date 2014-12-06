@@ -24,9 +24,34 @@ import (
 	"testing"
 )
 
+// Test data from https://github.com/akheron/jansson/tree/master/test/suites/invalid
+// jansson, Copyright (c) 2009-2014 Petri Lehtinen <petri@digip.org>
+// (MIT Licensed)
+
 func TestInvalidApostrophe(t *testing.T) {
 	testExpectedError(t,
 		&fflib.LexerError{},
 		`'`,
 		&Xstring{})
+}
+
+func TestInvalidASCIIUnicodeIdentifier(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`aå`,
+		&Xstring{})
+}
+
+func TestInvalidBraceComma(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`{,}`,
+		&Xstring{})
+}
+
+func TestInvalidBracketComma(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`[,]`,
+		&Xarray{})
 }
