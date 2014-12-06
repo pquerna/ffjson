@@ -55,3 +55,17 @@ func TestInvalidBracketComma(t *testing.T) {
 		`[,]`,
 		&Xarray{})
 }
+
+func TestInvalidBracketValueComma(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`[1,`,
+		&Xarray{})
+}
+
+func TestInvalidEmptyValue(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		``,
+		&Xarray{})
+}
