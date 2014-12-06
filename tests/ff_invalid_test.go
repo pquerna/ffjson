@@ -69,3 +69,31 @@ func TestInvalidEmptyValue(t *testing.T) {
 		``,
 		&Xarray{})
 }
+
+func TestInvalidGarbageAfterNewline(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		"[1,2,3]\nfoo",
+		&Xarray{})
+}
+
+func TestInvalidGarbageAtEnd(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		"[1,2,3]foo",
+		&Xarray{})
+}
+
+func TestInvalidIntStartingWithZero(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		"012",
+		&Xint64{})
+}
+
+func TestInvalidEscape(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		`"\a <-- invalid escape"`,
+		&Xstring{})
+}
