@@ -34,6 +34,7 @@ func TestRoundTrip(t *testing.T) {
 		t.Fatalf("Marshal: %v", err)
 	}
 
+	recordTripped.MySweetInterface = &ff.Cats{}
 	err = json.Unmarshal(buf1, &recordTripped)
 	if err != nil {
 		t.Fatalf("Unmarshal: %v", err)
@@ -50,5 +51,75 @@ func TestRoundTrip(t *testing.T) {
 	good = reflect.DeepEqual(record, recordTripped)
 	if !good {
 		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
+	}
+
+	if recordTripped.SuperBool != true {
+		t.Fatal("Embeded struct didn't Unmarshal")
+	}
+
+	if recordTripped.Something != 99 {
+		t.Fatal("Embeded nonexported-struct didn't Unmarshal")
+	}
+}
+
+func TestUnmarshalEmpty(t *testing.T) {
+	record := ff.Everything{}
+	err := record.UnmarshalJSON([]byte(`{}`))
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+}
+
+const (
+	everythingJson = `{
+  "Bool": true,
+  "Int": 1,
+  "Int8": 2,
+  "Int16": 3,
+  "Int32": -4,
+  "Int64": 57,
+  "Uint": 100,
+  "Uint8": 101,
+  "Uint16": 102,
+  "Uint32": 0,
+  "Uint64": 103,
+  "Uintptr": 104,
+  "Float32": 3.14,
+  "Float64": 3.15,
+  "Array": [
+    1,
+    2,
+    3
+  ],
+  "Map": {
+    "bar": 2,
+    "foo": 1
+  },
+  "String": "snowman☃\uD801\uDC37",
+  "StringPointer": null,
+  "Int64Pointer": null,
+  "FooStruct": {
+    "Bar": 1
+  },
+  "Something": 99
+}`
+)
+
+func TestUnmarshalFull(t *testing.T) {
+	record := ff.Everything{}
+	// TODO(pquerna): add unicode snowman
+	// TODO(pquerna): handle Bar subtype
+	err := record.UnmarshalJSON([]byte(everythingJson))
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+
+	expect := "snowman☃𐐷"
+	if record.String != expect {
+		t.Fatalf("record.String decoding problem, expected: %v got: %v", expect, record.String)
+	}
+
+	if record.Something != 99 {
+		t.Fatalf("record.Something decoding problem, expected: 99 got: %v", record.Something)
 	}
 }

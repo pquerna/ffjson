@@ -20,9 +20,9 @@ package ffjsoninception
 import (
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/pills"
 	"io/ioutil"
 	"os"
+	"reflect"
 )
 
 type Inception struct {
@@ -32,7 +32,6 @@ type Inception struct {
 	PackageName   string
 	OutputImports map[string]bool
 	OutputFuncs   []string
-	OutputPills   map[pills.Pill]bool
 }
 
 func NewInception(inputPath string, packageName string, outputPath string) *Inception {
@@ -43,7 +42,12 @@ func NewInception(inputPath string, packageName string, outputPath string) *Ince
 		PackageName:   packageName,
 		OutputFuncs:   make([]string, 0),
 		OutputImports: make(map[string]bool),
-		OutputPills:   make(map[pills.Pill]bool),
+	}
+}
+
+func (i *Inception) AddMany(objs []interface{}) {
+	for _, obj := range objs {
+		i.Add(obj)
 	}
 }
 
@@ -51,11 +55,42 @@ func (i *Inception) Add(obj interface{}) {
 	i.objs = append(i.objs, NewStructInfo(obj))
 }
 
-func (i *Inception) generateMarshalJSON() error {
+func (i *Inception) wantUnmarshal(si *StructInfo) bool {
+	typ := si.Typ
+	umlx := typ.Implements(unmarshalFasterType) || reflect.PtrTo(typ).Implements(unmarshalFasterType)
+	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
+	if umlstd && !umlx {
+		// structure has UnmarshalJSON, but not our faster version -- skip it.
+		return false
+	}
+	return true
+}
+
+func (i *Inception) wantMarshal(si *StructInfo) bool {
+	typ := si.Typ
+	mlx := typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType)
+	mlstd := typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType)
+	if mlstd && !mlx {
+		// structure has MarshalJSON, but not our faster version -- skip it.
+		return false
+	}
+	return true
+}
+
+func (i *Inception) generateCode() error {
 	for _, si := range i.objs {
-		err := CreateMarshalJSON(i, si)
-		if err != nil {
-			return err
+		if i.wantMarshal(si) {
+			err := CreateMarshalJSON(i, si)
+			if err != nil {
+				return err
+			}
+		}
+
+		if i.wantUnmarshal(si) {
+			err := CreateUnmarshalJSON(i, si)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -72,7 +107,7 @@ func (i *Inception) Execute() {
 		return
 	}
 
-	err := i.generateMarshalJSON()
+	err := i.generateCode()
 	if err != nil {
 		i.handleError(err)
 		return

@@ -18,101 +18,77 @@
 package generator
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
+	"go/doc"
 	"go/parser"
 	"go/token"
-	"reflect"
 	"regexp"
 )
 
 type StructField struct {
-	Name        string
-	JsonName    string
-	OmitEmpty   bool
-	ForceString bool
+	Name string
 }
 
 type StructInfo struct {
-	Name   string
-	Fields []StructField
+	Name string
 }
 
 func NewStructInfo(name string) *StructInfo {
 	return &StructInfo{
-		Name:   name,
-		Fields: make([]StructField, 0),
+		Name: name,
 	}
 }
 
-var tagRe = regexp.MustCompile("^`(.*)`$")
-
-func (si *StructInfo) AddField(field *ast.Field) error {
-	if field.Names == nil || len(field.Names) != 1 {
-		return errors.New(fmt.Sprintf("Field contains no name: %v", field))
-	}
-
-	jsonName := field.Names[0].Name
-
-	opts := tagOptions("")
-	if field.Tag != nil {
-		var tagName string
-		// the Tag.Value contains wrapping `` which we slice off here. We hope.
-		v := tagRe.ReplaceAllString(field.Tag.Value, "$1")
-		tag := reflect.StructTag(v).Get("json")
-		tagName, opts = parseTag(tag)
-		if tagName != "" {
-			jsonName = tagName
-		}
-	}
-
-	si.Fields = append(si.Fields, StructField{
-		Name:        field.Names[0].Name,
-		JsonName:    jsonName,
-		OmitEmpty:   opts.Contains("omitempty"),
-		ForceString: opts.Contains("string"),
-	})
-	return nil
-}
+var skipre = regexp.MustCompile("(.*)ffjson:(\\s*)((skip)|(ignore))(.*)")
 
 func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 	fset := token.NewFileSet()
 
-	f, err := parser.ParseFile(fset, inputPath, nil, 0)
+	f, err := parser.ParseFile(fset, inputPath, nil, parser.ParseComments)
 
 	if err != nil {
 		return "", nil, err
 	}
 
 	packageName := f.Name.String()
-	structs := make([]*StructInfo, 0)
+	structs := make(map[string]*StructInfo)
 
 	for k, d := range f.Scope.Objects {
 		if d.Kind == ast.Typ {
 			ts, ok := d.Decl.(*ast.TypeSpec)
 			if !ok {
-				return "", nil, errors.New(fmt.Sprintf("Unknown type without TypeSec: %v", d))
+				return "", nil, fmt.Errorf("Unknown type without TypeSec: %v", d)
 			}
 
-			st, ok := ts.Type.(*ast.StructType)
+			_, ok = ts.Type.(*ast.StructType)
 			if !ok {
 				continue
 			}
 
+			// TODO(pquerna): Add // ffjson:skip or similiar tagging.
 			stobj := NewStructInfo(k)
 
-			if st.Fields.List != nil {
-				for _, field := range st.Fields.List {
-					err := stobj.AddField(field)
-					if err != nil {
-						return "", nil, err
-					}
-				}
-			}
-			structs = append(structs, stobj)
+			structs[k] = stobj
 		}
 	}
 
-	return packageName, structs, nil
+	files := map[string]*ast.File{
+		inputPath: f,
+	}
+
+	pkg, _ := ast.NewPackage(fset, files, nil, nil)
+
+	d := doc.New(pkg, f.Name.String(), doc.AllDecls)
+	for _, t := range d.Types {
+		if skipre.MatchString(t.Doc) {
+			delete(structs, t.Name)
+		}
+	}
+
+	rv := make([]*StructInfo, 0)
+	for _, v := range structs {
+		rv = append(rv, v)
+	}
+	return packageName, rv, nil
 }

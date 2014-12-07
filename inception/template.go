@@ -18,9 +18,9 @@
 package ffjsoninception
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/pills"
 	"github.com/pquerna/ffjson/shared"
 	"io/ioutil"
 	"os"
@@ -36,8 +36,7 @@ const ffjsonTemplate = `
 package {{.PackageName}}
 
 import (
-{{range $k, $v := .OutputImports}}
-{{$k}}
+{{range $k, $v := .OutputImports}}{{$k}}
 {{end}}
 )
 
@@ -59,19 +58,6 @@ func RenderTemplate(ic *Inception) ([]byte, error) {
 		}
 	}()
 
-	for pill, _ := range ic.OutputPills {
-		imports, funcBody, err := pills.GetPill(pill)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, module := range imports {
-			ic.OutputImports[module] = true
-		}
-
-		ic.OutputFuncs = append(ic.OutputFuncs, funcBody)
-	}
-
 	t := template.Must(template.New("ffjson.go").Parse(ffjsonTemplate))
 
 	err = t.Execute(f, ic)
@@ -88,4 +74,13 @@ func RenderTemplate(ic *Inception) ([]byte, error) {
 	}
 
 	return out.Bytes(), nil
+}
+
+func tplStr(t *template.Template, data interface{}) string {
+	buf := bytes.Buffer{}
+	err := t.Execute(&buf, data)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
 }
