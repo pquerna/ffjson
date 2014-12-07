@@ -14,6 +14,7 @@ If `myfile.go` contains the `struct` types you would like to be faster, and assu
 
     go get -u github.com/pquerna/ffjson
     ffjson myfile.go
+    git add myfile_ffjson.go
 
 ## Details
 
@@ -32,7 +33,7 @@ ffjson generates Go code for optimized JSON serialization.
 ## Performance Status:
 
 * `MarshalJSON` is **2x to 3x** faster than `encoding/json`.
-* `UnmarshalJSON` is **2x to 3xx** faster than `encoding/json`.
+* `UnmarshalJSON` is **2x to 3x** faster than `encoding/json`.
 
 ## Features
 
