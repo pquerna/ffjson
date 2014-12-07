@@ -33,6 +33,14 @@ type FFRecord struct {
 }
 
 // fjson: skip
+type Tobj struct {
+	X Tint
+}
+type Xobj struct {
+	X Xint
+}
+
+// fjson: skip
 type Tarray struct {
 	X []int
 }
