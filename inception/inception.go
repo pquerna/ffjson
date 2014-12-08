@@ -30,6 +30,7 @@ type Inception struct {
 	InputPath     string
 	OutputPath    string
 	PackageName   string
+	PackagePath   string
 	OutputImports map[string]bool
 	OutputFuncs   []string
 }
@@ -53,6 +54,7 @@ func (i *Inception) AddMany(objs []interface{}) {
 
 func (i *Inception) Add(obj interface{}) {
 	i.objs = append(i.objs, NewStructInfo(obj))
+	i.PackagePath = i.objs[0].Typ.PkgPath()
 }
 
 func (i *Inception) wantUnmarshal(si *StructInfo) bool {

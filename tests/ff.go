@@ -17,6 +17,10 @@
 
 package tff
 
+import (
+	"time"
+)
+
 type FFFoo struct {
 	Blah int
 }
@@ -38,6 +42,14 @@ type Tobj struct {
 }
 type Xobj struct {
 	X Xint
+}
+
+// fjson: skip
+type Tduration struct {
+	X time.Duration
+}
+type Xduration struct {
+	X time.Duration
 }
 
 // fjson: skip

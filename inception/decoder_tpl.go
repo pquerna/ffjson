@@ -54,6 +54,7 @@ func init() {
 }
 
 type handlerNumeric struct {
+	IC        *Inception
 	Name      string
 	ParseFunc string
 	Typ       reflect.Type
@@ -62,6 +63,8 @@ type handlerNumeric struct {
 
 var handlerNumericTxt = `
 {
+	{{$ic := .IC}}
+
 	{{if eq .TakeAddr true}}
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
@@ -78,11 +81,11 @@ var handlerNumericTxt = `
 		return fs.WrapErr(err)
 	}
 	{{if eq .TakeAddr true}}
-	ttypval := {{getNumberCast .Name .Typ }}(tval)
+	ttypval := {{getNumberCast $ic .Name .Typ }}(tval)
 	{{.Name}} = &ttypval
 	}
 	{{else}}
-	{{.Name}} = {{getNumberCast .Name .Typ}}(tval)
+	{{.Name}} = {{getNumberCast $ic .Name .Typ}}(tval)
 	{{end}}
 }
 `

@@ -242,6 +242,10 @@ func TestArrayPtr(t *testing.T) {
 	testCycle(t, &TarrayPtr{X: []*int{&v}}, &XarrayPtr{X: []*int{}})
 }
 
+func TestTimeDuration(t *testing.T) {
+	testType(t, &Tduration{}, &Xduration{})
+}
+
 func TestBool(t *testing.T) {
 	testType(t, &Tbool{}, &Xbool{})
 }

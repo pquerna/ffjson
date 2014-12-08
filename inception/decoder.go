@@ -160,6 +160,7 @@ func getAllowTokens(name string, tokens ...string) string {
 
 func getNumberHandler(ic *Inception, name string, takeAddr bool, typ reflect.Type, parsefunc string) string {
 	return tplStr(decodeTpl["handlerNumeric"], handlerNumeric{
+		IC:        ic,
 		Name:      name,
 		ParseFunc: parsefunc,
 		TakeAddr:  takeAddr,
@@ -171,8 +172,13 @@ func getNumberSize(typ reflect.Type) string {
 	return fmt.Sprintf("%d", typ.Bits())
 }
 
-func getNumberCast(name string, typ reflect.Type) string {
+func getNumberCast(ic *Inception, name string, typ reflect.Type) string {
 	s := typ.Name()
+	if typ.PkgPath() != "" && typ.PkgPath() != ic.PackagePath {
+		ic.OutputImports[`"`+typ.PkgPath()+`"`] = true
+		s = typ.String()
+	}
+
 	if s == "" {
 		panic("non-numeric type passed in w/o name: " + name)
 	}
