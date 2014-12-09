@@ -38,14 +38,12 @@ package main
 
 import (
 	"github.com/pquerna/ffjson/inception"
-	"{{.ImportName}}"
+	importedinceptionpackage "{{.ImportName}}"
 )
-
-{{$pn := .PackageName}}
 
 func main() {
 	i := ffjsoninception.NewInception("{{.InputPath}}", "{{.PackageName}}", "{{.OutputPath}}")
-	i.AddMany({{$pn}}.FFJSONExpose())
+	i.AddMany(importedinceptionpackage.FFJSONExpose())
 	i.Execute()
 }
 `
