@@ -304,6 +304,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
+			out += ic.q.Flush()
 			if f.Pointer {
 				out += "if mj." + f.Name + " != nil {" + "\n"
 			}
@@ -337,6 +338,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 			if f.Pointer {
 				out += "}"
 			}
+			out += ic.q.Flush()
 			out += "}" + "\n"
 		}
 	}
