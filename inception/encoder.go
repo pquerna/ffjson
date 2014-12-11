@@ -73,6 +73,11 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) string {
 	var out = ""
 
+	// Flush if not bool
+	if typ.Kind() != reflect.Bool {
+		out += ic.q.Flush()
+	}
+
 	if typ.Implements(marshalerFasterType) ||
 		reflect.PtrTo(typ).Implements(marshalerFasterType) ||
 		typeInInception(ic, typ) ||
@@ -145,9 +150,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "}" + "\n"
 	case reflect.Bool:
 		out += "if " + ptname + " {" + "\n"
-		out += "buf.WriteString(`true`)" + "\n"
+		ic.q.Write("true")
+		out += ic.q.GetQueued()
 		out += "} else {" + "\n"
-		out += "buf.WriteString(`false`)" + "\n"
+		// Delete 'true'
+		ic.q.DeleteLast()
+		out += ic.q.WriteFlush("false")
 		out += "}" + "\n"
 	case reflect.Interface:
 		ic.OutputImports[`"encoding/json"`] = true
@@ -292,7 +300,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
-	out += "buf.WriteString(`{`)" + "\n"
+	ic.q.Write("{")
 
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
@@ -308,9 +316,11 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 
 		// JsonName is already escaped and quoted.
-		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
+		// getInnervalue should flush
+		ic.q.Write(f.JsonName + ":")
+
 		out += getValue(ic, f)
-		out += "buf.WriteString(`, `)" + "\n"
+		ic.q.Write(", ")
 
 		if f.Pointer {
 			out += "}" + "\n"
@@ -321,18 +331,17 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
+	// Delete last ", "
+	ic.q.DeleteLast()
+	out += ic.q.Flush()
+
 	if conditionalWrites {
-		out += `if wroteAnyFields {` + "\n"
-		out += "  	buf.Rewind(2)" + "\n"
-		out += "	buf.WriteByte('}')" + "\n"
-		out += `} else {` + "\n"
-		out += "	buf.WriteByte('}')" + "\n"
+		out += `if !wroteAnyFields {` + "\n"
+		out += ic.q.WriteFlush(", ")
 		out += `}` + "\n"
-	} else {
-		out += "buf.Rewind(2)" + "\n"
-		out += "buf.WriteByte('}')" + "\n"
 	}
 
+	out += ic.q.WriteFlush("}")
 	out += `return nil` + "\n"
 	out += `}` + "\n"
 	ic.OutputFuncs = append(ic.OutputFuncs, out)
