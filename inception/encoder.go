@@ -348,8 +348,9 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += ic.q.Flush()
 
 	if conditionalWrites {
-		out += `if !wroteAnyFields {` + "\n"
-		out += ic.q.WriteFlush("{")
+		out += `if wroteAnyFields {` + "\n"
+		// Delete last ', '
+		out += `buf.Rewind(2)`
 		out += `}` + "\n"
 	}
 
