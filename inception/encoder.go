@@ -38,10 +38,14 @@ func typeInInception(ic *Inception, typ reflect.Type) bool {
 }
 
 func getOmitEmpty(ic *Inception, sf *StructField) string {
+	ptname := "mj." + sf.Name
+	if sf.Pointer {
+		ptname = "*" + ptname
+	}
 	switch sf.Typ.Kind() {
 
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
-		return "if len(mj." + sf.Name + ") != 0 {" + "\n"
+		return "if len(" + ptname + ") != 0 {" + "\n"
 
 	case reflect.Int,
 		reflect.Int8,
@@ -56,13 +60,13 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 		reflect.Uintptr,
 		reflect.Float32,
 		reflect.Float64:
-		return "if mj." + sf.Name + " != 0 {" + "\n"
+		return "if " + ptname + " != 0 {" + "\n"
 
 	case reflect.Bool:
-		return "if mj." + sf.Name + " != false {" + "\n"
+		return "if " + ptname + " != false {" + "\n"
 
 	case reflect.Interface, reflect.Ptr:
-		return "if mj." + sf.Name + " != nil {" + "\n"
+		return "if " + ptname + " != nil {" + "\n"
 
 	default:
 		// TODO(pquerna): fix types
@@ -276,7 +280,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		if !(f.OmitEmpty || f.Pointer) {
+		if !f.OmitEmpty {
 			// if we have >= 1 non-conditional write, we can
 			// assume our trailing logic is reaosnable.
 			conditionalWrites = false
@@ -300,31 +304,39 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
+			if f.Pointer {
+				out += "if mj." + f.Name + " != nil {" + "\n"
+			}
 			out += getOmitEmpty(ic, f)
 			if conditionalWrites {
 				out += `wroteAnyFields = true` + "\n"
 			}
 		}
 
-		if f.Pointer {
+		if f.Pointer && !f.OmitEmpty {
+			// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
 			out += "if mj." + f.Name + " != nil {" + "\n"
-			if conditionalWrites {
-				out += `wroteAnyFields = true` + "\n"
-			}
 		}
 
 		// JsonName is already escaped and quoted.
 		// getInnervalue should flush
 		ic.q.Write(f.JsonName + ":")
+		// We save a copy in case we need it
+		t := ic.q
 
 		out += getValue(ic, f)
 		ic.q.Write(", ")
 
-		if f.Pointer {
+		if f.Pointer && !f.OmitEmpty {
+			out += "} else {" + "\n"
+			out += t.WriteFlush("null")
 			out += "}" + "\n"
 		}
 
 		if f.OmitEmpty {
+			if f.Pointer {
+				out += "}"
+			}
 			out += "}" + "\n"
 		}
 	}
