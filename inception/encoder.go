@@ -252,7 +252,7 @@ func isIntish(t reflect.Type) bool {
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	conditionalWrites := false
+	conditionalWrites := true
 	needScratch := false
 	out := ""
 
@@ -276,14 +276,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		if f.OmitEmpty || f.Pointer {
+		if !(f.OmitEmpty || f.Pointer) {
 			// if we have >= 1 non-conditional write, we can
 			// assume our trailing logic is reaosnable.
-			if conditionalWrites {
-				conditionalWrites = false
-				break
-			}
-			conditionalWrites = true
+			conditionalWrites = false
 		}
 	}
 
@@ -305,14 +301,16 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
 			out += getOmitEmpty(ic, f)
+			if conditionalWrites {
+				out += `wroteAnyFields = true` + "\n"
+			}
 		}
 
 		if f.Pointer {
 			out += "if mj." + f.Name + " != nil {" + "\n"
-		}
-
-		if conditionalWrites {
-			out += `wroteAnyFields = true` + "\n"
+			if conditionalWrites {
+				out += `wroteAnyFields = true` + "\n"
+			}
 		}
 
 		// JsonName is already escaped and quoted.
@@ -337,7 +335,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	if conditionalWrites {
 		out += `if !wroteAnyFields {` + "\n"
-		out += ic.q.WriteFlush(", ")
+		out += ic.q.WriteFlush("{")
 		out += `}` + "\n"
 	}
 
