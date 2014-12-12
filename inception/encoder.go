@@ -74,7 +74,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 	}
 }
 
-func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) string {
+func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceString bool) string {
 	var out = ""
 
 	// Flush if not bool
@@ -132,7 +132,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "if i != 0 {" + "\n"
 		out += "buf.WriteString(`,`)" + "\n"
 		out += "}" + "\n"
-		out += getGetInnerValue(ic, "v", typ.Elem(), false)
+		out += getGetInnerValue(ic, "v", typ.Elem(), false, false)
 		out += "}" + "\n"
 		out += "buf.WriteString(`]`)" + "\n"
 		out += "} else {" + "\n"
@@ -140,14 +140,18 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "}" + "\n"
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
+		if forceString {
+			out += "fflib.WriteJsonString(buf, " + ptname + ` + "\"")` + "\n"
+		} else {
+			out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
+		}
 	case reflect.Ptr:
 		out += "if " + name + "!= nil {" + "\n"
 		switch typ.Elem().Kind() {
 		case reflect.Struct:
-			out += getGetInnerValue(ic, name, typ.Elem(), false)
+			out += getGetInnerValue(ic, name, typ.Elem(), false, false)
 		default:
-			out += getGetInnerValue(ic, "*"+name, typ.Elem(), false)
+			out += getGetInnerValue(ic, "*"+name, typ.Elem(), false, false)
 		}
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`null`)" + "\n"
@@ -183,7 +187,29 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 }
 
 func getValue(ic *Inception, sf *StructField) string {
-	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer)
+	if sf.ForceString && !sf.Pointer {
+		switch sf.Typ.Kind() {
+		case reflect.Int,
+			reflect.Int8,
+			reflect.Int16,
+			reflect.Int32,
+			reflect.Int64,
+			reflect.Uint,
+			reflect.Uint8,
+			reflect.Uint16,
+			reflect.Uint32,
+			reflect.Uint64,
+			reflect.Uintptr,
+			reflect.Float32,
+			reflect.Float64,
+			reflect.Bool:
+			ic.q.Write(`"`)
+			defer ic.q.Write(`"`)
+		case reflect.String:
+			ic.q.Write(`"\`)
+		}
+	}
+	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
 }
 
 func p2(v uint32) uint32 {
