@@ -38,10 +38,14 @@ func typeInInception(ic *Inception, typ reflect.Type) bool {
 }
 
 func getOmitEmpty(ic *Inception, sf *StructField) string {
+	ptname := "mj." + sf.Name
+	if sf.Pointer {
+		ptname = "*" + ptname
+	}
 	switch sf.Typ.Kind() {
 
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
-		return "if len(mj." + sf.Name + ") != 0 {" + "\n"
+		return "if len(" + ptname + ") != 0 {" + "\n"
 
 	case reflect.Int,
 		reflect.Int8,
@@ -56,13 +60,13 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 		reflect.Uintptr,
 		reflect.Float32,
 		reflect.Float64:
-		return "if mj." + sf.Name + " != 0 {" + "\n"
+		return "if " + ptname + " != 0 {" + "\n"
 
 	case reflect.Bool:
-		return "if mj." + sf.Name + " != false {" + "\n"
+		return "if " + ptname + " != false {" + "\n"
 
 	case reflect.Interface, reflect.Ptr:
-		return "if mj." + sf.Name + " != nil {" + "\n"
+		return "if " + ptname + " != nil {" + "\n"
 
 	default:
 		// TODO(pquerna): fix types
@@ -70,8 +74,13 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 	}
 }
 
-func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) string {
+func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceString bool) string {
 	var out = ""
+
+	// Flush if not bool
+	if typ.Kind() != reflect.Bool {
+		out += ic.q.Flush()
+	}
 
 	if typ.Implements(marshalerFasterType) ||
 		reflect.PtrTo(typ).Implements(marshalerFasterType) ||
@@ -123,7 +132,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "if i != 0 {" + "\n"
 		out += "buf.WriteString(`,`)" + "\n"
 		out += "}" + "\n"
-		out += getGetInnerValue(ic, "v", typ.Elem(), false)
+		out += getGetInnerValue(ic, "v", typ.Elem(), false, false)
 		out += "}" + "\n"
 		out += "buf.WriteString(`]`)" + "\n"
 		out += "} else {" + "\n"
@@ -131,23 +140,30 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 		out += "}" + "\n"
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
+		if forceString {
+			out += "fflib.WriteJsonString(buf, " + ptname + ` + "\"")` + "\n"
+		} else {
+			out += "fflib.WriteJsonString(buf, " + ptname + ")" + "\n"
+		}
 	case reflect.Ptr:
 		out += "if " + name + "!= nil {" + "\n"
 		switch typ.Elem().Kind() {
 		case reflect.Struct:
-			out += getGetInnerValue(ic, name, typ.Elem(), false)
+			out += getGetInnerValue(ic, name, typ.Elem(), false, false)
 		default:
-			out += getGetInnerValue(ic, "*"+name, typ.Elem(), false)
+			out += getGetInnerValue(ic, "*"+name, typ.Elem(), false, false)
 		}
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
 	case reflect.Bool:
 		out += "if " + ptname + " {" + "\n"
-		out += "buf.WriteString(`true`)" + "\n"
+		ic.q.Write("true")
+		out += ic.q.GetQueued()
 		out += "} else {" + "\n"
-		out += "buf.WriteString(`false`)" + "\n"
+		// Delete 'true'
+		ic.q.DeleteLast()
+		out += ic.q.WriteFlush("false")
 		out += "}" + "\n"
 	case reflect.Interface:
 		ic.OutputImports[`"encoding/json"`] = true
@@ -171,7 +187,29 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool) st
 }
 
 func getValue(ic *Inception, sf *StructField) string {
-	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer)
+	if sf.ForceString && !sf.Pointer {
+		switch sf.Typ.Kind() {
+		case reflect.Int,
+			reflect.Int8,
+			reflect.Int16,
+			reflect.Int32,
+			reflect.Int64,
+			reflect.Uint,
+			reflect.Uint8,
+			reflect.Uint16,
+			reflect.Uint32,
+			reflect.Uint64,
+			reflect.Uintptr,
+			reflect.Float32,
+			reflect.Float64,
+			reflect.Bool:
+			ic.q.Write(`"`)
+			defer ic.q.Write(`"`)
+		case reflect.String:
+			ic.q.Write(`"\`)
+		}
+	}
+	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
 }
 
 func p2(v uint32) uint32 {
@@ -244,7 +282,7 @@ func isIntish(t reflect.Type) bool {
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	conditionalWrites := false
+	conditionalWrites := true
 	needScratch := false
 	out := ""
 
@@ -268,14 +306,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		if f.OmitEmpty || f.Pointer {
+		if !f.OmitEmpty {
 			// if we have >= 1 non-conditional write, we can
 			// assume our trailing logic is reaosnable.
-			if conditionalWrites {
-				conditionalWrites = false
-				break
-			}
-			conditionalWrites = true
+			conditionalWrites = false
 		}
 	}
 
@@ -292,47 +326,63 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
-	out += "buf.WriteString(`{`)" + "\n"
+	ic.q.Write("{")
 
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
+			out += ic.q.Flush()
+			if f.Pointer {
+				out += "if mj." + f.Name + " != nil {" + "\n"
+			}
 			out += getOmitEmpty(ic, f)
+			if conditionalWrites {
+				out += `wroteAnyFields = true` + "\n"
+			}
 		}
 
-		if f.Pointer {
+		if f.Pointer && !f.OmitEmpty {
+			// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
 			out += "if mj." + f.Name + " != nil {" + "\n"
 		}
 
-		if conditionalWrites {
-			out += `wroteAnyFields = true` + "\n"
-		}
-
 		// JsonName is already escaped and quoted.
-		out += "buf.WriteString(`" + f.JsonName + ":`)" + "\n"
-		out += getValue(ic, f)
-		out += "buf.WriteString(`, `)" + "\n"
+		// getInnervalue should flush
+		ic.q.Write(f.JsonName + ":")
+		// We save a copy in case we need it
+		t := ic.q
 
-		if f.Pointer {
+		out += getValue(ic, f)
+		ic.q.Write(", ")
+
+		if f.Pointer && !f.OmitEmpty {
+			out += "} else {" + "\n"
+			out += t.WriteFlush("null")
 			out += "}" + "\n"
 		}
 
 		if f.OmitEmpty {
+			if f.Pointer {
+				out += "}" + "\n"
+			}
+			out += ic.q.Flush()
 			out += "}" + "\n"
 		}
 	}
 
+	out += ic.q.Flush()
+	// Handling the last comma is tricky.
+	// If all fields have omitempty, conditionalWrites is set, and we have to test
+	// if we have actually written any fields.
+	// If we have, we delete the last comma, by backing up the buffer.
 	if conditionalWrites {
 		out += `if wroteAnyFields {` + "\n"
-		out += "  	buf.Rewind(2)" + "\n"
-		out += "	buf.WriteByte('}')" + "\n"
-		out += `} else {` + "\n"
-		out += "	buf.WriteByte('}')" + "\n"
+		out += `buf.Rewind(2)` + "\n"
 		out += `}` + "\n"
 	} else {
-		out += "buf.Rewind(2)" + "\n"
-		out += "buf.WriteByte('}')" + "\n"
+		out += `buf.Rewind(2)` + "\n"
 	}
 
+	out += ic.q.WriteFlush("}")
 	out += `return nil` + "\n"
 	out += `}` + "\n"
 	ic.OutputFuncs = append(ic.OutputFuncs, out)
