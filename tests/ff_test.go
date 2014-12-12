@@ -301,3 +301,12 @@ func TestFloat32(t *testing.T) {
 func TestFloat64(t *testing.T) {
 	testType(t, &Tfloat64{}, &Xfloat64{})
 }
+
+func TestForceStringTagged(t *testing.T) {
+	// testSameMarshal is used instead of testType because
+	// the string tag is a one way effect, Unmarshaling doesn't
+	// work because the receiving type must be a string.
+	testSameMarshal(t, &TstringTagged{}, &XstringTagged{})
+	testSameMarshal(t, &TintTagged{}, &XintTagged{})
+	testSameMarshal(t, &TboolTagged{}, &XboolTagged{})
+}

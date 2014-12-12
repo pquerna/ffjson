@@ -77,6 +77,30 @@ type Xstring struct {
 }
 
 // fjson: skip
+type TstringTagged struct {
+	X string `json:",string"`
+}
+type XstringTagged struct {
+	X string `json:",string"`
+}
+
+// fjson: skip
+type TintTagged struct {
+	X int `json:",string"`
+}
+type XintTagged struct {
+	X int `json:",string"`
+}
+
+// fjson: skip
+type TboolTagged struct {
+	X int `json:",string"`
+}
+type XboolTagged struct {
+	X int `json:",string"`
+}
+
+// fjson: skip
 type Tbool struct {
 	X bool
 }
