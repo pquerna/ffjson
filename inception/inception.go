@@ -32,6 +32,7 @@ type Inception struct {
 	PackageName   string
 	OutputImports map[string]bool
 	OutputFuncs   []string
+	q             ConditionalWrite
 }
 
 func NewInception(inputPath string, packageName string, outputPath string) *Inception {
