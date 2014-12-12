@@ -369,15 +369,17 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
-	// Delete last ", "
-	ic.q.DeleteLast()
 	out += ic.q.Flush()
-
+	// Handling the last comma is tricky.
+	// If all fields have omitempty, conditionalWrites is set, and we have to test
+	// if we have actually written any fields.
+	// If we have, we delete the last comma, by backing up the buffer.
 	if conditionalWrites {
 		out += `if wroteAnyFields {` + "\n"
-		// Delete last ', '
-		out += `buf.Rewind(2)`
+		out += `buf.Rewind(2)` + "\n"
 		out += `}` + "\n"
+	} else {
+		out += `buf.Rewind(2)` + "\n"
 	}
 
 	out += ic.q.WriteFlush("}")
