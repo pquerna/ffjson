@@ -94,3 +94,10 @@ func TestFloatNull(t *testing.T) {
 		`null`,
 		&Xfloat64{})
 }
+
+func TestFloatInt(t *testing.T) {
+	testExpectedXValBare(t,
+		1.0,
+		`1`,
+		&Xfloat64{})
+}

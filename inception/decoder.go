@@ -99,7 +99,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Float32,
 		reflect.Float64:
-		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_null")
+		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_integer", "FFTok_null")
 		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseFloat")
 
 	case reflect.Bool:
