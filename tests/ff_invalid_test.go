@@ -147,6 +147,13 @@ func TestInvalidLoneCloseBrace(t *testing.T) {
 		&Xstring{})
 }
 
+func TestInvalidHighBytes(t *testing.T) {
+	testExpectedError(t,
+		&fflib.LexerError{},
+		string('\xFF'),
+		&Xstring{})
+}
+
 func TestInvalidLoneCloseBracket(t *testing.T) {
 	testExpectedError(t,
 		&fflib.LexerError{},

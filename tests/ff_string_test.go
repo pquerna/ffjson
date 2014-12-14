@@ -76,6 +76,13 @@ func TestStringSomeUTF8(t *testing.T) {
 		&Xstring{})
 }
 
+func TestBytesInString(t *testing.T) {
+	testExpectedXVal(t,
+		string('\xff')+` <- xFF byte`,
+		string('\xff')+` <- xFF byte`,
+		&Xstring{})
+}
+
 func TestString4ByteSurrogate(t *testing.T) {
 	testExpectedXVal(t,
 		"𝄞 surrogate, four-byte UTF-8",

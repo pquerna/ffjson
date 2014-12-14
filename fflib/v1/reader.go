@@ -242,7 +242,7 @@ func (r *ffReader) SliceString(out DecodingBuffer) error {
 }
 
 // TODO(pquerna): consider combining wibth the normal byte mask.
-var whitespaceLookupTable [255]bool = [255]bool{
+var whitespaceLookupTable [256]bool = [256]bool{
 	false, /* 0 */
 	false, /* 1 */
 	false, /* 2 */
@@ -498,4 +498,5 @@ var whitespaceLookupTable [255]bool = [255]bool{
 	false, /* 252 */
 	false, /* 253 */
 	false, /* 254 */
+	false, /* 255 */
 }

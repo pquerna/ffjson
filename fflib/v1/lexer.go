@@ -667,7 +667,7 @@ const (
 	cNUC int8 = 0x10
 )
 
-var byteLookupTable [255]int8 = [255]int8{
+var byteLookupTable [256]int8 = [256]int8{
 	cIJC,               /* 0 */
 	cIJC,               /* 1 */
 	cIJC,               /* 2 */
@@ -923,4 +923,5 @@ var byteLookupTable [255]int8 = [255]int8{
 	cNUC,               /* 252 */
 	cNUC,               /* 253 */
 	cNUC,               /* 254 */
+	cNUC,               /* 255 */
 }

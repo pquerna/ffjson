@@ -116,7 +116,7 @@ func WriteJsonString(buf JsonStringWriter, s string) {
 }
 
 // TODO(pquerna): consider combining wibth the normal byte mask.
-var lt [255]bool = [255]bool{
+var lt [256]bool = [256]bool{
 	false, /* 0 */
 	false, /* 1 */
 	false, /* 2 */
@@ -372,4 +372,5 @@ var lt [255]bool = [255]bool{
 	true,  /* 252 */
 	true,  /* 253 */
 	true,  /* 254 */
+	true,  /* 255 */
 }
