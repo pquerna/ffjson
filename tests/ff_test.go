@@ -314,3 +314,7 @@ func TestForceStringTagged(t *testing.T) {
 	testSameMarshal(t, &TintTagged{}, &XintTagged{})
 	testSameMarshal(t, &TboolTagged{}, &XboolTagged{})
 }
+
+func TestSortSame(t *testing.T) {
+	testSameMarshal(t, &TsortName{C: "foo", B: 12}, &XsortName{C: "foo", B: 12})
+}

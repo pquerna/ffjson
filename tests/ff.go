@@ -37,6 +37,16 @@ type FFRecord struct {
 }
 
 // fjson: skip
+type TsortName struct {
+	B int `json:"A"`
+	C string
+}
+type XsortName struct {
+	B int `json:"A"`
+	C string
+}
+
+// fjson: skip
 type Tobj struct {
 	X Tint
 }
