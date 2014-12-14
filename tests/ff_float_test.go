@@ -87,3 +87,10 @@ func TestFloatRealUnderflow(t *testing.T) {
 		`123e-10000000`,
 		&Xfloat64{})
 }
+
+func TestFloatNull(t *testing.T) {
+	testExpectedXValBare(t,
+		0.0,
+		`null`,
+		&Xfloat64{})
+}

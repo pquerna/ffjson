@@ -89,3 +89,10 @@ func TestString4ByteSurrogate(t *testing.T) {
 		`\uD834\uDD1E surrogate, four-byte UTF-8`,
 		&Xstring{})
 }
+
+func TestStringNull(t *testing.T) {
+	testExpectedXValBare(t,
+		"foobar",
+		`null`,
+		&Xstring{X: "foobar"})
+}

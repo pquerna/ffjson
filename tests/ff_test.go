@@ -248,6 +248,10 @@ func TestTimeDuration(t *testing.T) {
 
 func TestBool(t *testing.T) {
 	testType(t, &Tbool{}, &Xbool{})
+	testExpectedXValBare(t,
+		true,
+		`null`,
+		&Xbool{Tbool{X: true}})
 }
 
 func TestInt(t *testing.T) {

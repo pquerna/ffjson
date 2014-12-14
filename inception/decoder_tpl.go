@@ -65,28 +65,27 @@ var handlerNumericTxt = `
 {
 	{{$ic := .IC}}
 
-	{{if eq .TakeAddr true}}
 	if tok == fflib.FFTok_null {
+		{{if eq .TakeAddr true}}
 		{{.Name}} = nil
+		{{end}}
 	} else {
-	{{end}}
+		{{if eq .ParseFunc "ParseFloat" }}
+		tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), {{getNumberSize .Typ}})
+		{{else}}
+		tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), 10, {{getNumberSize .Typ}})
+		{{end}}
 
-	{{if eq .ParseFunc "ParseFloat" }}
-	tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), {{getNumberSize .Typ}})
-	{{else}}
-	tval, err := fflib.{{ .ParseFunc}}(fs.Output.Bytes(), 10, {{getNumberSize .Typ}})
-	{{end}}
-
-	if err != nil {
-		return fs.WrapErr(err)
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		{{if eq .TakeAddr true}}
+		ttypval := {{getNumberCast $ic .Name .Typ }}(tval)
+		{{.Name}} = &ttypval
+		{{else}}
+		{{.Name}} = {{getNumberCast $ic .Name .Typ}}(tval)
+		{{end}}
 	}
-	{{if eq .TakeAddr true}}
-	ttypval := {{getNumberCast $ic .Name .Typ }}(tval)
-	{{.Name}} = &ttypval
-	}
-	{{else}}
-	{{.Name}} = {{getNumberCast $ic .Name .Typ}}(tval)
-	{{end}}
 }
 `
 
@@ -132,20 +131,20 @@ type handleString struct {
 
 var handleStringTxt = `
 {
-	{{if eq .TakeAddr true}}
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
+	{{if eq .TakeAddr true}}
 		{{.Name}} = nil
+	{{end}}
 	} else {
+	{{if eq .TakeAddr true}}
 		var tval string
 		tval = fs.Output.String()
 		{{.Name}} = &tval
-
-	}
 	{{else}}
-	{{getAllowTokens .Typ.Name "FFTok_string"}}
-	{{.Name}} = fs.Output.String()
+		{{.Name}} = fs.Output.String()
 	{{end}}
+	}
 }
 `
 
@@ -215,37 +214,38 @@ type handleBool struct {
 var handleBoolTxt = `
 {
 	{{getAllowTokens .Typ.Name "FFTok_bool" "FFTok_null"}}
-	{{if eq .TakeAddr true}}
 	if tok == fflib.FFTok_null {
+		{{if eq .TakeAddr true}}
 		{{.Name}} = nil
+		{{end}}
 	} else {
-	{{end}}
-	tmpb := fs.Output.Bytes()
+		tmpb := fs.Output.Bytes()
 
-	{{if eq .TakeAddr true}}
-	var tval bool
-	{{end}}
-	if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
-	{{if eq .TakeAddr true}}
-		tval = true
-	{{else}}
-		{{.Name}} = true
-	{{end}}
-	} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
-	{{if eq .TakeAddr true}}
-		tval = false
-	{{else}}
-		{{.Name}} = false
-	{{end}}
-	} else {
-		err = errors.New("unexpected bytes for true/false value")
-		return fs.WrapErr(err)
-	}
+		{{if eq .TakeAddr true}}
+		var tval bool
+		{{end}}
 
-	{{if eq .TakeAddr true}}
-	{{.Name}} = &tval
+		if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
+		{{if eq .TakeAddr true}}
+			tval = true
+		{{else}}
+			{{.Name}} = true
+		{{end}}
+		} else if bytes.Compare([]byte{'f', 'a', 'l', 's', 'e'}, tmpb) == 0 {
+		{{if eq .TakeAddr true}}
+			tval = false
+		{{else}}
+			{{.Name}} = false
+		{{end}}
+		} else {
+			err = errors.New("unexpected bytes for true/false value")
+			return fs.WrapErr(err)
+		}
+
+		{{if eq .TakeAddr true}}
+		{{.Name}} = &tval
+		{{end}}
 	}
-	{{end}}
 }
 `
 
