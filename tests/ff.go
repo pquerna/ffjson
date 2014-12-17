@@ -65,6 +65,14 @@ type Xduration struct {
 }
 
 // fjson: skip
+type TtimePtr struct {
+	X *time.Time
+}
+type XtimePtr struct {
+	X *time.Time
+}
+
+// fjson: skip
 type Tarray struct {
 	X []int
 }
