@@ -128,6 +128,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.String:
 		out += tplStr(decodeTpl["handleString"], handleString{
+			IC:       ic,
 			Name:     name,
 			Typ:      typ,
 			TakeAddr: takeAddr || ptr,
@@ -172,8 +173,9 @@ func getNumberSize(typ reflect.Type) string {
 	return fmt.Sprintf("%d", typ.Bits())
 }
 
-func getNumberCast(ic *Inception, name string, typ reflect.Type) string {
+func getType(ic *Inception, name string, typ reflect.Type) string {
 	s := typ.Name()
+
 	if typ.PkgPath() != "" && typ.PkgPath() != ic.PackagePath {
 		ic.OutputImports[`"`+typ.PkgPath()+`"`] = true
 		s = typ.String()
@@ -182,5 +184,6 @@ func getNumberCast(ic *Inception, name string, typ reflect.Type) string {
 	if s == "" {
 		panic("non-numeric type passed in w/o name: " + name)
 	}
+
 	return s
 }

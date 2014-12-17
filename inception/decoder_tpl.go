@@ -43,7 +43,7 @@ func init() {
 	tplFuncs := template.FuncMap{
 		"getAllowTokens":  getAllowTokens,
 		"getNumberSize":   getNumberSize,
-		"getNumberCast":   getNumberCast,
+		"getType":         getType,
 		"handleField":     handleField,
 		"handleFieldAddr": handleFieldAddr,
 	}
@@ -80,10 +80,10 @@ var handlerNumericTxt = `
 			return fs.WrapErr(err)
 		}
 		{{if eq .TakeAddr true}}
-		ttypval := {{getNumberCast $ic .Name .Typ }}(tval)
+		ttypval := {{getType $ic .Name .Typ}}(tval)
 		{{.Name}} = &ttypval
 		{{else}}
-		{{.Name}} = {{getNumberCast $ic .Name .Typ}}(tval)
+		{{.Name}} = {{getType $ic .Name .Typ}}(tval)
 		{{end}}
 	}
 }
@@ -124,6 +124,7 @@ var handleFallbackTxt = `
 `
 
 type handleString struct {
+	IC       *Inception
 	Name     string
 	Typ      reflect.Type
 	TakeAddr bool
@@ -131,6 +132,8 @@ type handleString struct {
 
 var handleStringTxt = `
 {
+	{{$ic := .IC}}
+
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 	{{if eq .TakeAddr true}}
@@ -138,11 +141,11 @@ var handleStringTxt = `
 	{{end}}
 	} else {
 	{{if eq .TakeAddr true}}
-		var tval string
+		var tval {{getType $ic .Name .Typ}}
 		tval = fs.Output.String()
 		{{.Name}} = &tval
 	{{else}}
-		{{.Name}} = fs.Output.String()
+		{{.Name}} = {{getType $ic .Name .Typ}}(fs.Output.String())
 	{{end}}
 	}
 }
