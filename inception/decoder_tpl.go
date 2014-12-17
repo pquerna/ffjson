@@ -445,7 +445,7 @@ done:
 type handleUnmarshaler struct {
 	IC                   *Inception
 	Name                 string
-	Type                 reflect.Type
+	Typ                  reflect.Type
 	Ptr                  reflect.Kind
 	TakeAddr             bool
 	UnmarshalJSONFFLexer bool
@@ -453,16 +453,18 @@ type handleUnmarshaler struct {
 }
 
 var handleUnmarshalerTxt = `
+	{{$ic := .IC}}
+
 	{{if eq .UnmarshalJSONFFLexer true}}
 	{
-		{{if eq .Type.Kind .Ptr }}
+		{{if eq .Typ.Kind .Ptr }}
 			if {{.Name}} == nil {
-				{{.Name}} = new({{.Type.Elem.Name}})
+				{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
 			}
 		{{end}}
 		{{if eq .TakeAddr true }}
 			if {{.Name}} == nil {
-				{{.Name}} = new({{.Type.Name}})
+				{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
 			}
 		{{end}}
 		err = {{.Name}}.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
@@ -481,7 +483,7 @@ var handleUnmarshalerTxt = `
 
 		{{if eq .TakeAddr true }}
 		if {{.Name}} == nil {
-			{{.Name}} = new({{.Type.Name}})
+			{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
 		}
 		{{end}}
 		err = {{.Name}}.UnmarshalJSON(tbuf)

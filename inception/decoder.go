@@ -68,7 +68,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out += tplStr(decodeTpl["handleUnmarshaler"], handleUnmarshaler{
 		IC:                   ic,
 		Name:                 name,
-		Type:                 typ,
+		Typ:                  typ,
 		Ptr:                  reflect.Ptr,
 		TakeAddr:             takeAddr || ptr,
 		UnmarshalJSONFFLexer: umlx,
