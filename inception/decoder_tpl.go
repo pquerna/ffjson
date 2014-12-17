@@ -142,7 +142,7 @@ var handleStringTxt = `
 	} else {
 	{{if eq .TakeAddr true}}
 		var tval {{getType $ic .Name .Typ}}
-		tval = fs.Output.String()
+		tval = {{getType $ic .Name .Typ}}(fs.Output.String())
 		{{.Name}} = &tval
 	{{else}}
 		{{.Name}} = {{getType $ic .Name .Typ}}(fs.Output.String())
@@ -260,11 +260,13 @@ type handlePtr struct {
 
 var handlePtrTxt = `
 {
+	{{$ic := .IC}}
+
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 		if {{.Name}} == nil {
-			{{.Name}} = new({{.Typ.Elem.Name}})
+			{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
 		}
 
 		{{handleFieldAddr .IC .Name true .Typ.Elem false}}

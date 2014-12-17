@@ -28,6 +28,7 @@ import (
 func TestString(t *testing.T) {
 	testType(t, &Tstring{}, &Xstring{})
 	testType(t, &Tmystring{}, &Xmystring{})
+	testType(t, &TmystringPtr{}, &XmystringPtr{})
 }
 
 func TestStringEscapedControlCharacter(t *testing.T) {

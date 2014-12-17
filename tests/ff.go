@@ -97,6 +97,14 @@ type Xmystring struct {
 }
 
 // fjson: skip
+type TmystringPtr struct {
+	X *mystring
+}
+type XmystringPtr struct {
+	X *mystring
+}
+
+// fjson: skip
 type TstringTagged struct {
 	X string `json:",string"`
 }
