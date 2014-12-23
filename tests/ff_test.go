@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func newLogRecord() *Record {
@@ -146,7 +147,7 @@ func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
 	bufff, err := json.Marshal(ff)
 	require.NoError(t, err, "ff[%T] failed to Marshal", ff)
 
-	require.Equal(t, bufbase, bufff, "json.Marshal of base[%T] != ff[%T]", base, ff)
+	require.Equal(t, string(bufbase), string(bufff), "json.Marshal of base[%T] != ff[%T]", base, ff)
 }
 
 func testCycle(t *testing.T, base interface{}, ff interface{}) {
@@ -244,6 +245,11 @@ func TestArrayPtr(t *testing.T) {
 
 func TestTimeDuration(t *testing.T) {
 	testType(t, &Tduration{}, &Xduration{})
+}
+
+func TestTimeTimePtr(t *testing.T) {
+	tm := time.Date(2014, 12, 13, 15, 16, 17, 18, time.UTC)
+	testType(t, &TtimePtr{X: &tm}, &TtimePtr{X: &tm})
 }
 
 func TestBool(t *testing.T) {

@@ -43,7 +43,7 @@ func init() {
 	tplFuncs := template.FuncMap{
 		"getAllowTokens":  getAllowTokens,
 		"getNumberSize":   getNumberSize,
-		"getNumberCast":   getNumberCast,
+		"getType":         getType,
 		"handleField":     handleField,
 		"handleFieldAddr": handleFieldAddr,
 	}
@@ -80,10 +80,10 @@ var handlerNumericTxt = `
 			return fs.WrapErr(err)
 		}
 		{{if eq .TakeAddr true}}
-		ttypval := {{getNumberCast $ic .Name .Typ }}(tval)
+		ttypval := {{getType $ic .Name .Typ}}(tval)
 		{{.Name}} = &ttypval
 		{{else}}
-		{{.Name}} = {{getNumberCast $ic .Name .Typ}}(tval)
+		{{.Name}} = {{getType $ic .Name .Typ}}(tval)
 		{{end}}
 	}
 }
@@ -124,6 +124,7 @@ var handleFallbackTxt = `
 `
 
 type handleString struct {
+	IC       *Inception
 	Name     string
 	Typ      reflect.Type
 	TakeAddr bool
@@ -131,6 +132,8 @@ type handleString struct {
 
 var handleStringTxt = `
 {
+	{{$ic := .IC}}
+
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 	{{if eq .TakeAddr true}}
@@ -138,11 +141,11 @@ var handleStringTxt = `
 	{{end}}
 	} else {
 	{{if eq .TakeAddr true}}
-		var tval string
-		tval = fs.Output.String()
+		var tval {{getType $ic .Name .Typ}}
+		tval = {{getType $ic .Name .Typ}}(fs.Output.String())
 		{{.Name}} = &tval
 	{{else}}
-		{{.Name}} = fs.Output.String()
+		{{.Name}} = {{getType $ic .Name .Typ}}(fs.Output.String())
 	{{end}}
 	}
 }
@@ -257,11 +260,13 @@ type handlePtr struct {
 
 var handlePtrTxt = `
 {
+	{{$ic := .IC}}
+
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
 		if {{.Name}} == nil {
-			{{.Name}} = new({{.Typ.Elem.Name}})
+			{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
 		}
 
 		{{handleFieldAddr .IC .Name true .Typ.Elem false}}
@@ -440,7 +445,7 @@ done:
 type handleUnmarshaler struct {
 	IC                   *Inception
 	Name                 string
-	Type                 reflect.Type
+	Typ                  reflect.Type
 	Ptr                  reflect.Kind
 	TakeAddr             bool
 	UnmarshalJSONFFLexer bool
@@ -448,16 +453,18 @@ type handleUnmarshaler struct {
 }
 
 var handleUnmarshalerTxt = `
+	{{$ic := .IC}}
+
 	{{if eq .UnmarshalJSONFFLexer true}}
 	{
-		{{if eq .Type.Kind .Ptr }}
+		{{if eq .Typ.Kind .Ptr }}
 			if {{.Name}} == nil {
-				{{.Name}} = new({{.Type.Elem.Name}})
+				{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
 			}
 		{{end}}
 		{{if eq .TakeAddr true }}
 			if {{.Name}} == nil {
-				{{.Name}} = new({{.Type.Name}})
+				{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
 			}
 		{{end}}
 		err = {{.Name}}.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
@@ -476,7 +483,7 @@ var handleUnmarshalerTxt = `
 
 		{{if eq .TakeAddr true }}
 		if {{.Name}} == nil {
-			{{.Name}} = new({{.Type.Name}})
+			{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
 		}
 		{{end}}
 		err = {{.Name}}.UnmarshalJSON(tbuf)

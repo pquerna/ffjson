@@ -36,14 +36,16 @@ type FFRecord struct {
 	BytesSent uint64
 }
 
+type mystring string
+
 // fjson: skip
 type TsortName struct {
-	B int `json:"A"`
 	C string
+	B int `json:"A"`
 }
 type XsortName struct {
-	B int `json:"A"`
 	C string
+	B int `json:"A"`
 }
 
 // fjson: skip
@@ -60,6 +62,14 @@ type Tduration struct {
 }
 type Xduration struct {
 	X time.Duration
+}
+
+// fjson: skip
+type TtimePtr struct {
+	X *time.Time
+}
+type XtimePtr struct {
+	X *time.Time
 }
 
 // fjson: skip
@@ -84,6 +94,22 @@ type Tstring struct {
 }
 type Xstring struct {
 	X string
+}
+
+// fjson: skip
+type Tmystring struct {
+	X mystring
+}
+type Xmystring struct {
+	X mystring
+}
+
+// fjson: skip
+type TmystringPtr struct {
+	X *mystring
+}
+type XmystringPtr struct {
+	X *mystring
 }
 
 // fjson: skip
