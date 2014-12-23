@@ -56,11 +56,6 @@ const ffjsonExposeTemplate = `
 
 package {{.PackageName}}
 
-import (
-	"errors"
-	fflib "github.com/pquerna/ffjson/fflib/v1"
-)
-
 func FFJSONExpose() []interface{} {
 	rv := make([]interface{}, 0)
 {{range .StructNames}}
@@ -68,25 +63,6 @@ func FFJSONExpose() []interface{} {
 {{end}}
 	return rv
 }
-
-{{range .StructNames}}
-func (v *{{.}}) MarshalJSON() ([]byte, error) {
-	return nil, errors.New("stub function")
-}
-
-func (v *{{.}}) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
-	return errors.New("stub function")
-}
-
-func (v *{{.}}) UnmarshalJSON(input []byte) error{
-	return errors.New("stub function")
-}
-
-func (v *{{.}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	return errors.New("stub function")
-}
-
-{{end}}
 `
 
 type templateCtx struct {
@@ -234,8 +210,6 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 func (im *InceptionMain) Run() error {
 	var out bytes.Buffer
 	var errOut bytes.Buffer
-
-	os.Remove(im.outputPath)
 
 	cmd := exec.Command(im.goCmd, "run", "-a", im.TempMainPath)
 	cmd.Stdout = &out
