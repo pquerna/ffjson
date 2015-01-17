@@ -10,7 +10,7 @@ When you change your `struct`, you will need to run `ffjson` again (or make it p
 
 ## Getting Started
 
-If `myfile.go` contains the `struct` types you would like to be faster, and assuming `GOPATH` is set to a reasonable value for an existing project, you can just run:
+If `myfile.go` contains the `struct` types you would like to be faster, and assuming `GOPATH` is set to a reasonable value for an existing project (meaning that in this particular example if `myfile.go` is in the `myproject` directory, the project should be under `$GOPATH/src/myproject`), you can just run:
 
     go get -u github.com/pquerna/ffjson
     ffjson myfile.go
