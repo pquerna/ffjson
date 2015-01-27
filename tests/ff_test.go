@@ -235,6 +235,13 @@ func getXValue(thing interface{}) interface{} {
 func TestArray(t *testing.T) {
 	testType(t, &Tarray{X: []int{}}, &Xarray{X: []int{}})
 	testCycle(t, &Tarray{X: []int{42, -42, 44}}, &Xarray{X: []int{}})
+
+	x := Xarray{X: []int{222}}
+	buf := []byte(`{"X": null}`)
+	err := json.Unmarshal(buf, &x)
+	require.NoError(t, err, "Unmarshal of null into array.")
+	var eq []int = nil
+	require.Equal(t, x.X, eq)
 }
 
 func TestArrayPtr(t *testing.T) {
