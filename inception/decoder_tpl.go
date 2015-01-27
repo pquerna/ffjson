@@ -164,46 +164,46 @@ var handleArrayTxt = `
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
-	{{if eq .Typ.Elem.Kind .Ptr }}
-		{{.Name}} = make([]*{{.Typ.Elem.Elem.Name}}, 0)
-	{{else}}
-		{{.Name}} = make([]{{.Typ.Elem.Name}}, 0)
-	{{end}}
-	}
+		{{if eq .Typ.Elem.Kind .Ptr }}
+			{{.Name}} = make([]*{{.Typ.Elem.Elem.Name}}, 0)
+		{{else}}
+			{{.Name}} = make([]{{.Typ.Elem.Name}}, 0)
+		{{end}}
 
-	wantVal := true
+		wantVal := true
 
-	for {
-	{{$ptr := false}}
-	{{if eq .Typ.Elem.Kind .Ptr }}
-		{{$ptr := true}}
-		var v *{{.Typ.Elem.Elem.Name}}
-	{{else}}
-		var v {{.Typ.Elem.Name}}
-	{{end}}
+		for {
+		{{$ptr := false}}
+		{{if eq .Typ.Elem.Kind .Ptr }}
+			{{$ptr := true}}
+			var v *{{.Typ.Elem.Elem.Name}}
+		{{else}}
+			var v {{.Typ.Elem.Name}}
+		{{end}}
 
-		tok = fs.Scan()
-		if tok == fflib.FFTok_error {
-			goto tokerror
-		}
-		if tok == fflib.FFTok_right_brace {
-			break
-		}
-
-		if tok == fflib.FFTok_comma {
-			if wantVal == true {
-				// TODO(pquerna): this isn't an ideal error message, this handles 
-				// things like [,,,] as an array value.
-				return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+			tok = fs.Scan()
+			if tok == fflib.FFTok_error {
+				goto tokerror
 			}
-			continue
-		} else {
-			wantVal = true
-		}
+			if tok == fflib.FFTok_right_brace {
+				break
+			}
 
-		{{handleField .IC "v" .Typ.Elem $ptr}}
-		{{.Name}} = append({{.Name}}, v)
-		wantVal = false
+			if tok == fflib.FFTok_comma {
+				if wantVal == true {
+					// TODO(pquerna): this isn't an ideal error message, this handles 
+					// things like [,,,] as an array value.
+					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+				}
+				continue
+			} else {
+				wantVal = true
+			}
+
+			{{handleField .IC "v" .Typ.Elem $ptr}}
+			{{.Name}} = append({{.Name}}, v)
+			wantVal = false
+		}
 	}
 }
 `
