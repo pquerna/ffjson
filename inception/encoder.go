@@ -282,7 +282,7 @@ func isIntish(t reflect.Type) bool {
 }
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	conditionalWrites := true
+	conditionalWrites := false
 	needScratch := false
 	out := ""
 
@@ -305,12 +305,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
-	for _, f := range si.Fields {
-		if !f.OmitEmpty {
-			// if we have >= 1 non-conditional write, we can
-			// assume our trailing logic is reaosnable.
-			conditionalWrites = false
-		}
+	// We check if the last field is conditional.
+	if len(si.Fields) > 0 {
+		f := si.Fields[len(si.Fields)-1]
+		conditionalWrites = f.OmitEmpty
 	}
 
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
@@ -320,13 +318,17 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		out += `var scratch fflib.FormatBitsScratch` + "\n"
 	}
 
-	if conditionalWrites {
-		out += `var wroteAnyFields bool = false` + "\n"
-	}
-
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
+
 	ic.q.Write("{")
+
+	// The extra space is inserted here.
+	// If nothing is written to the field this will be deleted
+	// instead of the last comma.
+	if conditionalWrites || len(si.Fields) == 0 {
+		ic.q.Write(" ")
+	}
 
 	for _, f := range si.Fields {
 		if f.OmitEmpty {
@@ -335,9 +337,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 				out += "if mj." + f.Name + " != nil {" + "\n"
 			}
 			out += getOmitEmpty(ic, f)
-			if conditionalWrites {
-				out += `wroteAnyFields = true` + "\n"
-			}
 		}
 
 		if f.Pointer && !f.OmitEmpty {
@@ -352,7 +351,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		t := ic.q
 
 		out += getValue(ic, f)
-		ic.q.Write(", ")
+		ic.q.Write(",")
 
 		if f.Pointer && !f.OmitEmpty {
 			out += "} else {" + "\n"
@@ -369,17 +368,15 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
-	out += ic.q.Flush()
 	// Handling the last comma is tricky.
-	// If all fields have omitempty, conditionalWrites is set, and we have to test
-	// if we have actually written any fields.
-	// If we have, we delete the last comma, by backing up the buffer.
+	// If the last field has omitempty, conditionalWrites is set.
+	// If something has been written, we delete the last comma,
+	// by backing up the buffer, otherwise it will delete a space.
 	if conditionalWrites {
-		out += `if wroteAnyFields {` + "\n"
-		out += `buf.Rewind(2)` + "\n"
-		out += `}` + "\n"
+		out += ic.q.Flush()
+		out += `buf.Rewind(1)` + "\n"
 	} else {
-		out += `buf.Rewind(2)` + "\n"
+		ic.q.DeleteLast()
 	}
 
 	out += ic.q.WriteFlush("}")
