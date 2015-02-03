@@ -38,7 +38,7 @@ type FFRecord struct {
 
 type mystring string
 
-// fjson: skip
+// ffjson: skip
 type TsortName struct {
 	C string
 	B int `json:"A"`
@@ -48,7 +48,7 @@ type XsortName struct {
 	B int `json:"A"`
 }
 
-// fjson: skip
+// ffjson: skip
 type Tobj struct {
 	X Tint
 }
@@ -56,7 +56,7 @@ type Xobj struct {
 	X Xint
 }
 
-// fjson: skip
+// ffjson: skip
 type Tduration struct {
 	X time.Duration
 }
@@ -64,7 +64,7 @@ type Xduration struct {
 	X time.Duration
 }
 
-// fjson: skip
+// ffjson: skip
 type TtimePtr struct {
 	X *time.Time
 }
@@ -72,7 +72,7 @@ type XtimePtr struct {
 	X *time.Time
 }
 
-// fjson: skip
+// ffjson: skip
 type Tarray struct {
 	X []int
 }
@@ -80,7 +80,7 @@ type Xarray struct {
 	X []int
 }
 
-// fjson: skip
+// ffjson: skip
 type TarrayPtr struct {
 	X []*int
 }
@@ -88,7 +88,7 @@ type XarrayPtr struct {
 	X []*int
 }
 
-// fjson: skip
+// ffjson: skip
 type Tstring struct {
 	X string
 }
@@ -96,7 +96,7 @@ type Xstring struct {
 	X string
 }
 
-// fjson: skip
+// ffjson: skip
 type Tmystring struct {
 	X mystring
 }
@@ -104,7 +104,7 @@ type Xmystring struct {
 	X mystring
 }
 
-// fjson: skip
+// ffjson: skip
 type TmystringPtr struct {
 	X *mystring
 }
@@ -112,7 +112,7 @@ type XmystringPtr struct {
 	X *mystring
 }
 
-// fjson: skip
+// ffjson: skip
 type TstringTagged struct {
 	X string `json:",string"`
 }
@@ -120,7 +120,7 @@ type XstringTagged struct {
 	X string `json:",string"`
 }
 
-// fjson: skip
+// ffjson: skip
 type TintTagged struct {
 	X int `json:",string"`
 }
@@ -128,7 +128,7 @@ type XintTagged struct {
 	X int `json:",string"`
 }
 
-// fjson: skip
+// ffjson: skip
 type TboolTagged struct {
 	X int `json:",string"`
 }
@@ -136,7 +136,7 @@ type XboolTagged struct {
 	X int `json:",string"`
 }
 
-// fjson: skip
+// ffjson: skip
 type Tbool struct {
 	X bool
 }
@@ -144,7 +144,7 @@ type Xbool struct {
 	Tbool
 }
 
-// fjson: skip
+// ffjson: skip
 type Tint struct {
 	X int
 }
@@ -152,7 +152,7 @@ type Xint struct {
 	Tint
 }
 
-// fjson: skip
+// ffjson: skip
 type Tint8 struct {
 	X int8
 }
@@ -160,7 +160,7 @@ type Xint8 struct {
 	Tint8
 }
 
-// fjson: skip
+// ffjson: skip
 type Tint16 struct {
 	X int16
 }
@@ -168,7 +168,7 @@ type Xint16 struct {
 	Tint16
 }
 
-// fjson: skip
+// ffjson: skip
 type Tint32 struct {
 	X int32
 }
@@ -176,7 +176,7 @@ type Xint32 struct {
 	Tint32
 }
 
-// fjson: skip
+// ffjson: skip
 type Tint64 struct {
 	X int64
 }
@@ -184,7 +184,7 @@ type Xint64 struct {
 	Tint64
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuint struct {
 	X uint
 }
@@ -192,7 +192,7 @@ type Xuint struct {
 	Tuint
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuint8 struct {
 	X uint8
 }
@@ -200,7 +200,7 @@ type Xuint8 struct {
 	Tuint8
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuint16 struct {
 	X uint16
 }
@@ -208,7 +208,7 @@ type Xuint16 struct {
 	Tuint16
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuint32 struct {
 	X uint32
 }
@@ -216,7 +216,7 @@ type Xuint32 struct {
 	Tuint32
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuint64 struct {
 	X uint64
 }
@@ -224,7 +224,7 @@ type Xuint64 struct {
 	Tuint64
 }
 
-// fjson: skip
+// ffjson: skip
 type Tuintptr struct {
 	X uintptr
 }
@@ -232,7 +232,7 @@ type Xuintptr struct {
 	Tuintptr
 }
 
-// fjson: skip
+// ffjson: skip
 type Tfloat32 struct {
 	X float32
 }
@@ -240,7 +240,7 @@ type Xfloat32 struct {
 	Tfloat32
 }
 
-// fjson: skip
+// ffjson: skip
 type Tfloat64 struct {
 	X float64
 }
