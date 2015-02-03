@@ -23,7 +23,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
-	"sort"
 )
 
 type StructField struct {
@@ -183,8 +182,6 @@ func extractFields(obj interface{}) []*StructField {
 			}
 		}
 	}
-
-	sort.Sort(FieldByJsonName(fields))
 
 	// Delete all fields that are hidden by the Go rules for embedded fields,
 	// except that fields with JSON tags are promoted.
