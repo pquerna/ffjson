@@ -18,6 +18,7 @@
 package tff
 
 import (
+	"math"
 	"time"
 )
 
@@ -246,4 +247,210 @@ type Tfloat64 struct {
 }
 type Xfloat64 struct {
 	Tfloat64
+}
+
+// Tests from golang test suite
+type Optionals struct {
+	Sr string `json:"sr"`
+	So string `json:"so,omitempty"`
+	Sw string `json:"-"`
+
+	Ir int `json:"omitempty"` // actually named omitempty, not an option
+	Io int `json:"io,omitempty"`
+
+	Slr []string `json:"slr,random"`
+	Slo []string `json:"slo,omitempty"`
+
+	Mr map[string]interface{} `json:"mr"`
+	Mo map[string]interface{} `json:",omitempty"`
+
+	Fr float64 `json:"fr"`
+	Fo float64 `json:"fo,omitempty"`
+
+	Br bool `json:"br"`
+	Bo bool `json:"bo,omitempty"`
+
+	Ur uint `json:"ur"`
+	Uo uint `json:"uo,omitempty"`
+
+	Str struct{} `json:"str"`
+	Sto struct{} `json:"sto,omitempty"`
+}
+
+var unsupportedValues = []interface{}{
+	math.NaN(),
+	math.Inf(-1),
+	math.Inf(1),
+}
+
+var optionalsExpected = `{
+ "sr": "",
+ "omitempty": 0,
+ "slr": null,
+ "mr": {},
+ "fr": 0,
+ "br": false,
+ "ur": 0,
+ "str": {},
+ "sto": {}
+}`
+
+type StringTag struct {
+	BoolStr bool    `json:",string"`
+	IntStr  int64   `json:",string"`
+	FltStr  float64 `json:",string"`
+	StrStr  string  `json:",string"`
+}
+
+var stringTagExpected = `{
+ "BoolStr": "true",
+ "IntStr": "42",
+ "FltStr": "0",
+ "StrStr": "\"xzbit\""
+}`
+
+type OmitAll struct {
+	Ostr    string                 `json:",omitempty"`
+	Oint    int                    `json:",omitempty"`
+	Obool   bool                   `json:",omitempty"`
+	Odouble float64                `json:",omitempty"`
+	Ointer  interface{}            `json:",omitempty"`
+	Omap    map[string]interface{} `json:",omitempty"`
+	OstrP   *string                `json:",omitempty"`
+	OintP   *int                   `json:",omitempty"`
+	// TODO: Re-enable when issue #55 is fixed.
+	//	OboolP *bool                   `json:",omitempty"`
+	OmapP   *map[string]interface{} `json:",omitempty"`
+	Astr    []string                `json:",omitempty"`
+	Aint    []int                   `json:",omitempty"`
+	Abool   []bool                  `json:",omitempty"`
+	Adouble []float64               `json:",omitempty"`
+}
+
+var omitAllExpected = `{}`
+
+type NoExported struct {
+	field1 string
+	field2 string
+	field3 string
+}
+
+var noExportedExpected = `{}`
+
+type OmitFirst struct {
+	Ostr string `json:",omitempty"`
+	Str  string
+}
+
+var omitFirstExpected = `{
+ "Str": ""
+}`
+
+type OmitLast struct {
+	Xstr string `json:",omitempty"`
+	Str  string
+}
+
+var omitLastExpected = `{
+ "Str": ""
+}`
+
+// byte slices are special even if they're renamed types.
+type renamedByte byte
+type renamedByteSlice []byte
+type renamedRenamedByteSlice []renamedByte
+
+// Ref has Marshaler and Unmarshaler methods with pointer receiver.
+type Ref int
+
+func (*Ref) MarshalJSON() ([]byte, error) {
+	return []byte(`"ref"`), nil
+}
+
+func (r *Ref) UnmarshalJSON([]byte) error {
+	*r = 12
+	return nil
+}
+
+// Val has Marshaler methods with value receiver.
+type Val int
+
+func (Val) MarshalJSON() ([]byte, error) {
+	return []byte(`"val"`), nil
+}
+
+// RefText has Marshaler and Unmarshaler methods with pointer receiver.
+type RefText int
+
+func (*RefText) MarshalText() ([]byte, error) {
+	return []byte(`"ref"`), nil
+}
+
+func (r *RefText) UnmarshalText([]byte) error {
+	*r = 13
+	return nil
+}
+
+// ValText has Marshaler methods with value receiver.
+type ValText int
+
+func (ValText) MarshalText() ([]byte, error) {
+	return []byte(`"val"`), nil
+}
+
+// C implements Marshaler and returns unescaped JSON.
+type C int
+
+func (C) MarshalJSON() ([]byte, error) {
+	return []byte(`"<&>"`), nil
+}
+
+// CText implements Marshaler and returns unescaped text.
+type CText int
+
+func (CText) MarshalText() ([]byte, error) {
+	return []byte(`"<&>"`), nil
+}
+
+type IntType int
+
+type MyStruct struct {
+	IntType
+}
+
+type BugA struct {
+	S string
+}
+
+type BugB struct {
+	BugA
+	S string
+}
+
+type BugC struct {
+	S string
+}
+
+// Legal Go: We never use the repeated embedded field (S).
+type BugX struct {
+	A int
+	BugA
+	BugB
+}
+
+type BugD struct { // Same as BugA after tagging.
+	XXX string `json:"S"`
+}
+
+// BugD's tagged S field should dominate BugA's.
+type BugY struct {
+	BugA
+	BugD
+}
+
+// There are no tags here, so S should not appear.
+type BugZ struct {
+	BugA
+	BugC
+	BugY // Contains a tagged S field through BugD; should not dominate.
 }
