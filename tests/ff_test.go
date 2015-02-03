@@ -149,6 +149,15 @@ func testType(t *testing.T, base interface{}, ff interface{}) {
 	require.Implements(t, (*json.Unmarshaler)(nil), ff)
 	require.Implements(t, (*marshalerFaster)(nil), ff)
 	require.Implements(t, (*unmarshalFaster)(nil), ff)
+
+	if _, ok := base.(unmarshalFaster); ok {
+		require.FailNow(t, "base should not have a UnmarshalJSONFFLexer")
+	}
+
+	if _, ok := base.(marshalerFaster); ok {
+		require.FailNow(t, "base should not have a MarshalJSONBuf")
+	}
+
 	testSameMarshal(t, base, ff)
 	testCycle(t, base, ff)
 }
