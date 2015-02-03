@@ -11,8 +11,7 @@ import (
 )
 
 func TestOmitEmpty(t *testing.T) {
-	// TODO: Re-enable when issue #36 is fixed
-	return
+	t.Skip("Re-enable when issue #36 is fixed")
 
 	var o Optionals
 	o.Sw = "something"
@@ -77,8 +76,7 @@ func TestOmitLast(t *testing.T) {
 }
 
 func TestStringTag(t *testing.T) {
-	// TODO: Re-enable when issue #36 is fixed
-	return
+	t.Skip("Re-enable when issue #36 is fixed")
 
 	var s StringTag
 	s.BoolStr = true
