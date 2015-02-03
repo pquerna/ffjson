@@ -18,6 +18,7 @@
 package tff
 
 import (
+	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/stretchr/testify/require"
 
 	"bytes"
@@ -135,7 +136,19 @@ func TestSimpleUnmarshal(t *testing.T) {
 	}
 }
 
+type marshalerFaster interface {
+	MarshalJSONBuf(buf fflib.EncodingBuffer) error
+}
+
+type unmarshalFaster interface {
+	UnmarshalJSONFFLexer(l *fflib.FFLexer, state fflib.FFParseState) error
+}
+
 func testType(t *testing.T, base interface{}, ff interface{}) {
+	require.Implements(t, (*json.Marshaler)(nil), ff)
+	require.Implements(t, (*json.Unmarshaler)(nil), ff)
+	require.Implements(t, (*marshalerFaster)(nil), ff)
+	require.Implements(t, (*unmarshalFaster)(nil), ff)
 	testSameMarshal(t, base, ff)
 	testCycle(t, base, ff)
 }
@@ -256,7 +269,7 @@ func TestTimeDuration(t *testing.T) {
 
 func TestTimeTimePtr(t *testing.T) {
 	tm := time.Date(2014, 12, 13, 15, 16, 17, 18, time.UTC)
-	testType(t, &TtimePtr{X: &tm}, &TtimePtr{X: &tm})
+	testType(t, &TtimePtr{X: &tm}, &XtimePtr{X: &tm})
 }
 
 func TestBool(t *testing.T) {
