@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"sort"
 )
 
 type Inception struct {
@@ -80,8 +81,19 @@ func (i *Inception) wantMarshal(si *StructInfo) bool {
 	return true
 }
 
+type sortedStructs []*StructInfo
+
+func (p sortedStructs) Len() int           { return len(p) }
+func (p sortedStructs) Less(i, j int) bool { return p[i].Name < p[j].Name }
+func (p sortedStructs) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p sortedStructs) Sort()              { sort.Sort(p) }
+
 func (i *Inception) generateCode() error {
-	for _, si := range i.objs {
+	// We sort the structs by name, so output if predictable.
+	sorted := sortedStructs(i.objs)
+	sorted.Sort()
+
+	for _, si := range sorted {
 		if i.wantMarshal(si) {
 			err := CreateMarshalJSON(i, si)
 			if err != nil {
