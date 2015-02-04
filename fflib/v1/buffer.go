@@ -218,12 +218,6 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 // makeSlice allocates a slice of size n. If the allocation fails, it panics
 // with ErrTooLarge.
 func makeSlice(n int) []byte {
-	// If the make fails, give a known error.
-	defer func() {
-		if recover() != nil {
-			panic(ErrTooLarge)
-		}
-	}()
 	return make([]byte, n)
 }
 
