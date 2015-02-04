@@ -319,7 +319,7 @@ type OmitAll struct {
 	OstrP   *string                `json:",omitempty"`
 	OintP   *int                   `json:",omitempty"`
 	// TODO: Re-enable when issue #55 is fixed.
-	//	OboolP *bool                   `json:",omitempty"`
+	OboolP  *bool                   `json:",omitempty"`
 	OmapP   *map[string]interface{} `json:",omitempty"`
 	Astr    []string                `json:",omitempty"`
 	Aint    []int                   `json:",omitempty"`

@@ -106,8 +106,9 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		ic.OutputImports[`"bytes"`] = true
 		ic.OutputImports[`"errors"`] = true
 		out += tplStr(decodeTpl["handleBool"], handleBool{
-			Name: name,
-			Typ:  typ,
+			Name:     name,
+			Typ:      typ,
+			TakeAddr: takeAddr || ptr,
 		})
 
 	case reflect.Ptr:
