@@ -3,6 +3,7 @@ language: go
 install:
   - go get -d -v ./...
   - go get -u github.com/stretchr/testify/require
+  - go get -u github.com/google/gofuzz
 
 script: make clean && make test && make test
 
