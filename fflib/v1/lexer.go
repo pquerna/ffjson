@@ -246,14 +246,28 @@ func (ffl *FFLexer) lexComment() FFTok {
 }
 
 func (ffl *FFLexer) lexString() FFTok {
-	err := ffl.reader.SliceString(ffl.Output)
+	if ffl.captureAll {
+		var buf Buffer
+		err := ffl.reader.SliceString(&buf)
 
-	if err != nil {
-		ffl.BigError = err
-		return FFTok_error
+		if err != nil {
+			ffl.BigError = err
+			return FFTok_error
+		}
+
+		WriteJsonString(ffl.Output, buf.String())
+
+		return FFTok_string
+	} else {
+		err := ffl.reader.SliceString(ffl.Output)
+
+		if err != nil {
+			ffl.BigError = err
+			return FFTok_error
+		}
+
+		return FFTok_string
 	}
-
-	return FFTok_string
 }
 
 func (ffl *FFLexer) lexNumber() FFTok {
@@ -439,13 +453,7 @@ func (ffl *FFLexer) Scan() FFTok {
 			tok = ffl.wantBytes(null_bytes, FFTok_null)
 			goto lexed
 		case '"':
-			if ffl.captureAll {
-				ffl.Output.WriteByte('"')
-			}
 			tok = ffl.lexString()
-			if ffl.captureAll {
-				ffl.Output.WriteByte('"')
-			}
 			goto lexed
 		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			ffl.unreadByte()
@@ -533,11 +541,9 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 	case FFTok_string:
 		//TODO(pquerna): so, other users expect this to be a quoted string :(
 		if capture {
-			rv := make([]byte, 0, ffl.Output.Len()+2)
-			rv = append(rv, '"')
-			rv = append(rv, ffl.Output.Bytes()...)
-			rv = append(rv, '"')
-			return rv, nil
+			var buf Buffer
+			WriteJsonString(&buf, ffl.Output.String())
+			return buf.Bytes(), nil
 		} else {
 			return nil, nil
 		}

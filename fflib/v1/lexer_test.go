@@ -181,6 +181,32 @@ func TestHelloWorld(t *testing.T) {
 		FFTok_colon,
 		FFTok_error,
 	}, toks)
+
+	ffl = NewFFLexer([]byte(`{"陫ʋsş\")珷\u003cºɖgȏ哙ȍ":"2ħ籦ö嗏ʑ\u003e季"}`))
+	toks = scanAll(ffl)
+	assertTokensEqual(t, []FFTok{
+		FFTok_left_bracket,
+		FFTok_string,
+		FFTok_colon,
+		FFTok_string,
+		FFTok_right_bracket,
+		FFTok_eof,
+	}, toks)
+
+	ffl = NewFFLexer([]byte(`{"X":{"陫ʋsş\")珷\u003cºɖgȏ哙ȍ":"2ħ籦ö嗏ʑ\u003e季"}}`))
+	toks = scanAll(ffl)
+	assertTokensEqual(t, []FFTok{
+		FFTok_left_bracket,
+		FFTok_string,
+		FFTok_colon,
+		FFTok_left_bracket,
+		FFTok_string,
+		FFTok_colon,
+		FFTok_string,
+		FFTok_right_bracket,
+		FFTok_right_bracket,
+		FFTok_eof,
+	}, toks)
 }
 
 func tDouble(t *testing.T, input string, target float64) {
