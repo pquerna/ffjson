@@ -711,3 +711,52 @@ type FfFuzz struct {
 	Qap []*string
 	Rap []*bool
 }
+
+// ffjson: skip
+type TTestMaps struct {
+	Aa map[string]uint8
+	Ba map[string]uint16
+	Ca map[string]uint32
+	Da map[string]uint64
+
+	Ea map[string]int8
+	Fa map[string]int16
+	Ga map[string]int32
+	Ha map[string]int64
+
+	Ia map[string]float32
+	Ja map[string]float64
+
+	Ma map[string]byte
+	Na map[string]rune
+
+	Oa map[string]int
+	Pa map[string]uint
+	Qa map[string]string
+	Ra map[string]bool
+
+	AaP map[string]*uint8
+	BaP map[string]*uint16
+	CaP map[string]*uint32
+	DaP map[string]*uint64
+
+	EaP map[string]*int8
+	FaP map[string]*int16
+	GaP map[string]*int32
+	HaP map[string]*int64
+
+	IaP map[string]*float32
+	JaP map[string]*float64
+
+	MaP map[string]*byte
+	NaP map[string]*rune
+
+	OaP map[string]*int
+	PaP map[string]*uint
+	QaP map[string]*string
+	RaP map[string]*bool
+}
+
+type XTestMaps struct {
+	TTestMaps
+}
