@@ -225,7 +225,7 @@ var handleByteArrayTxt = `
 			v := reflect.ValueOf(&{{.Name}}).Elem()
 			v.SetBytes(b[0:n])
 		{{else}}
-			{{.Name}} = append({{.Name}}, b[0:n]...)
+			{{.Name}} = append([]byte(), b[0:n]...)
 		{{end}}
 	}
 }
