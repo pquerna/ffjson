@@ -33,6 +33,7 @@ func init() {
 		"handleFallback":    handleFallbackTxt,
 		"handleString":      handleStringTxt,
 		"handleArray":       handleArrayTxt,
+		"handleByteArray":   handleByteArrayTxt,
 		"handleBool":        handleBoolTxt,
 		"handlePtr":         handlePtrTxt,
 		"header":            headerTxt,
@@ -152,10 +153,11 @@ var handleStringTxt = `
 `
 
 type handleArray struct {
-	IC   *Inception
-	Name string
-	Typ  reflect.Type
-	Ptr  reflect.Kind
+	IC              *Inception
+	Name            string
+	Typ             reflect.Type
+	Ptr             reflect.Kind
+	UseReflectToSet bool
 }
 
 var handleArrayTxt = `
@@ -204,6 +206,27 @@ var handleArrayTxt = `
 			{{.Name}} = append({{.Name}}, v)
 			wantVal = false
 		}
+	}
+}
+`
+
+var handleByteArrayTxt = `
+{
+	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
+	if tok == fflib.FFTok_null {
+		{{.Name}} = nil
+	} else {
+		b := make([]byte, base64.StdEncoding.DecodedLen(fs.Output.Len()))
+		n, err := base64.StdEncoding.Decode(b, fs.Output.Bytes())
+		if err != nil {
+			return fs.WrapErr(err)
+		}
+		{{if eq .UseReflectToSet true}}
+			v := reflect.ValueOf(&{{.Name}}).Elem()
+			v.SetBytes(b[0:n])
+		{{else}}
+			{{.Name}} = append({{.Name}}, b[0:n]...)
+		{{end}}
 	}
 }
 `

@@ -120,12 +120,29 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Array,
 		reflect.Slice:
-		out += tplStr(decodeTpl["handleArray"], handleArray{
-			IC:   ic,
-			Name: name,
-			Typ:  typ,
-			Ptr:  reflect.Ptr,
-		})
+		if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
+			ic.OutputImports[`"encoding/base64"`] = true
+			useReflectToSet := false
+			if typ.Elem().Name() != "byte" {
+				ic.OutputImports[`"reflect"`] = true
+				useReflectToSet = true
+			}
+
+			out += tplStr(decodeTpl["handleByteArray"], handleArray{
+				IC:              ic,
+				Name:            name,
+				Typ:             typ,
+				Ptr:             reflect.Ptr,
+				UseReflectToSet: useReflectToSet,
+			})
+		} else {
+			out += tplStr(decodeTpl["handleArray"], handleArray{
+				IC:   ic,
+				Name: name,
+				Typ:  typ,
+				Ptr:  reflect.Ptr,
+			})
+		}
 
 	case reflect.String:
 		out += tplStr(decodeTpl["handleString"], handleString{

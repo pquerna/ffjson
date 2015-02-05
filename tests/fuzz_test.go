@@ -128,7 +128,7 @@ func fuzzTime(t *time.Time, c fuzz.Continue) {
 
 // Test 1000 iterations
 func TestFuzzCycle(t *testing.T) {
-	t.Skip("Skipped because of issue #65/66")
+	t.Skip("Skipped because of issue #66")
 	f := fuzz.New()
 	f.NumElements(0, 50)
 	f.NilChance(0.1)
@@ -265,7 +265,6 @@ func TestFuzzInt(t *testing.T) {
 }
 
 func TestFuzzByte(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testTypeFuzz(t, &Tbyte{}, &Xbyte{})
 }
 
@@ -290,7 +289,6 @@ func TestFuzzUint(t *testing.T) {
 }
 
 func TestFuzzUint8(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testTypeFuzz(t, &Tuint8{}, &Xuint8{})
 }
 
@@ -338,7 +336,6 @@ func TestFuzzArrayInt(t *testing.T) {
 }
 
 func TestFuzzArrayByte(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testTypeFuzz(t, &ATbyte{}, &AXbyte{})
 }
 
@@ -363,7 +360,6 @@ func TestFuzzArrayUint(t *testing.T) {
 }
 
 func TestFuzzArrayUint8(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testTypeFuzz(t, &ATuint8{}, &AXuint8{})
 }
 
