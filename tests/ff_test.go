@@ -24,6 +24,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
+	"fmt"
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -76,6 +78,30 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
+	}
+}
+
+func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
+	record := newLogFFRecord()
+
+	buf, err := json.Marshal(&record)
+	if err != nil {
+		b.Fatalf("Marshal: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+	var buffer fflib.Buffer
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := record.MarshalJSONBuf(&buffer)
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+		buffer.Reset()
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+		buffer.Reset()
 	}
 }
 
@@ -162,12 +188,32 @@ func testType(t *testing.T, base interface{}, ff interface{}) {
 	testCycle(t, base, ff)
 }
 
+// If this is enabled testSameMarshal and testCycle will output failures to files
+// for easy debugging.
+var outputFileOnError = false
+
 func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
 	bufbase, err := json.Marshal(base)
 	require.NoError(t, err, "base[%T] failed to Marshal", base)
 
 	bufff, err := json.Marshal(ff)
 	require.NoError(t, err, "ff[%T] failed to Marshal", ff)
+
+	if outputFileOnError {
+		if string(bufbase) != string(bufff) {
+			typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
+			file, err := os.Create(fmt.Sprintf("fail-marshal-base-%s.json", typeName))
+			if err == nil {
+				file.Write(bufbase)
+				file.Close()
+			}
+			file, err = os.Create(fmt.Sprintf("fail-marshal-ffjson-%s.json", typeName))
+			if err == nil {
+				file.Write(bufff)
+				file.Close()
+			}
+		}
+	}
 
 	require.Equal(t, string(bufbase), string(bufff), "json.Marshal of base[%T] != ff[%T]", base, ff)
 }
@@ -179,7 +225,24 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	require.NoError(t, err, "base[%T] failed to Marshal", base)
 
 	err = json.Unmarshal(buf, ff)
-	require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
+	errGo := json.Unmarshal(buf, base)
+	if outputFileOnError && err != nil {
+		typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
+		file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-input-%s.json", typeName))
+		if err == nil {
+			file.Write(buf)
+			file.Close()
+		}
+		if errGo == nil {
+			file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-output-base-%s.txt", typeName))
+			if err == nil {
+				fmt.Fprintf(file, "%#v", base)
+				file.Close()
+			}
+		}
+	}
+	require.Nil(t, err, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", ff, errGo, err)
+	require.Nil(t, errGo, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", base, errGo, err)
 
 	require.Equal(t, getXValue(base), getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
 }
@@ -293,6 +356,10 @@ func TestInt(t *testing.T) {
 	testType(t, &Tint{}, &Xint{})
 }
 
+func TestByte(t *testing.T) {
+	testType(t, &Tbyte{}, &Xbyte{})
+}
+
 func TestInt8(t *testing.T) {
 	testType(t, &Tint8{}, &Xint8{})
 }
@@ -371,4 +438,72 @@ func TestEncodeRenamedByteSlice(t *testing.T) {
 	result, err = rr.MarshalJSON()
 	require.NoError(t, err)
 	require.Equal(t, string(result), expect)
+}
+
+// Test arrays
+func TestArrayBool(t *testing.T) {
+	testType(t, &ATbool{}, &AXbool{})
+}
+
+func TestArrayInt(t *testing.T) {
+	testType(t, &ATint{}, &AXint{})
+}
+
+func TestArrayByte(t *testing.T) {
+	t.Skip("Skipped because of issue #65")
+	testType(t, &ATbyte{}, &AXbyte{})
+}
+
+func TestArrayInt8(t *testing.T) {
+	testType(t, &ATint8{}, &AXint8{})
+}
+
+func TestArrayInt16(t *testing.T) {
+	testType(t, &ATint16{}, &AXint16{})
+}
+
+func TestArrayInt32(t *testing.T) {
+	testType(t, &ATint32{}, &AXint32{})
+}
+
+func TestArrayInt64(t *testing.T) {
+	testType(t, &ATint64{}, &AXint64{})
+}
+
+func TestArrayUint(t *testing.T) {
+	testType(t, &ATuint{}, &AXuint{})
+}
+
+func TestArrayUint8(t *testing.T) {
+	t.Skip("Skipped because of issue #65")
+	testType(t, &ATuint8{}, &AXuint8{})
+}
+
+func TestArrayUint16(t *testing.T) {
+	testType(t, &ATuint16{}, &AXuint16{})
+}
+
+func TestArrayUint32(t *testing.T) {
+	testType(t, &ATuint32{}, &AXuint32{})
+}
+
+func TestArrayUint64(t *testing.T) {
+	testType(t, &ATuint64{}, &AXuint64{})
+}
+
+func TestArrayUintptr(t *testing.T) {
+	testType(t, &ATuintptr{}, &AXuintptr{})
+}
+
+func TestArrayFloat32(t *testing.T) {
+	testType(t, &ATfloat32{}, &AXfloat32{})
+}
+
+func TestArrayFloat64(t *testing.T) {
+	testType(t, &ATfloat64{}, &AXfloat64{})
+}
+
+func TestArrayTime(t *testing.T) {
+	t.Skip("Skipped because of issue #64")
+	//testType(t, &ATtime{}, &AXtime{})
 }

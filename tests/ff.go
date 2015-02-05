@@ -138,6 +138,14 @@ type XboolTagged struct {
 }
 
 // ffjson: skip
+type TMapStringString struct {
+	X map[string]string
+}
+type XMapStringString struct {
+	X map[string]string
+}
+
+// ffjson: skip
 type Tbool struct {
 	X bool
 }
@@ -151,6 +159,14 @@ type Tint struct {
 }
 type Xint struct {
 	Tint
+}
+
+// ffjson: skip
+type Tbyte struct {
+	X byte
+}
+type Xbyte struct {
+	Tbyte
 }
 
 // ffjson: skip
@@ -248,6 +264,146 @@ type Tfloat64 struct {
 type Xfloat64 struct {
 	Tfloat64
 }
+
+// Arrays
+/*
+// ffjson: skip
+type ATduration struct {
+	X []time.Duration
+}
+type AXduration struct {
+	X []time.Duration
+}
+*/
+// ffjson: skip
+type ATbool struct {
+	X []bool
+}
+type AXbool struct {
+	ATbool
+}
+
+// ffjson: skip
+type ATint struct {
+	X []int
+}
+type AXint struct {
+	ATint
+}
+
+// ffjson: skip
+type ATbyte struct {
+	X []byte
+}
+type AXbyte struct {
+	ATbyte
+}
+
+// ffjson: skip
+type ATint8 struct {
+	X []int8
+}
+type AXint8 struct {
+	ATint8
+}
+
+// ffjson: skip
+type ATint16 struct {
+	X []int16
+}
+type AXint16 struct {
+	ATint16
+}
+
+// ffjson: skip
+type ATint32 struct {
+	X []int32
+}
+type AXint32 struct {
+	ATint32
+}
+
+// ffjson: skip
+type ATint64 struct {
+	X []int64
+}
+type AXint64 struct {
+	ATint64
+}
+
+// ffjson: skip
+type ATuint struct {
+	X []uint
+}
+type AXuint struct {
+	ATuint
+}
+
+// ffjson: skip
+type ATuint8 struct {
+	X []uint8
+}
+type AXuint8 struct {
+	ATuint8
+}
+
+// ffjson: skip
+type ATuint16 struct {
+	X []uint16
+}
+type AXuint16 struct {
+	ATuint16
+}
+
+// ffjson: skip
+type ATuint32 struct {
+	X []uint32
+}
+type AXuint32 struct {
+	ATuint32
+}
+
+// ffjson: skip
+type ATuint64 struct {
+	X []uint64
+}
+type AXuint64 struct {
+	ATuint64
+}
+
+// ffjson: skip
+type ATuintptr struct {
+	X []uintptr
+}
+type AXuintptr struct {
+	ATuintptr
+}
+
+// ffjson: skip
+type ATfloat32 struct {
+	X []float32
+}
+type AXfloat32 struct {
+	ATfloat32
+}
+
+// ffjson: skip
+type ATfloat64 struct {
+	X []float64
+}
+type AXfloat64 struct {
+	ATfloat64
+}
+
+/*
+// ffjson: skip
+type ATtime struct {
+	X []time.Time
+}
+type AXtime struct {
+	ATtime
+}
+*/
 
 // Tests from golang test suite
 type Optionals struct {
@@ -465,4 +621,93 @@ type BugZ struct {
 	BugA
 	BugC
 	BugY // Contains a tagged S field through BugD; should not dominate.
+}
+
+type FfFuzz struct {
+	A uint8
+	B uint16
+	C uint32
+	D uint64
+
+	E int8
+	F int16
+	G int32
+	H int64
+
+	I float32
+	J float64
+
+	M byte
+	N rune
+
+	O int
+	P uint
+	Q string
+	R bool
+	S time.Time
+	U map[string]string
+
+	Ap *uint8
+	Bp *uint16
+	Cp *uint32
+	Dp *uint64
+
+	Ep *int8
+	Fp *int16
+	Gp *int32
+	Hp *int64
+
+	Ip *float32
+	Jp *float64
+
+	Mp *byte
+	Np *rune
+
+	Op *int
+	Pp *uint
+	Qp *string
+	Rp *bool
+	Sp *time.Time
+
+	Aa []uint8
+	Ba []uint16
+	Ca []uint32
+	Da []uint64
+
+	Ea []int8
+	Fa []int16
+	Ga []int32
+	Ha []int64
+
+	Ia []float32
+	Ja []float64
+
+	Ma []byte
+	Na []rune
+
+	Oa []int
+	Pa []uint
+	Qa []string
+	Ra []bool
+
+	Aap []*uint8
+	Bap []*uint16
+	Cap []*uint32
+	Dap []*uint64
+
+	Eap []*int8
+	Fap []*int16
+	Gap []*int32
+	Hap []*int64
+
+	Iap []*float32
+	Jap []*float64
+
+	Map []*byte
+	Nap []*rune
+
+	Oap []*int
+	Pap []*uint
+	Qap []*string
+	Rap []*bool
 }
