@@ -353,3 +353,22 @@ func TestForceStringTagged(t *testing.T) {
 func TestSortSame(t *testing.T) {
 	testSameMarshal(t, &TsortName{C: "foo", B: 12}, &XsortName{C: "foo", B: 12})
 }
+
+func TestEncodeRenamedByteSlice(t *testing.T) {
+	expect := `{"X":"YWJj"}`
+
+	s := ByteSliceNormal{X: []byte("abc")}
+	result, err := s.MarshalJSON()
+	require.NoError(t, err)
+	require.Equal(t, string(result), expect)
+
+	r := ByteSliceRenamed{X: renamedByteSlice("abc")}
+	result, err = r.MarshalJSON()
+	require.NoError(t, err)
+	require.Equal(t, string(result), expect)
+
+	rr := ByteSliceDoubleRenamed{X: renamedRenamedByteSlice("abc")}
+	result, err = rr.MarshalJSON()
+	require.NoError(t, err)
+	require.Equal(t, string(result), expect)
+}

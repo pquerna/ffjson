@@ -126,18 +126,41 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "buf.Write(strconv.AppendFloat([]byte{}, " + ptname + ", 'f', -1, 64))" + "\n"
 	case reflect.Array,
 		reflect.Slice:
+
 		out += "if " + name + "!= nil {" + "\n"
-		out += "buf.WriteString(`[`)" + "\n"
-		out += "for i, v := range " + name + "{" + "\n"
-		out += "if i != 0 {" + "\n"
-		out += "buf.WriteString(`,`)" + "\n"
-		out += "}" + "\n"
-		out += getGetInnerValue(ic, "v", typ.Elem(), false, false)
-		out += "}" + "\n"
-		out += "buf.WriteString(`]`)" + "\n"
+		// Array and slice values encode as JSON arrays, except that
+		// []byte encodes as a base64-encoded string, and a nil slice
+		// encodes as the null JSON object.
+		if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
+			ic.OutputImports[`"encoding/base64"`] = true
+
+			out += "buf.WriteString(`\"`)" + "\n"
+			out += `{` + "\n"
+			out += `enc := base64.NewEncoder(base64.StdEncoding, buf)` + "\n"
+			if typ.Elem().Name() != "byte" {
+				ic.OutputImports[`"reflect"`] = true
+				out += `enc.Write(reflect.Indirect(reflect.ValueOf(` + ptname + `)).Bytes())` + "\n"
+
+			} else {
+				out += `enc.Write(` + ptname + `)` + "\n"
+			}
+			out += `enc.Close()` + "\n"
+			out += `}` + "\n"
+			out += "buf.WriteString(`\"`)" + "\n"
+		} else {
+			out += "buf.WriteString(`[`)" + "\n"
+			out += "for i, v := range " + name + "{" + "\n"
+			out += "if i != 0 {" + "\n"
+			out += "buf.WriteString(`,`)" + "\n"
+			out += "}" + "\n"
+			out += getGetInnerValue(ic, "v", typ.Elem(), false, false)
+			out += "}" + "\n"
+			out += "buf.WriteString(`]`)" + "\n"
+		}
 		out += "} else {" + "\n"
 		out += "buf.WriteString(`null`)" + "\n"
 		out += "}" + "\n"
+
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		if forceString {
@@ -276,7 +299,12 @@ func isIntish(t reflect.Type) bool {
 		return true
 	}
 	if t.Kind() == reflect.Array || t.Kind() == reflect.Slice || t.Kind() == reflect.Ptr {
-		return isIntish(t.Elem())
+		if t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8 {
+			// base64 special case.
+			return false
+		} else {
+			return isIntish(t.Elem())
+		}
 	}
 	return false
 }

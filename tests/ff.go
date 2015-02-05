@@ -360,6 +360,18 @@ type renamedByte byte
 type renamedByteSlice []byte
 type renamedRenamedByteSlice []renamedByte
 
+type ByteSliceNormal struct {
+	X []byte
+}
+
+type ByteSliceRenamed struct {
+	X renamedByteSlice
+}
+
+type ByteSliceDoubleRenamed struct {
+	X renamedRenamedByteSlice
+}
+
 // Ref has Marshaler and Unmarshaler methods with pointer receiver.
 type Ref int
 
