@@ -46,6 +46,13 @@ ffjson generates Go code for optimized JSON serialization.
 
 Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
+## Credits
+
+`ffjson` has recieved significant contributions from:
+
+* [Klaus Post](https://github.com/klauspost)
+* [Paul Querna](https://github.com/pquerna) 
+
 ## License
 
 `ffjson` is licensed under the [Apache License, Version 2.0](./LICENSE)
