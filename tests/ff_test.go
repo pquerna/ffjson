@@ -450,7 +450,6 @@ func TestArrayInt(t *testing.T) {
 }
 
 func TestArrayByte(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testType(t, &ATbyte{}, &AXbyte{})
 }
 
@@ -475,7 +474,6 @@ func TestArrayUint(t *testing.T) {
 }
 
 func TestArrayUint8(t *testing.T) {
-	t.Skip("Skipped because of issue #65")
 	testType(t, &ATuint8{}, &AXuint8{})
 }
 
@@ -504,6 +502,5 @@ func TestArrayFloat64(t *testing.T) {
 }
 
 func TestArrayTime(t *testing.T) {
-	t.Skip("Skipped because of issue #64")
-	//testType(t, &ATtime{}, &AXtime{})
+	testType(t, &ATtime{}, &AXtime{})
 }

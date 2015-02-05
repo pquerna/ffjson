@@ -118,12 +118,23 @@ type Fuzz struct {
 // Return a time no later than 5000 years from unix datum.
 // JSON cannot handle dates after year 9999.
 func fuzzTime(t *time.Time, c fuzz.Continue) {
-	var sec, nsec int64
-	c.Fuzz(&sec)
-	c.Fuzz(&nsec)
+	sec := c.Rand.Int63()
+	nsec := c.Rand.Int63()
 	// No more than 5000 years in the future
 	sec %= 5000 * 365 * 24 * 60 * 60
 	*t = time.Unix(sec, nsec)
+}
+
+func fuzzTimeArray(t *[]time.Time, c fuzz.Continue) {
+	var i uint64
+	rv := make([]time.Time, 0)
+	count := c.RandUint64() % 50
+	for i = 0; i < count; i++ {
+		var tmp time.Time
+		fuzzTime(&tmp, c)
+		rv = append(rv, tmp)
+	}
+	*t = rv
 }
 
 // Test 1000 iterations
@@ -232,7 +243,7 @@ func testTypeFuzz(t *testing.T, base interface{}, ff interface{}) {
 	f := fuzz.New()
 	f.NumElements(0, 50)
 	f.NilChance(0.1)
-	f.Funcs(fuzzTime)
+	f.Funcs(fuzzTime, fuzzTimeArray)
 	for i := 0; i < 1000; i++ {
 		f.RandSource(rand.New(rand.NewSource(int64(i * 5275))))
 		f.Fuzz(base)
@@ -323,8 +334,7 @@ func TestFuzzString(t *testing.T) {
 }
 
 func TestFuzzArrayTimeDuration(t *testing.T) {
-	t.Skip("Skipped because of issue #64")
-	//testTypeFuzz(t, &ATduration{}, &AXduration{})
+	testTypeFuzz(t, &ATduration{}, &AXduration{})
 }
 
 func TestFuzzArrayBool(t *testing.T) {
@@ -388,6 +398,5 @@ func TestFuzzArrayFloat64(t *testing.T) {
 }
 
 func TestFuzzArrayTime(t *testing.T) {
-	t.Skip("Skipped because of issue #64")
-	//testTypeFuzz(t, &ATtime{}, &AXtime{})
+	testTypeFuzz(t, &ATtime{}, &AXtime{})
 }

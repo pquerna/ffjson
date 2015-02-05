@@ -71,7 +71,7 @@ type Buffer struct {
 	buf       []byte            // contents are the bytes buf[off : len(buf)]
 	off       int               // read at &buf[off], write at &buf[len(buf)]
 	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
-	bootstrap [64]byte          // memory to hold first slice; helps small buffers (Printf) avoid allocation.
+	bootstrap [0]byte          // memory to hold first slice; helps small buffers (Printf) avoid allocation.
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.

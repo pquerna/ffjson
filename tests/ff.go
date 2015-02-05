@@ -266,7 +266,6 @@ type Xfloat64 struct {
 }
 
 // Arrays
-/*
 // ffjson: skip
 type ATduration struct {
 	X []time.Duration
@@ -274,7 +273,7 @@ type ATduration struct {
 type AXduration struct {
 	X []time.Duration
 }
-*/
+
 // ffjson: skip
 type ATbool struct {
 	X []bool
@@ -395,7 +394,6 @@ type AXfloat64 struct {
 	ATfloat64
 }
 
-/*
 // ffjson: skip
 type ATtime struct {
 	X []time.Time
@@ -403,7 +401,6 @@ type ATtime struct {
 type AXtime struct {
 	ATtime
 }
-*/
 
 // Tests from golang test suite
 type Optionals struct {

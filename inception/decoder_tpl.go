@@ -162,14 +162,17 @@ type handleArray struct {
 
 var handleArrayTxt = `
 {
+	{{$ic := .IC}}
 	{{getAllowTokens .Typ.Name "FFTok_left_brace" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
+
+
 		{{if eq .Typ.Elem.Kind .Ptr }}
-			{{.Name}} = make([]*{{.Typ.Elem.Elem.Name}}, 0)
+			{{.Name}} = make([]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
 		{{else}}
-			{{.Name}} = make([]{{.Typ.Elem.Name}}, 0)
+			{{.Name}} = make([]{{getType $ic .Name .Typ.Elem}}, 0)
 		{{end}}
 
 		wantVal := true
@@ -178,9 +181,9 @@ var handleArrayTxt = `
 		{{$ptr := false}}
 		{{if eq .Typ.Elem.Kind .Ptr }}
 			{{$ptr := true}}
-			var v *{{.Typ.Elem.Elem.Name}}
+			var v *{{getType $ic .Name .Typ.Elem.Elem}}
 		{{else}}
-			var v {{.Typ.Elem.Name}}
+			var v {{getType $ic .Name .Typ.Elem}}
 		{{end}}
 
 			tok = fs.Scan()
