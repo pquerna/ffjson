@@ -400,3 +400,37 @@ func TestFuzzArrayFloat64(t *testing.T) {
 func TestFuzzArrayTime(t *testing.T) {
 	testTypeFuzz(t, &ATtime{}, &AXtime{})
 }
+
+// This contains maps.
+// Since map order is random, we can expect the encoding order to be random
+// Therefore we cannot use binary compare.
+func TestFuzzMapToType(t *testing.T) {
+	base := &TTestMaps{}
+	ff := &XTestMaps{}
+	f := fuzz.New()
+	f.NumElements(0, 50)
+	f.NilChance(0.1)
+	f.Funcs(fuzzTime)
+	for i := 0; i < 100; i++ {
+		f.RandSource(rand.New(rand.NewSource(int64(i * 5275))))
+		f.Fuzz(base)
+		ff = &XTestMaps{*base}
+
+		bufbase, err := json.Marshal(base)
+		require.NoError(t, err, "base[%T] failed to Marshal", base)
+
+		bufff, err := json.Marshal(ff)
+		require.NoError(t, err, "ff[%T] failed to Marshal", ff)
+
+		var baseD map[string]interface{}
+		var ffD map[string]interface{}
+
+		err = json.Unmarshal(bufbase, &baseD)
+		require.NoError(t, err, "ff[%T] failed to Unmarshal", base)
+
+		err = json.Unmarshal(bufff, &ffD)
+		require.NoError(t, err, "ff[%T] failed to Unmarshal", ff)
+
+		require.Equal(t, baseD, ffD, "Inspected struct difference of base[%T] != ff[%T]", base, ff)
+	}
+}

@@ -74,11 +74,68 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 	}
 }
 
+func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceString bool) string {
+	var out = ""
+
+	if typ.Key().Kind() != reflect.String {
+		ic.OutputImports[`"encoding/json"`] = true
+		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
+		out += ic.q.Flush()
+		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return err" + "\n"
+		out += "}" + "\n"
+		out += "buf.Write(obj)" + "\n"
+		return out
+	}
+
+	var elemKind reflect.Kind
+	elemKind = typ.Elem().Kind()
+
+	switch elemKind {
+	case reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.Bool:
+
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+
+		out += "if " + name + " == nil  {" + "\n"
+		ic.q.Write("null")
+		out += ic.q.GetQueued()
+		ic.q.DeleteLast()
+		out += "} else {" + "\n"
+		out += ic.q.WriteFlush("{ ")
+		out += "  for key, value := range " + name + " {" + "\n"
+		out += "    fflib.WriteJsonString(buf, key)" + "\n"
+		out += "    buf.WriteString(`:`)" + "\n"
+		out += getGetInnerValue(ic, "value", typ.Elem(), false, forceString)
+		out += "    buf.WriteByte(',')" + "\n"
+		out += "  }" + "\n"
+		out += "buf.Rewind(1)" + "\n"
+		out += ic.q.WriteFlush("}")
+		out += "}" + "\n"
+
+	default:
+		out += ic.q.Flush()
+		ic.OutputImports[`"encoding/json"`] = true
+		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
+		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "if err != nil {" + "\n"
+		out += "  return err" + "\n"
+		out += "}" + "\n"
+		out += "buf.Write(obj)" + "\n"
+	}
+	return out
+}
+
 func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceString bool) string {
 	var out = ""
 
-	// Flush if not bool
-	if typ.Kind() != reflect.Bool {
+	// Flush if not bool or maps
+	if typ.Kind() != reflect.Bool && typ.Kind() != reflect.Map {
 		out += ic.q.Flush()
 	}
 
@@ -196,6 +253,8 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
+	case reflect.Map:
+		out += getMapValue(ic, ptname, typ, ptr, forceString)
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
@@ -331,6 +390,11 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		if isIntish(f.Typ) {
 			needScratch = true
 		}
+		if f.Typ.Kind() == reflect.Map {
+			if isIntish(f.Typ.Elem()) {
+				needScratch = true
+			}
+		}
 	}
 
 	// We check if the last field is conditional.
@@ -344,6 +408,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `var obj []byte` + "\n"
 	if needScratch {
 		out += `var scratch fflib.FormatBitsScratch` + "\n"
+		out += `_ = scratch` + "\n"
 	}
 
 	out += `_ = obj` + "\n"
