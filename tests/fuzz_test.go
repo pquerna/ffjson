@@ -48,7 +48,6 @@ type Fuzz struct {
 	Q string
 	R bool
 	S time.Time
-	U map[string]string
 
 	Ap *uint8
 	Bp *uint16
@@ -139,7 +138,6 @@ func fuzzTimeArray(t *[]time.Time, c fuzz.Continue) {
 
 // Test 1000 iterations
 func TestFuzzCycle(t *testing.T) {
-	t.Skip("Skipped because of issue #66")
 	f := fuzz.New()
 	f.NumElements(0, 50)
 	f.NilChance(0.1)
@@ -167,7 +165,6 @@ func TestFuzzCycle(t *testing.T) {
 		rFF.Q = r.Q
 		rFF.R = r.R
 		rFF.S = r.S
-		rFF.U = r.U
 
 		rFF.Ap = r.Ap
 		rFF.Bp = r.Bp
