@@ -642,7 +642,6 @@ type FfFuzz struct {
 	Q string
 	R bool
 	S time.Time
-	U map[string]string
 
 	Ap *uint8
 	Bp *uint16
