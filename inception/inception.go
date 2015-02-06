@@ -20,6 +20,7 @@ package ffjsoninception
 import (
 	"errors"
 	"fmt"
+	"github.com/pquerna/ffjson/shared"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -48,18 +49,21 @@ func NewInception(inputPath string, packageName string, outputPath string) *Ince
 	}
 }
 
-func (i *Inception) AddMany(objs []interface{}) {
+func (i *Inception) AddMany(objs []shared.InceptionType) {
 	for _, obj := range objs {
 		i.Add(obj)
 	}
 }
 
-func (i *Inception) Add(obj interface{}) {
+func (i *Inception) Add(obj shared.InceptionType) {
 	i.objs = append(i.objs, NewStructInfo(obj))
 	i.PackagePath = i.objs[0].Typ.PkgPath()
 }
 
 func (i *Inception) wantUnmarshal(si *StructInfo) bool {
+	if si.Options.SkipDecoder {
+		return false
+	}
 	typ := si.Typ
 	umlx := typ.Implements(unmarshalFasterType) || reflect.PtrTo(typ).Implements(unmarshalFasterType)
 	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
@@ -71,6 +75,9 @@ func (i *Inception) wantUnmarshal(si *StructInfo) bool {
 }
 
 func (i *Inception) wantMarshal(si *StructInfo) bool {
+	if si.Options.SkipEncoder {
+		return false
+	}
 	typ := si.Typ
 	mlx := typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType)
 	mlstd := typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType)

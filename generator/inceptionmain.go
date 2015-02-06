@@ -56,17 +56,26 @@ const ffjsonExposeTemplate = `
 
 package {{.PackageName}}
 
-func FFJSONExpose() []interface{} {
-	rv := make([]interface{}, 0)
+import (
+	ffjsonshared "github.com/pquerna/ffjson/shared"
+)
+
+func FFJSONExpose() []ffjsonshared.InceptionType {
+	rv := make([]ffjsonshared.InceptionType, 0)
 {{range .StructNames}}
-	rv = append(rv, {{.}}{})
+	rv = append(rv, ffjsonshared.InceptionType{Obj: {{.Name}}{}, Options: ffjson{{printf "%#v" .Options}} } )
 {{end}}
 	return rv
 }
 `
 
+type structName struct {
+	Name    string
+	Options shared.StructOptions
+}
+
 type templateCtx struct {
-	StructNames []string
+	StructNames []structName
 	ImportName  string
 	PackageName string
 	InputPath   string
@@ -172,9 +181,10 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
 	}
 
 	im.TempMainPath = im.tempMain.Name()
-	sn := make([]string, 0)
-	for _, st := range si {
-		sn = append(sn, st.Name)
+	sn := make([]structName, len(si))
+	for i, st := range si {
+		sn[i].Name = st.Name
+		sn[i].Options = st.Options
 	}
 
 	tc := &templateCtx{
