@@ -373,8 +373,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	needScratch := false
 	out := ""
 
-	ic.OutputImports[`"bytes"`] = true
-
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf fflib.Buffer` + "\n"
 
