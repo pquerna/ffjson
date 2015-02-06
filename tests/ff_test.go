@@ -31,6 +31,10 @@ import (
 	"time"
 )
 
+// If this is enabled testSameMarshal and testCycle will output failures to files
+// for easy debugging.
+var outputFileOnError = false
+
 func newLogRecord() *Record {
 	return &Record{
 		OriginId: 11,
@@ -170,6 +174,15 @@ type unmarshalFaster interface {
 	UnmarshalJSONFFLexer(l *fflib.FFLexer, state fflib.FFParseState) error
 }
 
+// emptyInterface creates a new instance of the object sent
+// It the returned interface is writable and contains the zero value.
+func emptyInterface(a interface{}) interface{} {
+	aval := reflect.ValueOf(a)
+	indirect := reflect.Indirect(aval)
+	newIndirect := reflect.New(indirect.Type())
+
+	return newIndirect.Interface()
+}
 func testType(t *testing.T, base interface{}, ff interface{}) {
 	require.Implements(t, (*json.Marshaler)(nil), ff)
 	require.Implements(t, (*json.Unmarshaler)(nil), ff)
@@ -187,10 +200,6 @@ func testType(t *testing.T, base interface{}, ff interface{}) {
 	testSameMarshal(t, base, ff)
 	testCycle(t, base, ff)
 }
-
-// If this is enabled testSameMarshal and testCycle will output failures to files
-// for easy debugging.
-var outputFileOnError = false
 
 func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
 	bufbase, err := json.Marshal(base)
@@ -224,8 +233,11 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	buf, err := json.Marshal(base)
 	require.NoError(t, err, "base[%T] failed to Marshal", base)
 
-	err = json.Unmarshal(buf, ff)
-	errGo := json.Unmarshal(buf, base)
+	ffDst := emptyInterface(ff)
+	baseDst := emptyInterface(base)
+
+	err = json.Unmarshal(buf, ffDst)
+	errGo := json.Unmarshal(buf, baseDst)
 	if outputFileOnError && err != nil {
 		typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
 		file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-input-%s.json", typeName))
@@ -236,7 +248,7 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 		if errGo == nil {
 			file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-output-base-%s.txt", typeName))
 			if err == nil {
-				fmt.Fprintf(file, "%#v", base)
+				fmt.Fprintf(file, "%#v", baseDst)
 				file.Close()
 			}
 		}
@@ -244,7 +256,8 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	require.Nil(t, err, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", ff, errGo, err)
 	require.Nil(t, errGo, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", base, errGo, err)
 
-	require.Equal(t, getXValue(base), getXValue(ff), "json.Unmarshal of base[%T] into ff[%T]", base, ff)
+	// Even though base and ff are different struct types Equal can compare them.
+	require.Equal(t, baseDst, ffDst, "json.Unmarshal of base[%T] into ff[%T]", base, ff)
 }
 
 func testExpectedX(t *testing.T, expected interface{}, base interface{}, ff interface{}) {
@@ -339,6 +352,10 @@ func TestTimeDuration(t *testing.T) {
 	testType(t, &Tduration{}, &Xduration{})
 }
 
+func TestI18nName(t *testing.T) {
+	testType(t, &TI18nName{}, &XI18nName{})
+}
+
 func TestTimeTimePtr(t *testing.T) {
 	tm := time.Date(2014, 12, 13, 15, 16, 17, 18, time.UTC)
 	testType(t, &TtimePtr{X: &tm}, &XtimePtr{X: &tm})
@@ -349,7 +366,7 @@ func TestBool(t *testing.T) {
 	testExpectedXValBare(t,
 		true,
 		`null`,
-		&Xbool{Tbool{X: true}})
+		&Xbool{X: true})
 }
 
 func TestInt(t *testing.T) {

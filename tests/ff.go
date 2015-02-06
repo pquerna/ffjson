@@ -37,6 +37,19 @@ type FFRecord struct {
 	BytesSent uint64
 }
 
+// ffjson: skip
+type TI18nName struct {
+	Ændret   int64
+	Aוההקלדה uint32
+	Позната  string
+}
+
+type XI18nName struct {
+	Ændret   int64
+	Aוההקלדה uint32
+	Позната  string
+}
+
 type mystring string
 
 // ffjson: skip
@@ -150,7 +163,7 @@ type Tbool struct {
 	X bool
 }
 type Xbool struct {
-	Tbool
+	X bool
 }
 
 // ffjson: skip
@@ -158,7 +171,7 @@ type Tint struct {
 	X int
 }
 type Xint struct {
-	Tint
+	X int
 }
 
 // ffjson: skip
@@ -166,7 +179,7 @@ type Tbyte struct {
 	X byte
 }
 type Xbyte struct {
-	Tbyte
+	X byte
 }
 
 // ffjson: skip
@@ -174,7 +187,7 @@ type Tint8 struct {
 	X int8
 }
 type Xint8 struct {
-	Tint8
+	X int8
 }
 
 // ffjson: skip
@@ -182,7 +195,7 @@ type Tint16 struct {
 	X int16
 }
 type Xint16 struct {
-	Tint16
+	X int16
 }
 
 // ffjson: skip
@@ -190,7 +203,7 @@ type Tint32 struct {
 	X int32
 }
 type Xint32 struct {
-	Tint32
+	X int32
 }
 
 // ffjson: skip
@@ -198,7 +211,7 @@ type Tint64 struct {
 	X int64
 }
 type Xint64 struct {
-	Tint64
+	X int64
 }
 
 // ffjson: skip
@@ -206,7 +219,7 @@ type Tuint struct {
 	X uint
 }
 type Xuint struct {
-	Tuint
+	X uint
 }
 
 // ffjson: skip
@@ -214,7 +227,7 @@ type Tuint8 struct {
 	X uint8
 }
 type Xuint8 struct {
-	Tuint8
+	X uint8
 }
 
 // ffjson: skip
@@ -222,7 +235,7 @@ type Tuint16 struct {
 	X uint16
 }
 type Xuint16 struct {
-	Tuint16
+	X uint16
 }
 
 // ffjson: skip
@@ -230,7 +243,7 @@ type Tuint32 struct {
 	X uint32
 }
 type Xuint32 struct {
-	Tuint32
+	X uint32
 }
 
 // ffjson: skip
@@ -238,7 +251,7 @@ type Tuint64 struct {
 	X uint64
 }
 type Xuint64 struct {
-	Tuint64
+	X uint64
 }
 
 // ffjson: skip
@@ -246,7 +259,7 @@ type Tuintptr struct {
 	X uintptr
 }
 type Xuintptr struct {
-	Tuintptr
+	X uintptr
 }
 
 // ffjson: skip
@@ -254,7 +267,7 @@ type Tfloat32 struct {
 	X float32
 }
 type Xfloat32 struct {
-	Tfloat32
+	X float32
 }
 
 // ffjson: skip
@@ -262,7 +275,7 @@ type Tfloat64 struct {
 	X float64
 }
 type Xfloat64 struct {
-	Tfloat64
+	X float64
 }
 
 // Arrays
@@ -279,7 +292,7 @@ type ATbool struct {
 	X []bool
 }
 type AXbool struct {
-	ATbool
+	X []bool
 }
 
 // ffjson: skip
@@ -287,7 +300,7 @@ type ATint struct {
 	X []int
 }
 type AXint struct {
-	ATint
+	X []int
 }
 
 // ffjson: skip
@@ -295,7 +308,7 @@ type ATbyte struct {
 	X []byte
 }
 type AXbyte struct {
-	ATbyte
+	X []byte
 }
 
 // ffjson: skip
@@ -303,7 +316,7 @@ type ATint8 struct {
 	X []int8
 }
 type AXint8 struct {
-	ATint8
+	X []int8
 }
 
 // ffjson: skip
@@ -311,7 +324,7 @@ type ATint16 struct {
 	X []int16
 }
 type AXint16 struct {
-	ATint16
+	X []int16
 }
 
 // ffjson: skip
@@ -319,7 +332,7 @@ type ATint32 struct {
 	X []int32
 }
 type AXint32 struct {
-	ATint32
+	X []int32
 }
 
 // ffjson: skip
@@ -327,7 +340,7 @@ type ATint64 struct {
 	X []int64
 }
 type AXint64 struct {
-	ATint64
+	X []int64
 }
 
 // ffjson: skip
@@ -335,7 +348,7 @@ type ATuint struct {
 	X []uint
 }
 type AXuint struct {
-	ATuint
+	X []uint
 }
 
 // ffjson: skip
@@ -343,7 +356,7 @@ type ATuint8 struct {
 	X []uint8
 }
 type AXuint8 struct {
-	ATuint8
+	X []uint8
 }
 
 // ffjson: skip
@@ -351,7 +364,7 @@ type ATuint16 struct {
 	X []uint16
 }
 type AXuint16 struct {
-	ATuint16
+	X []uint16
 }
 
 // ffjson: skip
@@ -359,7 +372,7 @@ type ATuint32 struct {
 	X []uint32
 }
 type AXuint32 struct {
-	ATuint32
+	X []uint32
 }
 
 // ffjson: skip
@@ -367,7 +380,7 @@ type ATuint64 struct {
 	X []uint64
 }
 type AXuint64 struct {
-	ATuint64
+	X []uint64
 }
 
 // ffjson: skip
@@ -375,7 +388,7 @@ type ATuintptr struct {
 	X []uintptr
 }
 type AXuintptr struct {
-	ATuintptr
+	X []uintptr
 }
 
 // ffjson: skip
@@ -383,7 +396,7 @@ type ATfloat32 struct {
 	X []float32
 }
 type AXfloat32 struct {
-	ATfloat32
+	X []float32
 }
 
 // ffjson: skip
@@ -391,7 +404,7 @@ type ATfloat64 struct {
 	X []float64
 }
 type AXfloat64 struct {
-	ATfloat64
+	X []float64
 }
 
 // ffjson: skip
@@ -399,7 +412,7 @@ type ATtime struct {
 	X []time.Time
 }
 type AXtime struct {
-	ATtime
+	X []time.Time
 }
 
 // Tests from golang test suite
