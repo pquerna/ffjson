@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -66,13 +67,21 @@ type DecodingBuffer interface {
 	lener
 }
 
+var pool = sync.Pool{New: func() interface{} { return make([]byte, 0, 64) }}
+
+// Send a buffer to the Pool to reuse for other instances.
+// You may no longer utilize the content of the buffer, since it may be used
+// by other goroutines.
+func Pool(b []byte) {
+	pool.Put(b[0:0])
+}
+
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
 // The zero value for Buffer is an empty buffer ready to use.
 type Buffer struct {
 	buf       []byte            // contents are the bytes buf[off : len(buf)]
 	off       int               // read at &buf[off], write at &buf[len(buf)]
 	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
-	bootstrap [0]byte           // memory to hold first slice; helps small buffers (Printf) avoid allocation.
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
@@ -103,8 +112,7 @@ func (b *Buffer) Len() int { return len(b.buf) - b.off }
 func (b *Buffer) Truncate(n int) {
 	if n == 0 {
 		b.off = 0
-		// Set to nil, so that b.bootstrap is used on future grow() calls.
-		b.buf = nil
+		b.buf = b.buf[0:0]
 	} else {
 		b.buf = b.buf[0 : b.off+n]
 	}
@@ -118,16 +126,20 @@ func (b *Buffer) Reset() { b.Truncate(0) }
 // It returns the index where bytes should be written.
 // If the buffer can't grow it will panic with ErrTooLarge.
 func (b *Buffer) grow(n int) int {
+	// If we have no buffer, get one from the pool
 	m := b.Len()
-	// If buffer is empty, reset to recover space.
-	if m == 0 && b.off != 0 {
-		b.Truncate(0)
+	if m == 0 {
+		if b.buf == nil {
+			b.buf = pool.Get().([]byte)
+			b.off = 0
+		} else if b.off != 0 {
+			// If buffer is empty, reset to recover space.
+			b.Truncate(0)
+		}
 	}
 	if len(b.buf)+n > cap(b.buf) {
 		var buf []byte
-		if b.buf == nil && n <= len(b.bootstrap) {
-			buf = b.bootstrap[0:]
-		} else if m+n <= cap(b.buf)/2 {
+		if m+n <= cap(b.buf)/2 {
 			// We can slide things down instead of allocating a new
 			// slice. We only need m+n <= cap(b.buf) to slide, but
 			// we instead let capacity get twice as large so we

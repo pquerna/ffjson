@@ -81,6 +81,25 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 	}
 }
 
+func BenchmarkMarshalJSONNativePool(b *testing.B) {
+	record := newLogFFRecord()
+
+	buf, err := json.Marshal(&record)
+	if err != nil {
+		b.Fatalf("Marshal: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bytes, err := record.MarshalJSON()
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+		fflib.Pool(bytes)
+	}
+}
+
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
 
