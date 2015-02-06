@@ -19,6 +19,7 @@ package ffjsoninception
 
 import (
 	fflib "github.com/pquerna/ffjson/fflib/v1"
+	"github.com/pquerna/ffjson/shared"
 
 	"bytes"
 	"encoding/json"
@@ -44,19 +45,21 @@ func (a FieldByJsonName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a FieldByJsonName) Less(i, j int) bool { return a[i].JsonName < a[j].JsonName }
 
 type StructInfo struct {
-	Name   string
-	Obj    interface{}
-	Typ    reflect.Type
-	Fields []*StructField
+	Name    string
+	Obj     interface{}
+	Typ     reflect.Type
+	Fields  []*StructField
+	Options shared.StructOptions
 }
 
-func NewStructInfo(obj interface{}) *StructInfo {
-	t := reflect.TypeOf(obj)
+func NewStructInfo(obj shared.InceptionType) *StructInfo {
+	t := reflect.TypeOf(obj.Obj)
 	return &StructInfo{
-		Obj:    obj,
-		Name:   t.Name(),
-		Typ:    t,
-		Fields: extractFields(obj),
+		Obj:     obj.Obj,
+		Name:    t.Name(),
+		Typ:     t,
+		Fields:  extractFields(obj.Obj),
+		Options: obj.Options,
 	}
 }
 

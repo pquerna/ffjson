@@ -521,3 +521,17 @@ func TestArrayFloat64(t *testing.T) {
 func TestArrayTime(t *testing.T) {
 	testType(t, &ATtime{}, &AXtime{})
 }
+
+func TestNoDecoder(t *testing.T) {
+	var test interface{} = &NoDecoder{}
+	if _, ok := test.(unmarshalFaster); ok {
+		require.FailNow(t, "NoDecoder should not have a UnmarshalJSONFFLexer")
+	}
+}
+
+func TestNoEncoder(t *testing.T) {
+	var test interface{} = &NoEncoder{}
+	if _, ok := test.(marshalerFaster); ok {
+		require.FailNow(t, "NoEncoder should not have a MarshalJSONBuf")
+	}
+}

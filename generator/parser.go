@@ -18,7 +18,9 @@
 package generator
 
 import (
+	"flag"
 	"fmt"
+	"github.com/pquerna/ffjson/shared"
 	"go/ast"
 	"go/doc"
 	"go/parser"
@@ -26,21 +28,31 @@ import (
 	"regexp"
 )
 
+var noEncoder = flag.Bool("noencoder", false, "Do not generate encoder functions")
+var noDecoder = flag.Bool("nodecoder", false, "Do not generate decoder functions")
+
 type StructField struct {
 	Name string
 }
 
 type StructInfo struct {
-	Name string
+	Name    string
+	Options shared.StructOptions
 }
 
 func NewStructInfo(name string) *StructInfo {
 	return &StructInfo{
 		Name: name,
+		Options: shared.StructOptions{
+			SkipDecoder: *noDecoder,
+			SkipEncoder: *noEncoder,
+		},
 	}
 }
 
 var skipre = regexp.MustCompile("(.*)ffjson:(\\s*)((skip)|(ignore))(.*)")
+var skipdec = regexp.MustCompile("(.*)ffjson:(\\s*)((skipdecoder)|(nodecoder))(.*)")
+var skipenc = regexp.MustCompile("(.*)ffjson:(\\s*)((skipencoder)|(noencoder))(.*)")
 
 func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 	fset := token.NewFileSet()
@@ -83,6 +95,19 @@ func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 	for _, t := range d.Types {
 		if skipre.MatchString(t.Doc) {
 			delete(structs, t.Name)
+		} else {
+			if skipdec.MatchString(t.Doc) {
+				s, ok := structs[t.Name]
+				if ok {
+					s.Options.SkipDecoder = true
+				}
+			}
+			if skipenc.MatchString(t.Doc) {
+				s, ok := structs[t.Name]
+				if ok {
+					s.Options.SkipEncoder = true
+				}
+			}
 		}
 	}
 

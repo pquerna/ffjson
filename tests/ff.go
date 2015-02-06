@@ -769,3 +769,15 @@ type TTestMaps struct {
 type XTestMaps struct {
 	TTestMaps
 }
+
+// ffjson: noencoder
+type NoEncoder struct {
+	C string
+	B int `json:"A"`
+}
+
+// ffjson: nodecoder
+type NoDecoder struct {
+	C string
+	B int `json:"A"`
+}
