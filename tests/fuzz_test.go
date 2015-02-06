@@ -401,6 +401,10 @@ func TestFuzzArrayTime(t *testing.T) {
 	testTypeFuzz(t, &ATtime{}, &AXtime{})
 }
 
+func TestFuzzI18nName(t *testing.T) {
+	testTypeFuzz(t, &TI18nName{}, &XI18nName{})
+}
+
 // This contains maps.
 // Since map order is random, we can expect the encoding order to be random
 // Therefore we cannot use binary compare.
