@@ -451,10 +451,10 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 
 		if f.OmitEmpty {
+			out += ic.q.Flush()
 			if f.Pointer {
 				out += "}" + "\n"
 			}
-			out += ic.q.Flush()
 			out += "}" + "\n"
 		}
 	}
