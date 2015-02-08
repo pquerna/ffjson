@@ -165,13 +165,11 @@ func (im *InceptionMain) renderTpl(f *os.File, t *template.Template, tc *templat
 	return nil
 }
 
-func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
+func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importName string) error {
 	var err error
-	var importName string
 
-	if importName = os.Getenv("FFJSON_IMPORT_NAME"); importName == "" {
+	if importName == "" {
 		importName, err = getImportName(im.inputPath)
-
 		if err != nil {
 			return err
 		}

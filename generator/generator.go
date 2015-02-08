@@ -22,7 +22,7 @@ import (
 	"fmt"
 )
 
-func GenerateFiles(goCmd string, inputPath string, outputPath string) error {
+func GenerateFiles(goCmd string, inputPath string, outputPath string, importName string) error {
 	packageName, structs, err := ExtractStructs(inputPath)
 	if err != nil {
 		return err
@@ -30,7 +30,7 @@ func GenerateFiles(goCmd string, inputPath string, outputPath string) error {
 
 	im := NewInceptionMain(goCmd, inputPath, outputPath)
 
-	err = im.Generate(packageName, structs)
+	err = im.Generate(packageName, structs, importName)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error=%v path=%q", err, im.TempMainPath))
 	}
