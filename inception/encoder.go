@@ -220,7 +220,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		if forceString {
+		if forceString && !ptr {
 			out += "fflib.WriteJsonString(buf, string(" + ptname + `) + "\"")` + "\n"
 		} else {
 			out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
