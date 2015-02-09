@@ -22,6 +22,8 @@ import (
 	fuzz "github.com/google/gofuzz"
 	"github.com/stretchr/testify/require"
 	"math/rand"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -316,6 +318,10 @@ func TestFuzzOmitCycle(t *testing.T) {
 
 // Test 1000 iterations
 func TestFuzzStringCycle(t *testing.T) {
+	ver := runtime.Version()
+	if strings.Contains(ver, "go1.3") || strings.Contains(ver, "go1.2") {
+		t.Skipf("Test requires go v1.4 or later, this is %s", ver)
+	}
 	f := fuzz.New()
 	f.NumElements(0, 50)
 	f.NilChance(0.1)
