@@ -21,12 +21,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/pquerna/ffjson/shared"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/pquerna/ffjson/shared"
 )
 
 const inceptionMainTemplate = `
@@ -164,13 +165,14 @@ func (im *InceptionMain) renderTpl(f *os.File, t *template.Template, tc *templat
 	return nil
 }
 
-func (im *InceptionMain) Generate(packageName string, si []*StructInfo) error {
+func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importName string) error {
 	var err error
 
-	importName, err := getImportName(im.inputPath)
-
-	if err != nil {
-		return err
+	if importName == "" {
+		importName, err = getImportName(im.inputPath)
+		if err != nil {
+			return err
+		}
 	}
 
 	importName = filepath.ToSlash(importName)

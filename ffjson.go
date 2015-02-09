@@ -31,6 +31,7 @@ import (
 
 var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
 var goCmdFlag = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
+var importNameFlag = flag.String("import-name", "", "Override import name in case it cannot be detected.")
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
@@ -66,7 +67,12 @@ func main() {
 		goCmd = *goCmdFlag
 	}
 
-	err := generator.GenerateFiles(goCmd, inputPath, outputPath)
+	var importName string
+	if importNameFlag != nil && *importNameFlag != "" {
+		importName = *importNameFlag
+	}
+
+	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
