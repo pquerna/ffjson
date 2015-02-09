@@ -19,9 +19,10 @@ package types
 
 import (
 	"encoding/json"
-	ff "github.com/pquerna/ffjson/tests/types/ff"
 	"reflect"
 	"testing"
+
+	ff "github.com/pquerna/ffjson/tests/types/ff"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -121,5 +122,16 @@ func TestUnmarshalFull(t *testing.T) {
 
 	if record.Something != 99 {
 		t.Fatalf("record.Something decoding problem, expected: 99 got: %v", record.Something)
+	}
+}
+
+func TestUnmarshalNullPointer(t *testing.T) {
+	record := ff.Everything{}
+	err := record.UnmarshalJSON([]byte(`{"FooStruct": null,"Something":99}`))
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+	if record.FooStruct != nil {
+		t.Fatalf("record.Something decoding problem, expected: nil got: %v", record.FooStruct)
 	}
 }
