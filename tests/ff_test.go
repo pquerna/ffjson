@@ -301,8 +301,13 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	require.Nil(t, err, "json.Unmarshal of encoded ff[%T],\nErrors golang:%v,\nffjson:%v", ff, errGo, err)
 	require.Nil(t, errGo, "json.Unmarshal of encoded ff[%T],\nerrors golang:%v,\nffjson:%v", base, errGo, err)
 
-	// Even though base and ff are different struct types Equal can compare them.
-	require.Equal(t, baseDst, ffDst, "json.Unmarshal of base[%T] into ff[%T]", base, ff)
+	actualType := reflect.TypeOf(ffDst)
+	expectedValue := reflect.ValueOf(baseDst)
+	match := false
+	if expectedValue.Type().ConvertibleTo(actualType) {
+		match = reflect.DeepEqual(ffDst, expectedValue.Convert(actualType).Interface())
+	}
+	require.True(t, match, "json.Unmarshal of base[%T] into ff[%T]\nBase:\n%#v\nffjson:\n%#v,", base, ff, baseDst, ffDst)
 }
 
 func testExpectedX(t *testing.T, expected interface{}, base interface{}, ff interface{}) {
