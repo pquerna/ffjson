@@ -85,6 +85,26 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 	}
 }
 
+/*
+func BenchmarkMarshalJSONNativePool(b *testing.B) {
+	record := newLogFFRecord()
+
+	buf, err := json.Marshal(&record)
+	if err != nil {
+		b.Fatalf("Marshal: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		bytes, err := record.MarshalJSON()
+		if err != nil {
+			b.Fatalf("Marshal: %v", err)
+		}
+		fflib.Pool(bytes)
+	}
+}
+*/
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
 
@@ -202,21 +222,46 @@ func testType(t *testing.T, base interface{}, ff interface{}) {
 }
 
 func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
-	bufbase, err := json.Marshal(base)
+	bufbase, err := json.MarshalIndent(base, " ", "  ")
 	require.NoError(t, err, "base[%T] failed to Marshal", base)
 
-	bufff, err := json.Marshal(ff)
-	require.NoError(t, err, "ff[%T] failed to Marshal", ff)
-
-	if outputFileOnError {
-		if string(bufbase) != string(bufff) {
+	bufff, err := json.MarshalIndent(ff, " ", "  ")
+	if err != nil {
+		msg := fmt.Sprintf("golang output:\n%s\n", string(bufbase))
+		mf, ok := ff.(json.Marshaler)
+		var raw []byte
+		if ok {
+			var err2 error
+			raw, err2 = mf.MarshalJSON()
+			msg += fmt.Sprintf("Raw output:\n%s\nErros:%v", string(raw), err2)
+		}
+		if outputFileOnError {
 			typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
-			file, err := os.Create(fmt.Sprintf("fail-marshal-base-%s.json", typeName))
+			file, err := os.Create(fmt.Sprintf("fail-%s-marshal-go.json", typeName))
 			if err == nil {
 				file.Write(bufbase)
 				file.Close()
 			}
-			file, err = os.Create(fmt.Sprintf("fail-marshal-ffjson-%s.json", typeName))
+			if len(raw) != 0 {
+				file, err = os.Create(fmt.Sprintf("fail-%s-marshal-ffjson-raw.json", typeName))
+				if err == nil {
+					file.Write(raw)
+					file.Close()
+				}
+			}
+		}
+		require.NoError(t, err, "ff[%T] failed to Marshal:%s", ff, msg)
+	}
+
+	if outputFileOnError {
+		if string(bufbase) != string(bufff) {
+			typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
+			file, err := os.Create(fmt.Sprintf("fail-%s-marshal-base.json", typeName))
+			if err == nil {
+				file.Write(bufbase)
+				file.Close()
+			}
+			file, err = os.Create(fmt.Sprintf("fail-%s-marshal-ffjson.json", typeName))
 			if err == nil {
 				file.Write(bufff)
 				file.Close()
@@ -230,7 +275,7 @@ func testSameMarshal(t *testing.T, base interface{}, ff interface{}) {
 func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	setXValue(t, base)
 
-	buf, err := json.Marshal(base)
+	buf, err := json.MarshalIndent(base, " ", "  ")
 	require.NoError(t, err, "base[%T] failed to Marshal", base)
 
 	ffDst := emptyInterface(ff)
@@ -240,21 +285,21 @@ func testCycle(t *testing.T, base interface{}, ff interface{}) {
 	errGo := json.Unmarshal(buf, baseDst)
 	if outputFileOnError && err != nil {
 		typeName := reflect.Indirect(reflect.ValueOf(base)).Type().String()
-		file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-input-%s.json", typeName))
+		file, err := os.Create(fmt.Sprintf("fail-%s-unmarshal-decoder-input.json", typeName))
 		if err == nil {
 			file.Write(buf)
 			file.Close()
 		}
 		if errGo == nil {
-			file, err := os.Create(fmt.Sprintf("fail-unmarshal-decoder-output-base-%s.txt", typeName))
+			file, err := os.Create(fmt.Sprintf("fail-%s-unmarshal-decoder-output-base.txt", typeName))
 			if err == nil {
 				fmt.Fprintf(file, "%#v", baseDst)
 				file.Close()
 			}
 		}
 	}
-	require.Nil(t, err, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", ff, errGo, err)
-	require.Nil(t, errGo, "json.Unmarshal of encoded ff[%T], errors golang:%v, ffjson:%v", base, errGo, err)
+	require.Nil(t, err, "json.Unmarshal of encoded ff[%T],\nErrors golang:%v,\nffjson:%v", ff, errGo, err)
+	require.Nil(t, errGo, "json.Unmarshal of encoded ff[%T],\nerrors golang:%v,\nffjson:%v", base, errGo, err)
 
 	// Even though base and ff are different struct types Equal can compare them.
 	require.Equal(t, baseDst, ffDst, "json.Unmarshal of base[%T] into ff[%T]", base, ff)
@@ -361,6 +406,11 @@ func TestTimeTimePtr(t *testing.T) {
 	testType(t, &TtimePtr{X: &tm}, &XtimePtr{X: &tm})
 }
 
+func TestTimeNullTimePtr(t *testing.T) {
+	t.Skip("https://github.com/pquerna/ffjson/issues/82")
+	testType(t, &TtimePtr{}, &XtimePtr{})
+}
+
 func TestBool(t *testing.T) {
 	testType(t, &Tbool{}, &Xbool{})
 	testExpectedXValBare(t,
@@ -432,6 +482,17 @@ func TestForceStringTagged(t *testing.T) {
 	testSameMarshal(t, &TstringTagged{}, &XstringTagged{})
 	testSameMarshal(t, &TintTagged{}, &XintTagged{})
 	testSameMarshal(t, &TboolTagged{}, &XboolTagged{})
+}
+
+func TestForceStringTaggedEscape(t *testing.T) {
+	testSameMarshal(t, &TstringTagged{X: `"`}, &XstringTagged{X: `"`})
+}
+
+func TestForceStringTaggedDecoder(t *testing.T) {
+	t.Skip("https://github.com/pquerna/ffjson/issues/80")
+	testCycle(t, &TstringTagged{}, &XstringTagged{})
+	testCycle(t, &TintTagged{}, &XintTagged{})
+	testCycle(t, &TboolTagged{}, &XboolTagged{})
 }
 
 func TestSortSame(t *testing.T) {

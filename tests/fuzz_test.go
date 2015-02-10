@@ -22,6 +22,8 @@ import (
 	fuzz "github.com/google/gofuzz"
 	"github.com/stretchr/testify/require"
 	"math/rand"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -146,8 +148,12 @@ func TestFuzzCycle(t *testing.T) {
 	rFF := FfFuzz{}
 	r := Fuzz{}
 	for i := 0; i < 1000; i++ {
-		f.RandSource(rand.New(rand.NewSource(int64(i * 324221))))
-		f.Fuzz(&r)
+		if true || i > 0 {
+			// TODO: Re-enable after fixing:
+			// https://github.com/pquerna/ffjson/issues/82
+			f.RandSource(rand.New(rand.NewSource(int64(i * 324221))))
+			f.Fuzz(&r)
+		}
 		rFF.A = r.A
 		rFF.B = r.B
 		rFF.C = r.C
@@ -219,6 +225,160 @@ func TestFuzzCycle(t *testing.T) {
 		rFF.Rap = r.Rap
 		testSameMarshal(t, &r, &rFF)
 		testCycle(t, &r, &rFF)
+	}
+}
+
+// Test 1000 iterations
+func TestFuzzOmitCycle(t *testing.T) {
+	f := fuzz.New()
+	f.NumElements(0, 10)
+	f.NilChance(0.5)
+	f.Funcs(fuzzTime)
+
+	rFF := FfFuzzOmitEmpty{}
+	r := FuzzOmitEmpty{}
+	for i := 0; i <= 1000; i++ {
+		if i > 0 {
+			f.RandSource(rand.New(rand.NewSource(int64(i * 324221))))
+			f.Fuzz(&r)
+		}
+		rFF.A = r.A
+		rFF.B = r.B
+		rFF.C = r.C
+		rFF.D = r.D
+		rFF.E = r.E
+		rFF.F = r.F
+		rFF.G = r.G
+		rFF.H = r.H
+		rFF.I = r.I
+		rFF.J = r.J
+		rFF.M = r.M
+		rFF.N = r.N
+		rFF.O = r.O
+		rFF.P = r.P
+		rFF.Q = r.Q
+		rFF.R = r.R
+		rFF.S = r.S
+
+		rFF.Ap = r.Ap
+		rFF.Bp = r.Bp
+		rFF.Cp = r.Cp
+		rFF.Dp = r.Dp
+		rFF.Ep = r.Ep
+		rFF.Fp = r.Fp
+		rFF.Gp = r.Gp
+		rFF.Hp = r.Hp
+		rFF.Ip = r.Ip
+		rFF.Jp = r.Jp
+		rFF.Mp = r.Mp
+		rFF.Np = r.Np
+		rFF.Op = r.Op
+		rFF.Pp = r.Pp
+		rFF.Qp = r.Qp
+		rFF.Rp = r.Rp
+		rFF.Sp = r.Sp
+
+		rFF.Aa = r.Aa
+		rFF.Ba = r.Ba
+		rFF.Ca = r.Ca
+		rFF.Da = r.Da
+		rFF.Ea = r.Ea
+		rFF.Fa = r.Fa
+		rFF.Ga = r.Ga
+		rFF.Ha = r.Ha
+		rFF.Ia = r.Ia
+		rFF.Ja = r.Ja
+		rFF.Ma = r.Ma
+		rFF.Na = r.Na
+		rFF.Oa = r.Oa
+		rFF.Pa = r.Pa
+		rFF.Qa = r.Qa
+		rFF.Ra = r.Ra
+
+		rFF.Aap = r.Aap
+		rFF.Bap = r.Bap
+		rFF.Cap = r.Cap
+		rFF.Dap = r.Dap
+		rFF.Eap = r.Eap
+		rFF.Fap = r.Fap
+		rFF.Gap = r.Gap
+		rFF.Hap = r.Hap
+		rFF.Iap = r.Iap
+		rFF.Jap = r.Jap
+		rFF.Map = r.Map
+		rFF.Nap = r.Nap
+		rFF.Oap = r.Oap
+		rFF.Pap = r.Pap
+		rFF.Qap = r.Qap
+		rFF.Rap = r.Rap
+		testSameMarshal(t, &r, &rFF)
+		testCycle(t, &r, &rFF)
+	}
+}
+
+// Test 1000 iterations
+func TestFuzzStringCycle(t *testing.T) {
+	ver := runtime.Version()
+	if strings.Contains(ver, "go1.3") || strings.Contains(ver, "go1.2") {
+		t.Skipf("Test requires go v1.4 or later, this is %s", ver)
+	}
+	f := fuzz.New()
+	f.NumElements(0, 50)
+	f.NilChance(0.1)
+	f.Funcs(fuzzTime)
+
+	rFF := FfFuzzString{}
+	r := FuzzString{}
+	for i := 0; i < 1000; i++ {
+		if i > 0 {
+			f.RandSource(rand.New(rand.NewSource(int64(i * 324221))))
+			f.Fuzz(&r)
+		}
+		rFF.A = r.A
+		rFF.B = r.B
+		rFF.C = r.C
+		rFF.D = r.D
+		rFF.E = r.E
+		rFF.F = r.F
+		rFF.G = r.G
+		rFF.H = r.H
+		rFF.I = r.I
+		rFF.J = r.J
+		rFF.M = r.M
+		rFF.N = r.N
+		rFF.O = r.O
+		rFF.P = r.P
+		rFF.Q = r.Q
+		rFF.R = r.R
+
+		// https://github.com/golang/go/issues/9812
+		// rFF.S = r.S
+
+		rFF.Ap = r.Ap
+		rFF.Bp = r.Bp
+		rFF.Cp = r.Cp
+		rFF.Dp = r.Dp
+		rFF.Ep = r.Ep
+		rFF.Fp = r.Fp
+		rFF.Gp = r.Gp
+		rFF.Hp = r.Hp
+		rFF.Ip = r.Ip
+		rFF.Jp = r.Jp
+		rFF.Mp = r.Mp
+		rFF.Np = r.Np
+		rFF.Op = r.Op
+		rFF.Pp = r.Pp
+		rFF.Qp = r.Qp
+		rFF.Rp = r.Rp
+		// https://github.com/golang/go/issues/9812
+		// rFF.Sp = r.Sp
+
+		// The "string" option signals that a field is stored as JSON inside a JSON-encoded string. It applies only to fields of string, floating point, or integer types. This extra level of encoding is sometimes used when communicating with JavaScript programs.
+		// Therefore tests on byte arrays are removed, since the golang decoder chokes on them.
+		testSameMarshal(t, &r, &rFF)
+
+		// Disabled: https://github.com/pquerna/ffjson/issues/80
+		// testCycle(t, &r, &rFF)
 	}
 }
 

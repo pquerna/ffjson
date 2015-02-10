@@ -41,6 +41,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 	ptname := "mj." + sf.Name
 	if sf.Pointer {
 		ptname = "*" + ptname
+		return "if true {\n"
 	}
 	switch sf.Typ.Kind() {
 
@@ -221,7 +222,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		if forceString {
-			out += "fflib.WriteJsonString(buf, string(" + ptname + `) + "\"")` + "\n"
+			// Forcestring on strings does double-escaping of the entire value.
+			// We create a temporary buffer, encode to that an re-encode it.
+			out += "tmpbuf := fflib.Buffer{}" + "\n"
+			out += "tmpbuf.Grow(len(" + ptname + ") + 16)" + "\n"
+			out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "))" + "\n"
+			out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `))` + "\n"
 		} else {
 			out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
 		}
@@ -269,7 +275,8 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 }
 
 func getValue(ic *Inception, sf *StructField) string {
-	if sf.ForceString && !sf.Pointer {
+	closequote := false
+	if sf.ForceString {
 		switch sf.Typ.Kind() {
 		case reflect.Int,
 			reflect.Int8,
@@ -286,12 +293,19 @@ func getValue(ic *Inception, sf *StructField) string {
 			reflect.Float64,
 			reflect.Bool:
 			ic.q.Write(`"`)
-			defer ic.q.Write(`"`)
-		case reflect.String:
-			ic.q.Write(`"\`)
+			closequote = true
 		}
 	}
-	return getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
+	out := getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
+	if closequote {
+		if sf.Pointer {
+			out += ic.q.WriteFlush(`"`)
+		} else {
+			ic.q.Write(`"`)
+		}
+	}
+
+	return out
 }
 
 func p2(v uint32) uint32 {
