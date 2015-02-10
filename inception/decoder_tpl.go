@@ -483,6 +483,16 @@ var handleUnmarshalerTxt = `
 
 	{{if eq .UnmarshalJSONFFLexer true}}
 	{
+		if tok == fflib.FFTok_null {
+				{{if eq .Typ.Kind .Ptr }}
+					{{.Name}} = nil
+				{{end}}
+				{{if eq .TakeAddr true }}
+					{{.Name}} = nil
+				{{end}}
+				state = fflib.FFParse_after_value
+				goto mainparse
+		}
 		{{if eq .Typ.Kind .Ptr }}
 			if {{.Name}} == nil {
 				{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
@@ -502,6 +512,14 @@ var handleUnmarshalerTxt = `
 	{{else}}
 	{{if eq .Unmarshaler true}}
 	{
+		if tok == fflib.FFTok_null {
+			{{if eq .TakeAddr true }}
+				{{.Name}} = nil
+			{{end}}
+			state = fflib.FFParse_after_value
+			goto mainparse
+		}
+
 		tbuf, err := fs.CaptureField(tok)
 		if err != nil {
 			return fs.WrapErr(err)

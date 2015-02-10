@@ -407,7 +407,6 @@ func TestTimeTimePtr(t *testing.T) {
 }
 
 func TestTimeNullTimePtr(t *testing.T) {
-	t.Skip("https://github.com/pquerna/ffjson/issues/82")
 	testType(t, &TtimePtr{}, &XtimePtr{})
 }
 
