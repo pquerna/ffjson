@@ -39,10 +39,11 @@ ffjson generates Go code for optimized JSON serialization.
 
 ## Features
 
-* **NEW** **Unmarshal Support:** Since v0.9, `ffjson` supports Unmarshaling of structures.
+* **Unmarshal Support:** Since v0.9, `ffjson` supports Unmarshaling of structures.
 * **Drop in Replacement:** Because `ffjson` implements the interfaces already defined by `encoding/json` the performance enhancements are transparent to users of your structures.
 * **Supports all types:** `ffjson` has native support for most of Go's types -- for any type it doesn't support with fast paths, it falls back to using `encoding/json`.  This means all structures should work out of the box. If they don't, [open a issue!](https://github.com/pquerna/ffjson/issues)
 * **ffjson: skip**: If you have a structure you want `ffjson` to ignore, add `ffjson: skip` to the doc string for this structure.
+* **Extensive Tests:** `ffjson` contains an extensive test suite including fuzz'ing against the JSON parser.
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
 
