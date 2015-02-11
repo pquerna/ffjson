@@ -72,6 +72,15 @@ func (si *StructInfo) FieldsByFirstByte() map[string][]*StructField {
 	return rv
 }
 
+func (si *StructInfo) ReverseFields() []*StructField {
+	var i int
+	rv := make([]*StructField, 0)
+	for i = len(si.Fields) - 1; i >= 0; i-- {
+		rv = append(rv, si.Fields[i])
+	}
+	return rv
+}
+
 type MarshalerFaster interface {
 	MarshalJSONBuf(buf fflib.EncodingBuffer) error
 }

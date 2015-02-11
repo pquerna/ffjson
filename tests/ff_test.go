@@ -594,3 +594,19 @@ func TestNoEncoder(t *testing.T) {
 		require.FailNow(t, "NoEncoder should not have a MarshalJSONBuf")
 	}
 }
+
+func TestCaseSensitiveUnmarshalSimple(t *testing.T) {
+	base := Tint{}
+	ff := Xint{}
+
+	err := json.Unmarshal([]byte(`{"x": 123213}`), &base)
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+
+	err = json.Unmarshal([]byte(`{"x": 123213}`), &ff)
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+	require.EqualValues(t, base, ff, "json.Unmarshal of Record with mixed case JSON")
+}
