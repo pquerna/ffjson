@@ -24,11 +24,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"reflect"
+	"unicode/utf8"
 )
 
 type StructField struct {
 	Name             string
 	JsonName         string
+	FoldFuncName     string
 	Typ              reflect.Type
 	OmitEmpty        bool
 	ForceString      bool
@@ -79,6 +81,34 @@ func (si *StructInfo) ReverseFields() []*StructField {
 		rv = append(rv, si.Fields[i])
 	}
 	return rv
+}
+
+const (
+	caseMask = ^byte(0x20) // Mask to ignore case in ASCII.
+)
+
+func foldFunc(key []byte) string {
+	nonLetter := false
+	special := false // special letter
+	for _, b := range key {
+		if b >= utf8.RuneSelf {
+			return "bytes.EqualFold"
+		}
+		upper := b & caseMask
+		if upper < 'A' || upper > 'Z' {
+			nonLetter = true
+		} else if upper == 'K' || upper == 'S' {
+			// See above for why these letters are special.
+			special = true
+		}
+	}
+	if special {
+		return "fflib.EqualFoldRight"
+	}
+	if nonLetter {
+		return "fflib.AsciiEqualFold"
+	}
+	return "fflib.SimpleLetterEqualFold"
 }
 
 type MarshalerFaster interface {
@@ -162,6 +192,7 @@ func extractFields(obj interface{}) []*StructField {
 					field := &StructField{
 						Name:             sf.Name,
 						JsonName:         string(buf.Bytes()),
+						FoldFuncName:     foldFunc([]byte(name)),
 						Typ:              ft,
 						HasMarshalJSON:   ft.Implements(marshalerType),
 						HasUnmarshalJSON: ft.Implements(unmarshalerType),

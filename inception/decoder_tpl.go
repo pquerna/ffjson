@@ -407,7 +407,7 @@ mainparse:
 				{{end}}
 				}
 				{{range $index, $field := $si.ReverseFields}}
-				if bytes.EqualFold(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+				if {{$field.FoldFuncName}}(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
 					currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
 					state = fflib.FFParse_want_colon
 					goto mainparse
