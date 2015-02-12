@@ -22,15 +22,24 @@ import (
 	"fmt"
 )
 
-func GenerateFiles(goCmd string, inputPath string, outputPath string, importName string) error {
-	packageName, structs, err := ExtractStructs(inputPath)
-	if err != nil {
-		return err
+func GenerateFiles(goCmd string, inputPath []string, outputPath string, importName string) error {
+	var packageName string
+	var structs []*StructInfo
+	for _, input := range inputPath {
+		p, s, err := ExtractStructs(input)
+		if err != nil {
+			return err
+		}
+		if packageName != "" && p != packageName {
+			return fmt.Errorf("Multiple package names in package: %s and %s", packageName, p)
+		}
+		packageName = p
+		structs = append(structs, s...)
 	}
 
-	im := NewInceptionMain(goCmd, inputPath, outputPath)
+	im := NewInceptionMain(goCmd, inputPath[0], outputPath)
 
-	err = im.Generate(packageName, structs, importName)
+	err := im.Generate(packageName, structs, importName)
 	if err != nil {
 		return errors.New(fmt.Sprintf("error=%v path=%q", err, im.TempMainPath))
 	}
