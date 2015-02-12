@@ -406,6 +406,13 @@ mainparse:
 					{{end}} }
 				{{end}}
 				}
+				{{range $index, $field := $si.ReverseFields}}
+				if {{$field.FoldFuncName}}(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+					currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+					state = fflib.FFParse_want_colon
+					goto mainparse
+				}
+				{{end}}
 				currentKey = ffj_t_{{.SI.Name}}no_such_key
 				state = fflib.FFParse_want_colon
 				goto mainparse
