@@ -177,8 +177,10 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.FormatBits(&scratch, buf, uint64(" + ptname + "), 10, false)" + "\n"
 	case reflect.Float32:
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.AppendFloat(buf, float64(" + ptname + "), 'g', -1, 32)" + "\n"
 	case reflect.Float64:
+		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		out += "fflib.AppendFloat(buf, " + ptname + ", 'g', -1, 64)" + "\n"
 	case reflect.Array,
 		reflect.Slice:
