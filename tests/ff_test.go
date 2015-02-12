@@ -121,10 +121,6 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 			b.Fatalf("Marshal: %v", err)
 		}
 		buffer.Reset()
-		if err != nil {
-			b.Fatalf("Marshal: %v", err)
-		}
-		buffer.Reset()
 	}
 }
 
