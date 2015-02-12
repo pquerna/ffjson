@@ -85,7 +85,6 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 	}
 }
 
-/*
 func BenchmarkMarshalJSONNativePool(b *testing.B) {
 	record := newLogFFRecord()
 
@@ -104,7 +103,7 @@ func BenchmarkMarshalJSONNativePool(b *testing.B) {
 		fflib.Pool(bytes)
 	}
 }
-*/
+
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
 
