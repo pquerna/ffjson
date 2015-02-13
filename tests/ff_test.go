@@ -610,3 +610,48 @@ func TestCaseSensitiveUnmarshalSimple(t *testing.T) {
 	}
 	require.EqualValues(t, base, ff, "json.Unmarshal of Record with mixed case JSON")
 }
+
+func TestEmbedded(t *testing.T) {
+	a := TEmbeddedStructures{}
+	a.X = make([]interface{}, 0)
+	a.X = append(a.X, "testString")
+	a.Y.X = 73
+	a.Z = make([]struct{ X int }, 2)
+	a.Z[0].X = 12
+	a.Z[1].X = 34
+	a.U = make(map[string]struct{ X int })
+	a.U["sample"] = struct{ X int }{X: 56}
+	a.U["value"] = struct{ X int }{X: 78}
+	a.V = make([]map[string]struct{ X int }, 3)
+	for i := range a.V {
+		a.V[i] = make(map[string]struct{ X int })
+		a.V[i]["sample"] = struct{ X int }{X: i * 3}
+	}
+	for i := range a.W {
+		a.W[i] = make(map[string]struct{ X int })
+		a.W[i]["sample"] = struct{ X int }{X: i * 3}
+		a.W[i]["value"] = struct{ X int }{X: i * 5}
+	}
+	b := XEmbeddedStructures{}
+	b.X = make([]interface{}, 0)
+	b.X = append(b.X, "testString")
+	b.Y.X = 73
+	b.Z = make([]struct{ X int }, 2)
+	b.Z[0].X = 12
+	b.Z[1].X = 34
+	b.U = make(map[string]struct{ X int })
+	b.U["sample"] = struct{ X int }{X: 56}
+	b.U["value"] = struct{ X int }{X: 78}
+	b.V = make([]map[string]struct{ X int }, 3)
+	for i := range b.V {
+		b.V[i] = make(map[string]struct{ X int })
+		b.V[i]["sample"] = struct{ X int }{X: i * 3}
+	}
+	for i := range b.W {
+		b.W[i] = make(map[string]struct{ X int })
+		b.W[i]["sample"] = struct{ X int }{X: i * 3}
+		b.W[i]["value"] = struct{ X int }{X: i * 5}
+	}
+	testSameMarshal(t, &a, &b)
+	testCycle(t, &a, &b)
+}

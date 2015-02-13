@@ -185,7 +185,10 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	case reflect.Array,
 		reflect.Slice:
 
-		out += "if " + name + "!= nil {" + "\n"
+		// Arrays cannot be nil
+		if typ.Kind() != reflect.Array {
+			out += "if " + name + "!= nil {" + "\n"
+		}
 		// Array and slice values encode as JSON arrays, except that
 		// []byte encodes as a base64-encoded string, and a nil slice
 		// encodes as the null JSON object.
@@ -215,10 +218,11 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			out += "}" + "\n"
 			out += "buf.WriteString(`]`)" + "\n"
 		}
-		out += "} else {" + "\n"
-		out += "buf.WriteString(`null`)" + "\n"
-		out += "}" + "\n"
-
+		if typ.Kind() != reflect.Array {
+			out += "} else {" + "\n"
+			out += "buf.WriteString(`null`)" + "\n"
+			out += "}" + "\n"
+		}
 	case reflect.String:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
 		if forceString {
