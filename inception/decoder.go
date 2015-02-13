@@ -135,6 +135,14 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 				Ptr:             reflect.Ptr,
 				UseReflectToSet: useReflectToSet,
 			})
+		} else if (typ.Elem().Kind() == reflect.Struct || typ.Elem().Kind() == reflect.Map) ||
+			typ.Elem().Kind() == reflect.Array || typ.Elem().Kind() == reflect.Slice &&
+			typ.Elem().Name() == "" {
+			out += tplStr(decodeTpl["handleFallback"], handleFallback{
+				Name: name,
+				Typ:  typ,
+				Kind: typ.Kind(),
+			})
 		} else {
 			out += tplStr(decodeTpl["handleArray"], handleArray{
 				IC:   ic,
@@ -200,6 +208,12 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 	}
 
 	if s == "" {
+		switch typ.Kind() {
+		case reflect.Interface:
+			return "interface{}"
+		case reflect.Slice:
+			return "[]" + typ.Elem().String()
+		}
 		panic("non-numeric type passed in w/o name: " + name)
 	}
 

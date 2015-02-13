@@ -1059,3 +1059,44 @@ type NoDecoder struct {
 	C string
 	B int `json:"A"`
 }
+
+// ffjson: skip
+type TEmbeddedStructures struct {
+	X []interface{}
+	Y struct {
+		X int
+	}
+	Z []struct {
+		X int
+	}
+	U map[string]struct {
+		X int
+	}
+	V []map[string]struct {
+		X int
+	}
+	W [5]map[string]struct {
+		X int
+	}
+	Q [][]string
+}
+
+type XEmbeddedStructures struct {
+	X []interface{}
+	Y struct {
+		X int
+	}
+	Z []struct {
+		X int
+	}
+	U map[string]struct {
+		X int
+	}
+	V []map[string]struct {
+		X int
+	}
+	W [5]map[string]struct {
+		X int
+	}
+	Q [][]string
+}
