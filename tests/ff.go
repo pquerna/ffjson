@@ -1078,6 +1078,7 @@ type TEmbeddedStructures struct {
 	W [5]map[string]struct {
 		X int
 	}
+	Q [][]string
 }
 
 type XEmbeddedStructures struct {
@@ -1097,4 +1098,5 @@ type XEmbeddedStructures struct {
 	W [5]map[string]struct {
 		X int
 	}
+	Q [][]string
 }

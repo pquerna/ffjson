@@ -632,6 +632,12 @@ func TestEmbedded(t *testing.T) {
 		a.W[i]["sample"] = struct{ X int }{X: i * 3}
 		a.W[i]["value"] = struct{ X int }{X: i * 5}
 	}
+	a.Q = make([][]string, 3)
+	for i := range a.Q {
+		a.Q[i] = make([]string, 1)
+		a.Q[i][0] = fmt.Sprintf("thestring #%d", i)
+	}
+
 	b := XEmbeddedStructures{}
 	b.X = make([]interface{}, 0)
 	b.X = append(b.X, "testString")
@@ -651,6 +657,11 @@ func TestEmbedded(t *testing.T) {
 		b.W[i] = make(map[string]struct{ X int })
 		b.W[i]["sample"] = struct{ X int }{X: i * 3}
 		b.W[i]["value"] = struct{ X int }{X: i * 5}
+	}
+	b.Q = make([][]string, 3)
+	for i := range a.Q {
+		b.Q[i] = make([]string, 1)
+		b.Q[i][0] = fmt.Sprintf("thestring #%d", i)
 	}
 	testSameMarshal(t, &a, &b)
 	testCycle(t, &a, &b)
