@@ -141,8 +141,8 @@ func fuzzTimeArray(t *[]time.Time, c fuzz.Continue) {
 // Test 1000 iterations
 func TestFuzzCycle(t *testing.T) {
 	f := fuzz.New()
-	f.NumElements(0, 50)
-	f.NilChance(0.1)
+	f.NumElements(0, 15)
+	f.NilChance(0.25)
 	f.Funcs(fuzzTime)
 
 	rFF := FfFuzz{}
@@ -565,6 +565,10 @@ func TestFuzzArrayTime(t *testing.T) {
 
 func TestFuzzI18nName(t *testing.T) {
 	testTypeFuzz(t, &TI18nName{}, &XI18nName{})
+}
+
+func TestFuzzInlineStructs(t *testing.T) {
+	testTypeFuzzN(t, &TInlineStructs{}, &XInlineStructs{}, 100)
 }
 
 // This contains maps.

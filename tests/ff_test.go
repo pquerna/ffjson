@@ -691,3 +691,10 @@ func TestEmbedded(t *testing.T) {
 func TestRenameTypes(t *testing.T) {
 	testType(t, &TRenameTypes{}, &XRenameTypes{})
 }
+
+func TestInlineStructs(t *testing.T) {
+	a := TInlineStructs{}
+	b := XInlineStructs{}
+	testSameMarshal(t, &a, &b)
+	testCycle(t, &a, &b)
+}
