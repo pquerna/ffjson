@@ -136,7 +136,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	var out = ""
 
 	// Flush if not bool or maps
-	if typ.Kind() != reflect.Bool && typ.Kind() != reflect.Map {
+	if typ.Kind() != reflect.Bool && typ.Kind() != reflect.Map && typ.Kind() != reflect.Struct {
 		out += ic.q.Flush()
 	}
 
@@ -146,6 +146,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		typ.Implements(marshalerType) ||
 		reflect.PtrTo(typ).Implements(marshalerType) {
 
+		out += ic.q.Flush()
 		out += tplStr(encodeTpl["handleMarshaler"], handleMarshaler{
 			IC:             ic,
 			Name:           name,
@@ -265,6 +266,37 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "buf.Write(obj)" + "\n"
 	case reflect.Map:
 		out += getMapValue(ic, ptname, typ, ptr, forceString)
+	case reflect.Struct:
+		if typ.Name() == "" {
+			ic.q.Write("{")
+			ic.q.Write(" ")
+			out += fmt.Sprintf("/* Inline struct. type=%v kind=%v */\n", typ, typ.Kind())
+			newV := reflect.Indirect(reflect.New(typ)).Interface()
+			fields := extractFields(newV)
+			cond := lastConditional(fields)
+			for _, field := range fields {
+				// Adjust field name
+				field.Name = name + "." + field.Name
+				out += getField(ic, field, "")
+				// We don't track omitempties, so we always delete last character.
+			}
+			if cond {
+				out += ic.q.Flush()
+				out += `buf.Rewind(1)` + "\n"
+			} else {
+				ic.q.DeleteLast()
+			}
+			out += ic.q.WriteFlush("}")
+		} else {
+			ic.OutputImports[`"encoding/json"`] = true
+			out += fmt.Sprintf("/* Struct fall back. type=%v kind=%v */\n", typ, typ.Kind())
+			out += ic.q.Flush()
+			out += "obj, err = json.Marshal(" + name + ")" + "\n"
+			out += "if err != nil {" + "\n"
+			out += "  return err" + "\n"
+			out += "}" + "\n"
+			out += "buf.Write(obj)" + "\n"
+		}
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
@@ -278,7 +310,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	return out
 }
 
-func getValue(ic *Inception, sf *StructField) string {
+func getValue(ic *Inception, sf *StructField, prefix string) string {
 	closequote := false
 	if sf.ForceString {
 		switch sf.Typ.Kind() {
@@ -300,7 +332,7 @@ func getValue(ic *Inception, sf *StructField) string {
 			closequote = true
 		}
 	}
-	out := getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
+	out := getGetInnerValue(ic, prefix+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
 	if closequote {
 		if sf.Pointer {
 			out += ic.q.WriteFlush(`"`)
@@ -386,9 +418,61 @@ func isIntish(t reflect.Type) bool {
 	return false
 }
 
+func getField(ic *Inception, f *StructField, prefix string) string {
+	out := ""
+	if f.OmitEmpty {
+		out += ic.q.Flush()
+		if f.Pointer {
+			out += "if " + prefix + f.Name + " != nil {" + "\n"
+		}
+		out += getOmitEmpty(ic, f)
+	}
+
+	if f.Pointer && !f.OmitEmpty {
+		// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
+		out += "if " + prefix + f.Name + " != nil {" + "\n"
+	}
+
+	// JsonName is already escaped and quoted.
+	// getInnervalue should flush
+	ic.q.Write(f.JsonName + ":")
+	// We save a copy in case we need it
+	t := ic.q
+
+	out += getValue(ic, f, prefix)
+	ic.q.Write(",")
+
+	if f.Pointer && !f.OmitEmpty {
+		out += "} else {" + "\n"
+		out += t.WriteFlush("null")
+		out += "}" + "\n"
+	}
+
+	if f.OmitEmpty {
+		out += ic.q.Flush()
+		if f.Pointer {
+			out += "}" + "\n"
+		}
+		out += "}" + "\n"
+	}
+	return out
+}
+
+// We check if the last field is conditional.
+func lastConditional(fields []*StructField) bool {
+	if len(fields) > 0 {
+		f := fields[len(fields)-1]
+		return f.OmitEmpty
+	}
+	return false
+}
+
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	conditionalWrites := false
-	needScratch := false
+	// For now needScratch is always true, since
+	// inline structs may require them.
+	// If this becomes a problem inline structs should be checked if they require
+	// scratch.
+	needScratch := true
 	out := ""
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
@@ -413,11 +497,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 		}
 	}
 
-	// We check if the last field is conditional.
-	if len(si.Fields) > 0 {
-		f := si.Fields[len(si.Fields)-1]
-		conditionalWrites = f.OmitEmpty
-	}
+	conditionalWrites := lastConditional(si.Fields)
 
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
 	out += `var err error` + "\n"
@@ -440,41 +520,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		if f.OmitEmpty {
-			out += ic.q.Flush()
-			if f.Pointer {
-				out += "if mj." + f.Name + " != nil {" + "\n"
-			}
-			out += getOmitEmpty(ic, f)
-		}
-
-		if f.Pointer && !f.OmitEmpty {
-			// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
-			out += "if mj." + f.Name + " != nil {" + "\n"
-		}
-
-		// JsonName is already escaped and quoted.
-		// getInnervalue should flush
-		ic.q.Write(f.JsonName + ":")
-		// We save a copy in case we need it
-		t := ic.q
-
-		out += getValue(ic, f)
-		ic.q.Write(",")
-
-		if f.Pointer && !f.OmitEmpty {
-			out += "} else {" + "\n"
-			out += t.WriteFlush("null")
-			out += "}" + "\n"
-		}
-
-		if f.OmitEmpty {
-			out += ic.q.Flush()
-			if f.Pointer {
-				out += "}" + "\n"
-			}
-			out += "}" + "\n"
-		}
+		out += getField(ic, f, "mj.")
 	}
 
 	// Handling the last comma is tricky.
