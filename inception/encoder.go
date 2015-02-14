@@ -269,18 +269,23 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	case reflect.Struct:
 		if typ.Name() == "" {
 			ic.q.Write("{")
-			ic.q.Write(" ")
 			out += fmt.Sprintf("/* Inline struct. type=%v kind=%v */\n", typ, typ.Kind())
 			newV := reflect.Indirect(reflect.New(typ)).Interface()
 			fields := extractFields(newV)
-			cond := lastConditional(fields)
+
+			// We write a whitespace if may may not write anything at all
+			// That way we can always safely delete the last field.
+			if lastConditional(fields) {
+				ic.q.Write(" ")
+			}
+			// Output all fields
 			for _, field := range fields {
 				// Adjust field name
 				field.Name = name + "." + field.Name
 				out += getField(ic, field, "")
-				// We don't track omitempties, so we always delete last character.
 			}
-			if cond {
+
+			if lastConditional(fields) {
 				out += ic.q.Flush()
 				out += `buf.Rewind(1)` + "\n"
 			} else {
