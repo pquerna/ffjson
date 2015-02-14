@@ -266,6 +266,42 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "buf.Write(obj)" + "\n"
 	case reflect.Map:
 		out += getMapValue(ic, ptname, typ, ptr, forceString)
+	case reflect.Struct:
+		if typ.Name() == "" {
+			ic.q.Write("{")
+			out += fmt.Sprintf("/* Inline struct. type=%v kind=%v */\n", typ, typ.Kind())
+			newV := reflect.Indirect(reflect.New(typ)).Interface()
+			fields := extractFields(newV)
+
+			// We write a whitespace if may may not write anything at all
+			// That way we can always safely delete the last field.
+			if lastConditional(fields) {
+				ic.q.Write(" ")
+			}
+			// Output all fields
+			for _, field := range fields {
+				// Adjust field name
+				field.Name = name + "." + field.Name
+				out += getField(ic, field, "")
+			}
+
+			if lastConditional(fields) {
+				out += ic.q.Flush()
+				out += `buf.Rewind(1)` + "\n"
+			} else {
+				ic.q.DeleteLast()
+			}
+			out += ic.q.WriteFlush("}")
+		} else {
+			ic.OutputImports[`"encoding/json"`] = true
+			out += fmt.Sprintf("/* Struct fall back. type=%v kind=%v */\n", typ, typ.Kind())
+			out += ic.q.Flush()
+			out += "obj, err = json.Marshal(" + name + ")" + "\n"
+			out += "if err != nil {" + "\n"
+			out += "  return err" + "\n"
+			out += "}" + "\n"
+			out += "buf.Write(obj)" + "\n"
+		}
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
