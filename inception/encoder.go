@@ -274,15 +274,14 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			out += fmt.Sprintf("/* Inline struct. type=%v kind=%v */\n", typ, typ.Kind())
 			newV := reflect.Indirect(reflect.New(typ)).Interface()
 			fields := extractFields(newV)
-
-			// Output all fields
+			cond := lastConditional(fields)
 			for _, field := range fields {
 				// Adjust field name
 				field.Name = name + "." + field.Name
 				out += getField(ic, field, "")
+				// We don't track omitempties, so we always delete last character.
 			}
-
-			if lastConditional(fields) {
+			if cond {
 				out += ic.q.Flush()
 				out += `buf.Rewind(1)` + "\n"
 			} else {
