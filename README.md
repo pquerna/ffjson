@@ -117,6 +117,20 @@ That said, ffjson is operating determiniticly, so it will generate the same code
 
 `ffjson` already does a lot to help garbage generation, and in . However whenever you go through the json.Marshal you get a new byte slice back. On very high throughput servers this can lead to increased GC pressure. 
 
+### Use the generated Marshal/Unmarshal
+
+This is probably the easiest optimization for you. After you have generated the code your struct will have a MarshalJSON() function available. So instead of going through encoding/json, you just call that code.
+
+```Go
+	// Your previous code:
+	buf, err := json.Marshal(&item)
+
+	// Call directly
+	buf, err := item.MarshalJSON()
+}
+```
+This simple change is likely to double the speed of your encoding/decoding.
+
 ### Pooling the buffer
 (note: Currently in development, so not available yet)
 
@@ -125,7 +139,8 @@ On servers where you have a lot of concurrent encoding going on, you can hand ba
 import fflib "github.com/pquerna/ffjson/fflib/v1"
 
 func Encode(item interface{}, out io.Writer) {
-	buf,_ := json.Marshal(item)
+	// Call directly
+	buf, err := item.MarshalJSON()
 	
 	// Write the buffer
 	_,_ = out.Write(buf)
