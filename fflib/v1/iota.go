@@ -24,6 +24,7 @@ package v1
 
 import (
 	"io"
+	"sync"
 )
 
 const (
@@ -59,18 +60,9 @@ type FormatBitsWriter interface {
 	io.ByteWriter
 }
 
-type FormatBitsScratch struct {
-	buf []byte
-}
+var scratchPool = sync.Pool{New: func() interface{} { return make([]byte, 65) }}
 
-func (fbs *FormatBitsScratch) getBuffer() []byte {
-	if fbs.buf == nil {
-		// +1 for sign of 64bit value in base 2
-		var a [64 + 1]byte
-		fbs.buf = a[:]
-	}
-	return fbs.buf
-}
+type FormatBitsScratch struct{}
 
 // formatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
@@ -78,7 +70,7 @@ func (fbs *FormatBitsScratch) getBuffer() []byte {
 // returned as the first result value; otherwise the string is returned
 // as the second result value.
 //
-func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base int, neg bool) {
+func FormatBits(unused interface{}, dst FormatBitsWriter, u uint64, base int, neg bool) {
 	if base < 2 || base > len(digits) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}
@@ -93,9 +85,9 @@ func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base
 
 	// 2 <= base && base <= len(digits)
 
-	var a = scratch.getBuffer()
+	var a = scratchPool.Get().([]byte)
 	//	var a [64 + 1]byte // +1 for sign of 64bit value in base 2
-	i := len(a)
+	i := 65
 
 	if neg {
 		u = -u
@@ -152,6 +144,6 @@ func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base
 	}
 
 	dst.Write(a[i:])
-
+	scratchPool.Put(a)
 	return
 }

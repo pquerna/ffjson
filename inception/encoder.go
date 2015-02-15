@@ -166,7 +166,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		reflect.Int32,
 		reflect.Int64:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(&scratch, buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
+		out += "fflib.FormatBits(nil, buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
 		reflect.Uint16,
@@ -174,7 +174,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		reflect.Uint64,
 		reflect.Uintptr:
 		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		out += "fflib.FormatBits(&scratch, buf, uint64(" + ptname + "), 10, false)" + "\n"
+		out += "fflib.FormatBits(nil, buf, uint64(" + ptname + "), 10, false)" + "\n"
 	case reflect.Float32:
 		ic.OutputImports[`"strconv"`] = true
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + ptname + "), 'f', -1, 32))" + "\n"
@@ -370,7 +370,6 @@ func isIntish(t reflect.Type) bool {
 
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	conditionalWrites := false
-	needScratch := false
 	out := ""
 
 	ic.OutputImports[`"bytes"`] = true
@@ -386,17 +385,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
 
-	for _, f := range si.Fields {
-		if isIntish(f.Typ) {
-			needScratch = true
-		}
-		if f.Typ.Kind() == reflect.Map {
-			if isIntish(f.Typ.Elem()) {
-				needScratch = true
-			}
-		}
-	}
-
 	// We check if the last field is conditional.
 	if len(si.Fields) > 0 {
 		f := si.Fields[len(si.Fields)-1]
@@ -406,10 +394,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
-	if needScratch {
-		out += `var scratch fflib.FormatBitsScratch` + "\n"
-		out += `_ = scratch` + "\n"
-	}
 
 	out += `_ = obj` + "\n"
 	out += `_ = err` + "\n"
