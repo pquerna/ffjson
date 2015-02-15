@@ -196,7 +196,7 @@ var handleArrayTxt = `
 
 			if tok == fflib.FFTok_comma {
 				if wantVal == true {
-					// TODO(pquerna): this isn't an ideal error message, this handles 
+					// TODO(pquerna): this isn't an ideal error message, this handles
 					// things like [,,,] as an array value.
 					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
 				}
@@ -399,7 +399,7 @@ mainparse:
 				{{range $byte, $fields := $si.FieldsByFirstByte}}
 				case '{{$byte}}':
 					{{range $index, $field := $fields}}
-						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+						{{if ne $index 0 }}} else if {{else}}if {{end}} len(kn) == {{len $field.JsonName}}-2 && bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
 						currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
 						state = fflib.FFParse_want_colon
 						goto mainparse
