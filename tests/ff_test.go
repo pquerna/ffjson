@@ -102,7 +102,6 @@ func BenchmarkMarshalJSONNativePool(b *testing.B) {
 
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
-
 	buf, err := json.Marshal(&record)
 	if err != nil {
 		b.Fatalf("Marshal: %v", err)
@@ -113,10 +112,6 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		err := record.MarshalJSONBuf(&buffer)
-		if err != nil {
-			b.Fatalf("Marshal: %v", err)
-		}
-		buffer.Reset()
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
