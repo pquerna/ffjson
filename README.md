@@ -113,6 +113,55 @@ That said, ffjson is operating determiniticly, so it will generate the same code
 * Inline struct definitions `type A struct{B struct{ X int} }` are handled by the encoder, but currently has fallback in the decoder.
 * Slices of slices / slices of maps are currently falling back when generating the decoder.
 
+## Reducing Garbage Collection
+
+`ffjson` already does a lot to help garbage generation, and in . However whenever you go through the json.Marshal you get a new byte slice back. On very high throughput servers this can lead to increased GC pressure. 
+
+### Pooling the buffer
+(note: Currently in development, so not available yet)
+
+On servers where you have a lot of concurrent encoding going on, you can hand back the byte buffer you get from json.Marshal once you are done using it. An example could look like this:
+```Go
+import fflib "github.com/pquerna/ffjson/fflib/v1"
+
+func Encode(item interface{}, out io.Writer) {
+	buf,_ := json.Marshal(item)
+	
+	// Write the buffer
+	_,_ = out.Write(buf)
+	
+	// We are now no longer need the buffer so we pool it. 
+	fflib.Pool(buf)
+}
+```
+Note that the buffers you put back in the pool can still be reclaimed by the garbage collector, so you wont risk your program building up a big memory use by pooling the buffers.
+
+
+### Calling ffjson directly
+There might be cases where you need to encode many objects at once. This could be a server backing up, writing a lot of entries to files, etc.
+
+For this purpose you can completely avoid using "encoding/json" and encode the file item directly from with ffjson. Here is an example where we want to encode an array of the `Item` type, which has ffjson generated encoders.
+
+```Go
+import fflib "github.com/pquerna/ffjson/fflib/v1"
+
+func EncodeItems(items []Item, out io.Writer) {
+    // We declare the buffer here, so it can be reused.
+	var buffer fflib.Buffer
+	
+	for _, item := range items {
+	   // We want a clean buffer
+		buffer.Reset()
+		
+		// Encode into the buffer
+		_ = item.MarshalJSONBuf(&buffer)
+
+		_, _ = out.Write(buffer.Bytes())
+	}
+}
+```
+For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.
+
 ## Does ffjson add generics to Go?
 No.
 
