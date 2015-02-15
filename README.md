@@ -1,4 +1,4 @@
-# ffjson: faster JSON serialization for Go / Golang
+# ffjson: faster JSON for Go
 
 [![Build Status](https://travis-ci.org/pquerna/ffjson.svg?branch=master)](https://travis-ci.org/pquerna/ffjson)
 
