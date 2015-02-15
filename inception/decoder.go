@@ -138,6 +138,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		} else if (typ.Elem().Kind() == reflect.Struct || typ.Elem().Kind() == reflect.Map) ||
 			typ.Elem().Kind() == reflect.Array || typ.Elem().Kind() == reflect.Slice &&
 			typ.Elem().Name() == "" {
+			ic.OutputImports[`"encoding/json"`] = true
 			out += tplStr(decodeTpl["handleFallback"], handleFallback{
 				Name: name,
 				Typ:  typ,
