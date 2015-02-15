@@ -18,20 +18,6 @@ If `myfile.go` contains the `struct` types you would like to be faster, and assu
     ffjson myfile.go
     git add myfile_ffjson.go
 
-## Details
-
-`ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization functions for all structs found in `foo.go`.
-
-```
-Usage of ffjson:
-
-	ffjson [options] [input_file]
-
-ffjson generates Go code for optimized JSON serialization.
-
-  -w="": Write generate code to this path instead of ${input}_ffjson.go.
-
-```
 
 ## Performance Status:
 
@@ -46,11 +32,27 @@ ffjson generates Go code for optimized JSON serialization.
 * **ffjson: skip**: If you have a structure you want `ffjson` to ignore, add `ffjson: skip` to the doc string for this structure.
 * **Extensive Tests:** `ffjson` contains an extensive test suite including fuzz'ing against the JSON parser.
 
-## Improvements, bugs, adding features, and taking ffjson new directions!
-
-Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
 # Using ffjson
+
+`ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization functions for all structs found in `foo.go`.
+
+```
+Usage of ffjson:
+
+        ffjson [options] [input_file]
+
+ffjson generates Go code for optimized JSON serialization.
+
+  -go-cmd="": Path to go command; Useful for `goapp` support.
+  -import-name="": Override import name in case it cannot be detected.
+  -nodecoder: Do not generate decoder functions
+  -noencoder: Do not generate encoder functions
+  -w="": Write generate code to this path instead of ${input}_ffjson.go.
+```
+
+Your code must be in a compilable state for `ffjson` to work. If you code doesn't compile ffjson will most likely exit with an error.
+
 
 ## Using ffjson with `go generate`
 
@@ -73,6 +75,7 @@ To generate for the current package and all sub-packages, use:
 ```sh
 go generate ./...
 ```
+This is most of what you need to know about go generate, but you can sese more about [go generate on the golang blog](http://blog.golang.org/generate).
 
 ## Should I include ffjson files in VCS?
 
@@ -92,6 +95,10 @@ That said, ffjson is operating determiniticly, so it will generate the same code
 
 ## Does ffjson add generics to Go?
 No.
+
+## Improvements, bugs, adding features, and taking ffjson new directions!
+
+Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
 # Credits
 
