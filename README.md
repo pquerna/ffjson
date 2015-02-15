@@ -22,7 +22,7 @@ If `myfile.go` contains the `struct` types you would like to be faster, and assu
 
 `ffjson` generates code based upon existing `struct` types.  For example, `ffjson foo.go` will by default create a new file `foo_ffjson.go` that contains serialization functions for all structs found in `foo.go`.
 
-```sh
+```
 Usage of ffjson:
 
 	ffjson [options] [input_file]
@@ -30,6 +30,7 @@ Usage of ffjson:
 ffjson generates Go code for optimized JSON serialization.
 
   -w="": Write generate code to this path instead of ${input}_ffjson.go.
+
 ```
 
 ## Performance Status:
@@ -49,7 +50,50 @@ ffjson generates Go code for optimized JSON serialization.
 
 Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
 
-## Credits
+# Using ffjson
+
+## Using ffjson with `go generate`
+
+`ffjson` is a great fit with `go generate`. It allows you to specify the ffjson command inside inside you individual go files and run them all at once. This way you don't have to maintain a separate build file with the files you need to generate.
+
+Add this comment anywhere inside your go files:
+
+```Go
+//go:generate ffjson $GOFILE
+```
+
+To re-generate ffjson for all files with the tag in a folder, simply execute:
+
+```sh
+go generate
+```
+
+To generate for the current package and all sub-packages, use:
+
+```sh
+go generate ./...
+```
+
+## Should I include ffjson files in VCS?
+
+That question is really up to you. If you don't, you will have a more complex build process. If you do, you have to keep the generated files updated if you change the content of your structs.
+
+That said, ffjson is operating determiniticly, so it will generate the same code every time it run, so unless your code changes, the generated content should not change. Note however that this is only true if you are using the same ffjson version, so if you are several people working on a project, you might need to synchronize your ffjson version.
+
+## Performance pitfalls
+
+`ffjson` has a few cases where it will fall back to using the runtime encoder/decoder. Notable cases are:
+
+* Interface struct members. Since it isn't possible to know the type of these types before runtime, ffjson has to use the reflect based coder.
+* Structs with custom marshal/unmarshal.
+* Map with a complex value. Simple types like `map[string]int` is fine though.
+* Inline struct definitions `type A struct{B struct{ X int} }` are handled by the encoder, but currently has fallback in the decoder.
+* Slices of slices / slices of maps are currently falling back when generating the decoder.
+
+## Does ffjson add generics to Go?
+No.
+
+# Credits
 
 `ffjson` has recieved significant contributions from:
 
