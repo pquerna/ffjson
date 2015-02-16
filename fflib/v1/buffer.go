@@ -68,18 +68,54 @@ type DecodingBuffer interface {
 	lener
 }
 
-var pools map[int]*sync.Pool
+var pools []*sync.Pool
 var pool64 *sync.Pool
 
 func init() {
 	var i int = 64
-	pools = make(map[int]*sync.Pool, 0)
+	pools = make([]*sync.Pool, 14)
 	// TODO(pquerna): add science here.
 	for i = 6; i < 20; i++ {
 		n := int(math.Pow(2, float64(i)))
-		pools[n] = &sync.Pool{New: func() interface{} { return make([]byte, 0, n) }}
+		pools[poolNum(n)] = &sync.Pool{New: func() interface{} { return make([]byte, 0, n) }}
 	}
-	pool64 = pools[64]
+	pool64 = pools[0]
+}
+
+func poolNum(i int) int {
+	// TODO(pquerna): convert to log2 w/ bsr asm instruction:
+	// 	<https://groups.google.com/forum/#!topic/golang-nuts/uAb5J1_y7ns>
+	if i <= 64 {
+		return 0
+	} else if i <= 128 {
+		return 1
+	} else if i <= 256 {
+		return 2
+	} else if i <= 512 {
+		return 3
+	} else if i <= 1024 {
+		return 4
+	} else if i <= 2048 {
+		return 5
+	} else if i <= 4096 {
+		return 6
+	} else if i <= 8192 {
+		return 7
+	} else if i <= 16384 {
+		return 8
+	} else if i <= 32768 {
+		return 9
+	} else if i <= 65536 {
+		return 10
+	} else if i <= 131072 {
+		return 11
+	} else if i <= 262144 {
+		return 12
+	} else if i <= 524288 {
+		return 13
+	} else {
+		return -1
+	}
 }
 
 // Send a buffer to the Pool to reuse for other instances.
@@ -87,8 +123,9 @@ func init() {
 // by other goroutines.
 func Pool(b []byte) {
 	c := cap(b)
-	if pool, ok := pools[c]; ok {
-		pool.Put(b[0:0])
+	pn := poolNum(c)
+	if pn != -1 {
+		pools[pn].Put(b)
 	}
 	// if we didn't have a slot for this []byte, we just drop it and let the GC
 	// take care of it.
@@ -255,17 +292,10 @@ func makeSlice(n int) []byte {
 		return pool64.Get().([]byte)[0:n]
 	}
 
-	c := n
-	c--
-	c |= c >> 1
-	c |= c >> 2
-	c |= c >> 4
-	c |= c >> 8
-	c |= c >> 16
-	c++
+	pn := poolNum(n)
 
-	if pool, ok := pools[c]; ok {
-		return pool.Get().([]byte)[0:n]
+	if pn != -1 {
+		return pools[pn].Get().([]byte)[0:n]
 	} else {
 		return make([]byte, n)
 	}
