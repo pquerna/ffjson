@@ -666,3 +666,7 @@ func TestEmbedded(t *testing.T) {
 	testSameMarshal(t, &a, &b)
 	testCycle(t, &a, &b)
 }
+
+func TestRenameTypes(t *testing.T) {
+	testType(t, &TRenameTypes{}, &XRenameTypes{})
+}
