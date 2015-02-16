@@ -118,6 +118,7 @@ That said, ffjson is operating determiniticly, so it will generate the same code
 `ffjson` already does a lot to help garbage generation, and in . However whenever you go through the json.Marshal you get a new byte slice back. On very high throughput servers this can lead to increased GC pressure. 
 
 ### Tip 1: Use the generated Marshal/Unmarshal
+<strong><ins>FIXME: There is a chicken & egg problem. This solution requires the ffjson code to be generated, and to generate the ffjson-code...</ins></strong>
 
 This is probably the easiest optimization for you. After you have generated the code your struct will have a MarshalJSON() function available. So instead of going through encoding/json, you just call that code.
 
@@ -131,7 +132,7 @@ This is probably the easiest optimization for you. After you have generated the 
 This simple change is likely to double the speed of your encoding/decoding.
 
 ### Tip 2: Pooling the buffer
-(note: Currently in development, so not available yet)
+<strong><ins>(note: Currently in development, so not available yet)</ins></strong>
 
 On servers where you have a lot of concurrent encoding going on, you can hand back the byte buffer you get from json.Marshal once you are done using it. An example could look like this:
 ```Go
