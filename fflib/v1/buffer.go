@@ -125,7 +125,7 @@ func Pool(b []byte) {
 	c := cap(b)
 	pn := poolNum(c)
 	if pn != -1 {
-		pools[pn].Put(b)
+		pools[pn].Put(b[0:0])
 	}
 	// if we didn't have a slot for this []byte, we just drop it and let the GC
 	// take care of it.
