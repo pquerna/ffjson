@@ -69,6 +69,7 @@ type DecodingBuffer interface {
 }
 
 var pools map[int]*sync.Pool
+var pool64 *sync.Pool
 
 func init() {
 	var i int = 64
@@ -78,6 +79,7 @@ func init() {
 		n := int(math.Pow(2, float64(i)))
 		pools[n] = &sync.Pool{New: func() interface{} { return make([]byte, 0, n) }}
 	}
+	pool64 = pools[64]
 }
 
 // Send a buffer to the Pool to reuse for other instances.
@@ -146,7 +148,7 @@ func (b *Buffer) grow(n int) int {
 	m := b.Len()
 	if m == 0 {
 		if b.buf == nil {
-			b.buf = pools[64].Get().([]byte)
+			b.buf = pool64.Get().([]byte)
 			b.off = 0
 		} else if b.off != 0 {
 			// If buffer is empty, reset to recover space.
@@ -229,6 +231,7 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 				newBuf = makeSlice(2*cap(b.buf) + minRead)
 			}
 			copy(newBuf, b.buf[b.off:])
+			Pool(b.buf)
 			b.buf = newBuf[:len(b.buf)-b.off]
 			b.off = 0
 		}
@@ -248,6 +251,10 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 // makeSlice allocates a slice of size n -- it will attempt to use a pool'ed
 // instance whenever possible.
 func makeSlice(n int) []byte {
+	if n <= 64 {
+		return pool64.Get().([]byte)[0:n]
+	}
+
 	c := n
 	c--
 	c |= c >> 1
