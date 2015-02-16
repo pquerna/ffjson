@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"sync"
 	"unicode/utf8"
 )
@@ -67,13 +68,28 @@ type DecodingBuffer interface {
 	lener
 }
 
-var pool = sync.Pool{New: func() interface{} { return make([]byte, 0, 64) }}
+var pools map[int]*sync.Pool
+
+func init() {
+	var i int = 64
+	pools = make(map[int]*sync.Pool, 0)
+	// TODO(pquerna): add science here.
+	for i = 6; i < 20; i++ {
+		n := int(math.Pow(2, float64(i)))
+		pools[n] = &sync.Pool{New: func() interface{} { return make([]byte, 0, n) }}
+	}
+}
 
 // Send a buffer to the Pool to reuse for other instances.
 // You may no longer utilize the content of the buffer, since it may be used
 // by other goroutines.
 func Pool(b []byte) {
-	pool.Put(b[0:0])
+	c := cap(b)
+	if pool, ok := pools[c]; ok {
+		pool.Put(b[0:0])
+	}
+	// if we didn't have a slot for this []byte, we just drop it and let the GC
+	// take care of it.
 }
 
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
@@ -130,7 +146,7 @@ func (b *Buffer) grow(n int) int {
 	m := b.Len()
 	if m == 0 {
 		if b.buf == nil {
-			b.buf = pool.Get().([]byte)
+			b.buf = pools[64].Get().([]byte)
 			b.off = 0
 		} else if b.off != 0 {
 			// If buffer is empty, reset to recover space.
@@ -151,6 +167,7 @@ func (b *Buffer) grow(n int) int {
 			buf = makeSlice(2*cap(b.buf) + n)
 			copy(buf, b.buf[b.off:])
 		}
+		Pool(b.buf)
 		b.buf = buf
 		b.off = 0
 	}
@@ -228,10 +245,23 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil // err is EOF, so return nil explicitly
 }
 
-// makeSlice allocates a slice of size n. If the allocation fails, it panics
-// with ErrTooLarge.
+// makeSlice allocates a slice of size n -- it will attempt to use a pool'ed
+// instance whenever possible.
 func makeSlice(n int) []byte {
-	return make([]byte, n)
+	c := n
+	c--
+	c |= c >> 1
+	c |= c >> 2
+	c |= c >> 4
+	c |= c >> 8
+	c |= c >> 16
+	c++
+
+	if pool, ok := pools[c]; ok {
+		return pool.Get().([]byte)[0:n]
+	} else {
+		return make([]byte, n)
+	}
 }
 
 // WriteTo writes data to w until the buffer is drained or an error occurs.
