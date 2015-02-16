@@ -179,9 +179,15 @@ For single objects you can still apply the same method and either pool the fflib
 ## Does ffjson add generics to Go?
 No.
 
+
 ## Improvements, bugs, adding features, and taking ffjson new directions!
 
 Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ideas, bugs, and general thoughts.  Pull requests are of course preferred :)
+
+## Similar projects
+
+* [go-codec](https://github.com/ugorji/go/tree/master/codec#readme). Very good project, that also allows streaming en/decoding, but requires you to call the library to use.
+* [megajson](https://github.com/benbjohnson/megajson). This has limited support, and development seems to have almost stopped at the time of writing.
 
 # Credits
 
