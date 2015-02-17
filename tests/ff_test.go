@@ -70,7 +70,7 @@ func BenchmarkMarshalJSON(b *testing.B) {
 func BenchmarkMarshalJSONNative(b *testing.B) {
 	record := newLogFFRecord()
 
-	buf, err := json.Marshal(&record)
+	buf, err := json.Marshal(record)
 	if err != nil {
 		b.Fatalf("Marshal: %v", err)
 	}
@@ -78,7 +78,7 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := record.MarshalJSON()
+		_, err := fflib.MarshalFast(*record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
@@ -158,11 +158,36 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := json.Unmarshal(buf, record)
+		err := fflib.UnmarshalFast(buf, record)
 		if err != nil {
 			b.Fatalf("json.Unmarshal: %v", err)
 		}
 	}
+}
+
+func TestMarshalFaster(t *testing.T) {
+	record := newLogFFRecord()
+	_, err := fflib.MarshalFast(record)
+	require.NoError(t, err)
+
+	r2 := newLogRecord()
+	_, err = fflib.MarshalFast(r2)
+	require.Error(t, err, "Record should not support MarshalFast")
+	_, err = fflib.Marshal(r2)
+	require.NoError(t, err)
+}
+
+func TestUnmarshalFaster(t *testing.T) {
+	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	record := newLogFFRecord()
+	err := fflib.UnmarshalFast(buf, record)
+	require.NoError(t, err)
+
+	r2 := newLogRecord()
+	err = fflib.UnmarshalFast(buf, r2)
+	require.Error(t, err, "Record should not support UnmarshalFast")
+	err = fflib.Unmarshal(buf, r2)
+	require.NoError(t, err)
 }
 
 func TestSimpleUnmarshal(t *testing.T) {
