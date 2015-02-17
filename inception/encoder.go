@@ -19,17 +19,18 @@ package ffjsoninception
 
 import (
 	"fmt"
+	"github.com/pquerna/ffjson/shared"
 	"reflect"
 )
 
-func typeInInception(ic *Inception, typ reflect.Type) bool {
+func typeInInception(ic *Inception, typ reflect.Type, f shared.Feature) bool {
 	for _, v := range ic.objs {
 		if v.Typ == typ {
-			return true
+			return v.Options.HasFeature(f)
 		}
 		if typ.Kind() == reflect.Ptr {
 			if v.Typ == typ.Elem() {
-				return true
+				return v.Options.HasFeature(f)
 			}
 		}
 	}
@@ -142,14 +143,14 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 
 	if typ.Implements(marshalerFasterType) ||
 		reflect.PtrTo(typ).Implements(marshalerFasterType) ||
-		typeInInception(ic, typ) ||
+		typeInInception(ic, typ, shared.MustEncoder) ||
 		typ.Implements(marshalerType) ||
 		reflect.PtrTo(typ).Implements(marshalerType) {
 
 		out += tplStr(encodeTpl["handleMarshaler"], handleMarshaler{
 			IC:             ic,
 			Name:           name,
-			MarshalJSONBuf: typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType) || typeInInception(ic, typ),
+			MarshalJSONBuf: typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType) || typeInInception(ic, typ, shared.MustEncoder),
 			Marshaler:      typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType),
 		})
 		return out

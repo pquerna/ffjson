@@ -26,3 +26,26 @@ type InceptionType struct {
 	Obj     interface{}
 	Options StructOptions
 }
+type Feature int
+
+const (
+	Nothing     Feature = 0
+	MustDecoder         = 1 << 1
+	MustEncoder         = 1 << 2
+	MustEncDec          = MustDecoder | MustEncoder
+)
+
+func (i InceptionType) HasFeature(f Feature) bool {
+	return i.HasFeature(f)
+}
+
+func (s StructOptions) HasFeature(f Feature) bool {
+	hasNeeded := true
+	if f&MustDecoder != 0 && s.SkipDecoder {
+		hasNeeded = false
+	}
+	if f&MustEncoder != 0 && s.SkipEncoder {
+		hasNeeded = false
+	}
+	return hasNeeded
+}
