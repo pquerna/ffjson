@@ -59,18 +59,7 @@ type FormatBitsWriter interface {
 	io.ByteWriter
 }
 
-type FormatBitsScratch struct {
-	buf []byte
-}
-
-func (fbs *FormatBitsScratch) getBuffer() []byte {
-	if fbs.buf == nil {
-		// +1 for sign of 64bit value in base 2
-		var a [64 + 1]byte
-		fbs.buf = a[:]
-	}
-	return fbs.buf
-}
+type FormatBitsScratch struct{}
 
 // formatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
@@ -93,7 +82,7 @@ func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base
 
 	// 2 <= base && base <= len(digits)
 
-	var a = scratch.getBuffer()
+	var a = makeSlice(65)
 	//	var a [64 + 1]byte // +1 for sign of 64bit value in base 2
 	i := len(a)
 
@@ -152,6 +141,8 @@ func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base
 	}
 
 	dst.Write(a[i:])
+
+	Pool(a)
 
 	return
 }
