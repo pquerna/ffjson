@@ -61,13 +61,26 @@ type FormatBitsWriter interface {
 
 type FormatBitsScratch struct{}
 
-// formatBits computes the string representation of u in the given base.
+//
+// DEPRECIATED: `scratch` is no longer used, FormatBits2 is available.
+//
+// FormatBits computes the string representation of u in the given base.
 // If neg is set, u is treated as negative int64 value. If append_ is
 // set, the string is appended to dst and the resulting byte slice is
 // returned as the first result value; otherwise the string is returned
 // as the second result value.
 //
 func FormatBits(scratch *FormatBitsScratch, dst FormatBitsWriter, u uint64, base int, neg bool) {
+	FormatBits2(dst, u, base, neg)
+}
+
+// FormatBits2 computes the string representation of u in the given base.
+// If neg is set, u is treated as negative int64 value. If append_ is
+// set, the string is appended to dst and the resulting byte slice is
+// returned as the first result value; otherwise the string is returned
+// as the second result value.
+//
+func FormatBits2(dst FormatBitsWriter, u uint64, base int, neg bool) {
 	if base < 2 || base > len(digits) {
 		panic("strconv: illegal AppendInt/FormatInt base")
 	}
