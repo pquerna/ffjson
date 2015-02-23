@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -66,13 +67,74 @@ type DecodingBuffer interface {
 	lener
 }
 
+var pools [14]sync.Pool
+var pool64 *sync.Pool
+
+func init() {
+	var i uint
+	// TODO(pquerna): add science here around actual pool sizes.
+	for i = 6; i < 20; i++ {
+		n := 1 << i
+		pools[poolNum(n)].New = func() interface{} { return make([]byte, 0, n) }
+	}
+	pool64 = &pools[0]
+}
+
+func poolNum(i int) int {
+	// TODO(pquerna): convert to log2 w/ bsr asm instruction:
+	// 	<https://groups.google.com/forum/#!topic/golang-nuts/uAb5J1_y7ns>
+	if i <= 64 {
+		return 0
+	} else if i <= 128 {
+		return 1
+	} else if i <= 256 {
+		return 2
+	} else if i <= 512 {
+		return 3
+	} else if i <= 1024 {
+		return 4
+	} else if i <= 2048 {
+		return 5
+	} else if i <= 4096 {
+		return 6
+	} else if i <= 8192 {
+		return 7
+	} else if i <= 16384 {
+		return 8
+	} else if i <= 32768 {
+		return 9
+	} else if i <= 65536 {
+		return 10
+	} else if i <= 131072 {
+		return 11
+	} else if i <= 262144 {
+		return 12
+	} else if i <= 524288 {
+		return 13
+	} else {
+		return -1
+	}
+}
+
+// Send a buffer to the Pool to reuse for other instances.
+// You may no longer utilize the content of the buffer, since it may be used
+// by other goroutines.
+func Pool(b []byte) {
+	c := cap(b)
+	pn := poolNum(c)
+	if pn != -1 {
+		pools[pn].Put(b[0:0])
+	}
+	// if we didn't have a slot for this []byte, we just drop it and let the GC
+	// take care of it.
+}
+
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
 // The zero value for Buffer is an empty buffer ready to use.
 type Buffer struct {
 	buf       []byte            // contents are the bytes buf[off : len(buf)]
 	off       int               // read at &buf[off], write at &buf[len(buf)]
 	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
-	bootstrap [0]byte           // memory to hold first slice; helps small buffers (Printf) avoid allocation.
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
@@ -103,8 +165,7 @@ func (b *Buffer) Len() int { return len(b.buf) - b.off }
 func (b *Buffer) Truncate(n int) {
 	if n == 0 {
 		b.off = 0
-		// Set to nil, so that b.bootstrap is used on future grow() calls.
-		b.buf = nil
+		b.buf = b.buf[0:0]
 	} else {
 		b.buf = b.buf[0 : b.off+n]
 	}
@@ -118,16 +179,20 @@ func (b *Buffer) Reset() { b.Truncate(0) }
 // It returns the index where bytes should be written.
 // If the buffer can't grow it will panic with ErrTooLarge.
 func (b *Buffer) grow(n int) int {
+	// If we have no buffer, get one from the pool
 	m := b.Len()
-	// If buffer is empty, reset to recover space.
-	if m == 0 && b.off != 0 {
-		b.Truncate(0)
+	if m == 0 {
+		if b.buf == nil {
+			b.buf = makeSlice(2 * n)
+			b.off = 0
+		} else if b.off != 0 {
+			// If buffer is empty, reset to recover space.
+			b.Truncate(0)
+		}
 	}
 	if len(b.buf)+n > cap(b.buf) {
 		var buf []byte
-		if b.buf == nil && n <= len(b.bootstrap) {
-			buf = b.bootstrap[0:]
-		} else if m+n <= cap(b.buf)/2 {
+		if m+n <= cap(b.buf)/2 {
 			// We can slide things down instead of allocating a new
 			// slice. We only need m+n <= cap(b.buf) to slide, but
 			// we instead let capacity get twice as large so we
@@ -139,6 +204,7 @@ func (b *Buffer) grow(n int) int {
 			buf = makeSlice(2*cap(b.buf) + n)
 			copy(buf, b.buf[b.off:])
 		}
+		Pool(b.buf)
 		b.buf = buf
 		b.off = 0
 	}
@@ -200,6 +266,7 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 				newBuf = makeSlice(2*cap(b.buf) + minRead)
 			}
 			copy(newBuf, b.buf[b.off:])
+			Pool(b.buf)
 			b.buf = newBuf[:len(b.buf)-b.off]
 			b.off = 0
 		}
@@ -216,10 +283,20 @@ func (b *Buffer) ReadFrom(r io.Reader) (n int64, err error) {
 	return n, nil // err is EOF, so return nil explicitly
 }
 
-// makeSlice allocates a slice of size n. If the allocation fails, it panics
-// with ErrTooLarge.
+// makeSlice allocates a slice of size n -- it will attempt to use a pool'ed
+// instance whenever possible.
 func makeSlice(n int) []byte {
-	return make([]byte, n)
+	if n <= 64 {
+		return pool64.Get().([]byte)[0:n]
+	}
+
+	pn := poolNum(n)
+
+	if pn != -1 {
+		return pools[pn].Get().([]byte)[0:n]
+	} else {
+		return make([]byte, n)
+	}
 }
 
 // WriteTo writes data to w until the buffer is drained or an error occurs.

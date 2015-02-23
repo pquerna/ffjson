@@ -395,7 +395,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf fflib.Buffer` + "\n"
 
-	out += fmt.Sprintf("buf.Grow(%d)\n", getBufGrowSize(si))
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
