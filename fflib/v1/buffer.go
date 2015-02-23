@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"math"
 	"sync"
 	"unicode/utf8"
 )
@@ -68,18 +67,17 @@ type DecodingBuffer interface {
 	lener
 }
 
-var pools []*sync.Pool
+var pools [14]sync.Pool
 var pool64 *sync.Pool
 
 func init() {
-	var i int = 64
-	pools = make([]*sync.Pool, 14)
-	// TODO(pquerna): add science here.
+	var i uint
+	// TODO(pquerna): add science here around actual pool sizes.
 	for i = 6; i < 20; i++ {
-		n := int(math.Pow(2, float64(i)))
-		pools[poolNum(n)] = &sync.Pool{New: func() interface{} { return make([]byte, 0, n) }}
+		n := 1 << i
+		pools[poolNum(n)].New = func() interface{} { return make([]byte, 0, n) }
 	}
-	pool64 = pools[0]
+	pool64 = &pools[0]
 }
 
 func poolNum(i int) int {
@@ -185,7 +183,7 @@ func (b *Buffer) grow(n int) int {
 	m := b.Len()
 	if m == 0 {
 		if b.buf == nil {
-			b.buf = pool64.Get().([]byte)
+			b.buf = makeSlice(2 * n)
 			b.off = 0
 		} else if b.off != 0 {
 			// If buffer is empty, reset to recover space.
