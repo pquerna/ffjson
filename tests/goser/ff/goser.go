@@ -18,6 +18,8 @@
 package goser
 
 import (
+	fflib "github.com/pquerna/ffjson/fflib/v1"
+
 	"io"
 	"net"
 	"time"
@@ -121,6 +123,13 @@ type IP net.IP
 
 func (ip IP) MarshalJSON() ([]byte, error) {
 	return []byte("\"" + net.IP(ip).String() + "\""), nil
+}
+
+func (ip IP) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
+	buf.WriteByte('"')
+	buf.WriteString(net.IP(ip).String())
+	buf.WriteByte('"')
+	return nil
 }
 
 func (ip *IP) UnmarshalJSON(data []byte) error {
