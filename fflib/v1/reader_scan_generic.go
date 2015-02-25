@@ -1,4 +1,4 @@
-// +build !amd64
+// +build !amd64 appengine
 
 /**
  *  Copyright 2014 Paul Querna
