@@ -1100,3 +1100,40 @@ type XEmbeddedStructures struct {
 	}
 	Q [][]string
 }
+
+// ffjson: skip
+// Side-effect of this test is also to verify that Encoder/Decoder skipping works.
+type TRenameTypes struct {
+	X struct {
+		X int
+	} `json:"X-renamed"`
+	Y NoEncoder  `json:"Y-renamed"`
+	Z string     `json:"Z-renamed"`
+	U *NoDecoder `json:"U-renamed"`
+}
+
+type XRenameTypes struct {
+	X struct {
+		X int
+	} `json:"X-renamed"`
+	Y NoEncoder  `json:"Y-renamed"`
+	Z string     `json:"Z-renamed"`
+	U *NoDecoder `json:"U-renamed"`
+}
+
+// ffjson: skip
+type TDominantField struct {
+	X     *int `json:"Name,omitempty"`
+	Y     *int `json:"Name,omitempty"`
+	Other string
+	Name  *int             `json",omitempty"`
+	A     *struct{ X int } `json:"Name,omitempty"`
+}
+
+type XDominantField struct {
+	X     *int `json:"Name,omitempty"`
+	Y     *int `json:"Name,omitempty"`
+	Other string
+	Name  *int             `json",omitempty"`
+	A     *struct{ X int } `json:"Name,omitempty"`
+}
