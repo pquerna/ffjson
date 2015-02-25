@@ -22,12 +22,7 @@ package v1
 func haveSSE42() bool
 func scanStringSSE(s []byte, j int) (int, byte)
 
-var sse42 = haveSSE42()
-
 func scanString(s []byte, j int) (int, byte) {
-	if false && sse42 {
-		return scanStringSSE(s, j)
-	}
 
 	for {
 		if j >= len(s) {
