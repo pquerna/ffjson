@@ -137,7 +137,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	var out = ""
 
 	// Flush if not bool or maps
-	if typ.Kind() != reflect.Bool && typ.Kind() != reflect.Map {
+	if typ.Kind() != reflect.Bool && typ.Kind() != reflect.Map && typ.Kind() != reflect.Struct {
 		out += ic.q.Flush()
 	}
 
@@ -147,6 +147,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		typ.Implements(marshalerType) ||
 		reflect.PtrTo(typ).Implements(marshalerType) {
 
+		out += ic.q.Flush()
 		out += tplStr(encodeTpl["handleMarshaler"], handleMarshaler{
 			IC:             ic,
 			Name:           name,
@@ -311,7 +312,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 	return out
 }
 
-func getValue(ic *Inception, sf *StructField) string {
+func getValue(ic *Inception, sf *StructField, prefix string) string {
 	closequote := false
 	if sf.ForceString {
 		switch sf.Typ.Kind() {
@@ -333,7 +334,7 @@ func getValue(ic *Inception, sf *StructField) string {
 			closequote = true
 		}
 	}
-	out := getGetInnerValue(ic, "mj."+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
+	out := getGetInnerValue(ic, prefix+sf.Name, sf.Typ, sf.Pointer, sf.ForceString)
 	if closequote {
 		if sf.Pointer {
 			out += ic.q.WriteFlush(`"`)
@@ -419,8 +420,57 @@ func isIntish(t reflect.Type) bool {
 	return false
 }
 
+func getField(ic *Inception, f *StructField, prefix string) string {
+	out := ""
+	if f.OmitEmpty {
+		out += ic.q.Flush()
+		if f.Pointer {
+			out += "if " + prefix + f.Name + " != nil {" + "\n"
+		}
+		out += getOmitEmpty(ic, f)
+	}
+
+	if f.Pointer && !f.OmitEmpty {
+		// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
+		out += "if " + prefix + f.Name + " != nil {" + "\n"
+	}
+
+	// JsonName is already escaped and quoted.
+	// getInnervalue should flush
+	ic.q.Write(f.JsonName + ":")
+	// We save a copy in case we need it
+	t := ic.q
+
+	out += getValue(ic, f, prefix)
+	ic.q.Write(",")
+
+	if f.Pointer && !f.OmitEmpty {
+		out += "} else {" + "\n"
+		out += t.WriteFlush("null")
+		out += "}" + "\n"
+	}
+
+	if f.OmitEmpty {
+		out += ic.q.Flush()
+		if f.Pointer {
+			out += "}" + "\n"
+		}
+		out += "}" + "\n"
+	}
+	return out
+}
+
+// We check if the last field is conditional.
+func lastConditional(fields []*StructField) bool {
+	if len(fields) > 0 {
+		f := fields[len(fields)-1]
+		return f.OmitEmpty
+	}
+	return false
+}
+
 func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
-	conditionalWrites := false
+	conditionalWrites := lastConditional(si.Fields)
 	out := ""
 
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
@@ -432,12 +482,6 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
-
-	// We check if the last field is conditional.
-	if len(si.Fields) > 0 {
-		f := si.Fields[len(si.Fields)-1]
-		conditionalWrites = f.OmitEmpty
-	}
 
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
 	out += `var err error` + "\n"
@@ -455,41 +499,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		if f.OmitEmpty {
-			out += ic.q.Flush()
-			if f.Pointer {
-				out += "if mj." + f.Name + " != nil {" + "\n"
-			}
-			out += getOmitEmpty(ic, f)
-		}
-
-		if f.Pointer && !f.OmitEmpty {
-			// Pointer values encode as the value pointed to. A nil pointer encodes as the null JSON object.
-			out += "if mj." + f.Name + " != nil {" + "\n"
-		}
-
-		// JsonName is already escaped and quoted.
-		// getInnervalue should flush
-		ic.q.Write(f.JsonName + ":")
-		// We save a copy in case we need it
-		t := ic.q
-
-		out += getValue(ic, f)
-		ic.q.Write(",")
-
-		if f.Pointer && !f.OmitEmpty {
-			out += "} else {" + "\n"
-			out += t.WriteFlush("null")
-			out += "}" + "\n"
-		}
-
-		if f.OmitEmpty {
-			out += ic.q.Flush()
-			if f.Pointer {
-				out += "}" + "\n"
-			}
-			out += "}" + "\n"
-		}
+		out += getField(ic, f, "mj.")
 	}
 
 	// Handling the last comma is tricky.
