@@ -18,6 +18,7 @@
 package tff
 
 import (
+	"github.com/pquerna/ffjson/ffjson"
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"github.com/stretchr/testify/require"
 
@@ -78,7 +79,7 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := fflib.MarshalFast(*record)
+		_, err := ffjson.MarshalFast(*record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
@@ -158,7 +159,7 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := fflib.UnmarshalFast(buf, record)
+		err := ffjson.UnmarshalFast(buf, record)
 		if err != nil {
 			b.Fatalf("json.Unmarshal: %v", err)
 		}
@@ -167,26 +168,26 @@ func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 
 func TestMarshalFaster(t *testing.T) {
 	record := newLogFFRecord()
-	_, err := fflib.MarshalFast(record)
+	_, err := ffjson.MarshalFast(record)
 	require.NoError(t, err)
 
 	r2 := newLogRecord()
-	_, err = fflib.MarshalFast(r2)
+	_, err = ffjson.MarshalFast(r2)
 	require.Error(t, err, "Record should not support MarshalFast")
-	_, err = fflib.Marshal(r2)
+	_, err = ffjson.Marshal(r2)
 	require.NoError(t, err)
 }
 
 func TestUnmarshalFaster(t *testing.T) {
 	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
 	record := newLogFFRecord()
-	err := fflib.UnmarshalFast(buf, record)
+	err := ffjson.UnmarshalFast(buf, record)
 	require.NoError(t, err)
 
 	r2 := newLogRecord()
-	err = fflib.UnmarshalFast(buf, r2)
+	err = ffjson.UnmarshalFast(buf, r2)
 	require.Error(t, err, "Record should not support UnmarshalFast")
-	err = fflib.Unmarshal(buf, r2)
+	err = ffjson.Unmarshal(buf, r2)
 	require.NoError(t, err)
 }
 

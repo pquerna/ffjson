@@ -1,17 +1,18 @@
-package v1
+package ffjson
 
 import (
 	"encoding/json"
 	"errors"
+	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"reflect"
 )
 
 type marshalerFaster interface {
-	MarshalJSONBuf(buf EncodingBuffer) error
+	MarshalJSONBuf(buf fflib.EncodingBuffer) error
 }
 
 type unmarshalFaster interface {
-	UnmarshalJSONFFLexer(l *FFLexer, state FFParseState) error
+	UnmarshalJSONFFLexer(l *fflib.FFLexer, state fflib.FFParseState) error
 }
 
 // Marshal will act the same way as json.Marshal, except
@@ -24,7 +25,7 @@ type unmarshalFaster interface {
 func Marshal(v interface{}) ([]byte, error) {
 	f, ok := v.(marshalerFaster)
 	if ok {
-		buf := Buffer{}
+		buf := fflib.Buffer{}
 		err := f.MarshalJSONBuf(&buf)
 		b := buf.Bytes()
 		if err != nil {
@@ -67,8 +68,8 @@ func MarshalFast(v interface{}) ([]byte, error) {
 func Unmarshal(data []byte, v interface{}) error {
 	f, ok := v.(unmarshalFaster)
 	if ok {
-		fs := NewFFLexer(data)
-		return f.UnmarshalJSONFFLexer(fs, FFParse_map_start)
+		fs := fflib.NewFFLexer(data)
+		return f.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 	}
 
 	j, ok := v.(json.Unmarshaler)
