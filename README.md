@@ -176,9 +176,6 @@ func EncodeItems(items []Item, out io.Writer) {
 ```
 For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.
 
-## Does ffjson add generics to Go?
-
-No.
 
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
