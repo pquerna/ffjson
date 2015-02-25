@@ -101,7 +101,7 @@ This is most of what you need to know about go generate, but you can sese more a
 
 That question is really up to you. If you don't, you will have a more complex build process. If you do, you have to keep the generated files updated if you change the content of your structs.
 
-That said, ffjson is operating determiniticly, so it will generate the same code every time it run, so unless your code changes, the generated content should not change. Note however that this is only true if you are using the same ffjson version, so if you are several people working on a project, you might need to synchronize your ffjson version.
+That said, ffjson is operating determiniticly, so it will generate the same code every time it run, so unless your code changes, the generated content should not change. Note however that this is only true if you are using the same ffjson version, so if you have several people working on a project, you might need to synchronize your ffjson version.
 
 ## Performance pitfalls
 
@@ -115,10 +115,9 @@ That said, ffjson is operating determiniticly, so it will generate the same code
 
 ## Reducing Garbage Collection
 
-`ffjson` already does a lot to help garbage generation, and in . However whenever you go through the json.Marshal you get a new byte slice back. On very high throughput servers this can lead to increased GC pressure. 
+`ffjson` already does a lot to help garbage generation. However whenever you go through the json.Marshal you get a new byte slice back. On very high throughput servers this can lead to increased GC pressure. 
 
 ### Tip 1: Use the generated Marshal/Unmarshal
-<strong><ins>FIXME: There is a chicken & egg problem. This solution requires the ffjson code to be generated, and to generate the ffjson-code... [PR #99](https://github.com/pquerna/ffjson/pull/99) Attempts to solve this.</ins></strong>
 
 This is probably the easiest optimization for you. After you have generated the code your struct will have a MarshalJSON() function available. So instead of going through encoding/json, you just call that code.
 
@@ -132,7 +131,6 @@ This is probably the easiest optimization for you. After you have generated the 
 This simple change is likely to double the speed of your encoding/decoding.
 
 ### Tip 2: Pooling the buffer
-<strong><ins>(note: Currently in development, so not available yet) [PR #101](https://github.com/pquerna/ffjson/pull/101) adds this.</ins></strong>
 
 On servers where you have a lot of concurrent encoding going on, you can hand back the byte buffer you get from json.Marshal once you are done using it. An example could look like this:
 ```Go
@@ -153,6 +151,7 @@ Note that the buffers you put back in the pool can still be reclaimed by the gar
 
 
 ### Tip 3: Calling ffjson directly
+
 There might be cases where you need to encode many objects at once. This could be a server backing up, writing a lot of entries to files, etc.
 
 For this purpose you can completely avoid using "encoding/json" and encode the file item directly from with ffjson. Here is an example where we want to encode an array of the `Item` type, which has ffjson generated encoders.
@@ -178,6 +177,7 @@ func EncodeItems(items []Item, out io.Writer) {
 For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.
 
 ## Does ffjson add generics to Go?
+
 No.
 
 
