@@ -384,6 +384,11 @@ func TestFuzzStringCycle(t *testing.T) {
 
 // Fuzz test for 1000 iterations
 func testTypeFuzz(t *testing.T, base interface{}, ff interface{}) {
+	testTypeFuzzN(t, base, ff, 1000)
+}
+
+// Fuzz test for N iterations
+func testTypeFuzzN(t *testing.T, base interface{}, ff interface{}, n int) {
 	require.Implements(t, (*json.Marshaler)(nil), ff)
 	require.Implements(t, (*json.Unmarshaler)(nil), ff)
 	require.Implements(t, (*marshalerFaster)(nil), ff)
@@ -398,10 +403,10 @@ func testTypeFuzz(t *testing.T, base interface{}, ff interface{}) {
 	}
 
 	f := fuzz.New()
-	f.NumElements(0, 50)
-	f.NilChance(0.1)
+	f.NumElements(0, 1+n/40)
+	f.NilChance(0.2)
 	f.Funcs(fuzzTime, fuzzTimeArray)
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < n; i++ {
 		f.RandSource(rand.New(rand.NewSource(int64(i * 5275))))
 		f.Fuzz(base)
 		f.RandSource(rand.New(rand.NewSource(int64(i * 5275))))
@@ -594,4 +599,8 @@ func TestFuzzMapToType(t *testing.T) {
 
 		require.Equal(t, baseD, ffD, "Inspected struct difference of base[%T] != ff[%T]", base, ff)
 	}
+}
+
+func TestFuzzReType(t *testing.T) {
+	testTypeFuzzN(t, &TReTyped{}, &XReTyped{}, 100)
 }

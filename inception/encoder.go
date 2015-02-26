@@ -182,7 +182,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + ptname + "), 'g', -1, 32))" + "\n"
 	case reflect.Float64:
 		ic.OutputImports[`"strconv"`] = true
-		out += "buf.Write(strconv.AppendFloat([]byte{}, " + ptname + ", 'g', -1, 64))" + "\n"
+		out += "buf.Write(strconv.AppendFloat([]byte{}, float64(" + ptname + "), 'g', -1, 64))" + "\n"
 	case reflect.Array,
 		reflect.Slice:
 

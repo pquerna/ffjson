@@ -1120,3 +1120,280 @@ type XRenameTypes struct {
 	Z string     `json:"Z-renamed"`
 	U *NoDecoder `json:"U-renamed"`
 }
+
+type ReTypedA uint8
+type ReTypedB uint16
+type ReTypedC uint32
+type ReTypedD uint64
+
+type ReTypedE int8
+type ReTypedF int16
+type ReTypedG int32
+type ReTypedH int64
+
+type ReTypedI float32
+type ReTypedJ float64
+
+type ReTypedM byte
+type ReTypedN rune
+
+type ReTypedO int
+type ReTypedP uint
+type ReTypedQ string
+type ReTypedR bool
+type ReTypedS time.Time
+
+type ReTypedAp *uint8
+type ReTypedBp *uint16
+type ReTypedCp *uint32
+type ReTypedDp *uint64
+
+type ReTypedEp *int8
+type ReTypedFp *int16
+type ReTypedGp *int32
+type ReTypedHp *int64
+
+type ReTypedIp *float32
+type ReTypedJp *float64
+
+type ReTypedMp *byte
+type ReTypedNp *rune
+
+type ReTypedOp *int
+type ReTypedPp *uint
+type ReTypedQp *string
+type ReTypedRp *bool
+type ReTypedSp *time.Time
+
+type ReTypedAa []uint8
+type ReTypedBa []uint16
+type ReTypedCa []uint32
+type ReTypedDa []uint64
+
+type ReTypedEa []int8
+type ReTypedFa []int16
+type ReTypedGa []int32
+type ReTypedHa []int64
+
+type ReTypedIa []float32
+type ReTypedJa []float64
+
+type ReTypedMa []byte
+type ReTypedNa []rune
+
+type ReTypedOa []int
+type ReTypedPa []uint
+type ReTypedQa []string
+type ReTypedRa []bool
+
+type ReTypedAap []*uint8
+type ReTypedBap []*uint16
+type ReTypedCap []*uint32
+type ReTypedDap []*uint64
+
+type ReTypedEap []*int8
+type ReTypedFap []*int16
+type ReTypedGap []*int32
+type ReTypedHap []*int64
+
+type ReTypedIap []*float32
+type ReTypedJap []*float64
+
+type ReTypedMap []*byte
+type ReTypedNap []*rune
+
+type ReTypedOap []*int
+type ReTypedPap []*uint
+type ReTypedQap []*string
+type ReTypedRap []*bool
+type ReTypedXa NoDecoder
+type ReTypedXb NoEncoder
+
+// ffjson: ignore
+type TReTyped struct {
+	A ReTypedA
+	B ReTypedB
+	C ReTypedC
+	D ReTypedD
+
+	E ReTypedE
+	F ReTypedF
+	G ReTypedG
+	H ReTypedH
+
+	I ReTypedI
+	J ReTypedJ
+
+	M ReTypedM
+	N ReTypedN
+
+	O ReTypedO
+	P ReTypedP
+	Q ReTypedQ
+	R ReTypedR
+	S ReTypedS
+
+	Ap ReTypedAp
+	Bp ReTypedBp
+	Cp ReTypedCp
+	Dp ReTypedDp
+
+	Ep ReTypedEp
+	Fp ReTypedFp
+	Gp ReTypedGp
+	Hp ReTypedHp
+
+	Ip ReTypedIp
+	Jp ReTypedJp
+
+	Mp ReTypedMp
+	Np ReTypedNp
+
+	Op ReTypedOp
+	Pp ReTypedPp
+	Qp ReTypedQp
+	Rp ReTypedRp
+	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	//Sp ReTypedSp
+
+	// Bug in encoding/json: Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedAa
+	//Aa ReTypedAa
+	Ba ReTypedBa
+	Ca ReTypedCa
+	Da ReTypedDa
+
+	Ea ReTypedEa
+	Fa ReTypedFa
+	Ga ReTypedGa
+	Ha ReTypedHa
+
+	Ia ReTypedIa
+	Ja ReTypedJa
+
+	// Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedMa
+	// Ma ReTypedMa
+	Na ReTypedNa
+
+	Oa ReTypedOa
+	Pa ReTypedPa
+	Qa ReTypedQa
+	Ra ReTypedRa
+
+	Aap ReTypedAap
+	Bap ReTypedBap
+	Cap ReTypedCap
+	Dap ReTypedDap
+
+	Eap ReTypedEap
+	Fap ReTypedFap
+	Gap ReTypedGap
+	Hap ReTypedHap
+
+	Iap ReTypedIap
+	Jap ReTypedJap
+
+	Map ReTypedMap
+	Nap ReTypedNap
+
+	Oap ReTypedOap
+	Pap ReTypedPap
+	Qap ReTypedQap
+	Rap ReTypedRap
+
+	Xa ReTypedXa
+	Xb ReTypedXb
+}
+
+type XReTyped struct {
+	A ReTypedA
+	B ReTypedB
+	C ReTypedC
+	D ReTypedD
+
+	E ReTypedE
+	F ReTypedF
+	G ReTypedG
+	H ReTypedH
+
+	I ReTypedI
+	J ReTypedJ
+
+	M ReTypedM
+	N ReTypedN
+
+	O ReTypedO
+	P ReTypedP
+	Q ReTypedQ
+	R ReTypedR
+	S ReTypedS
+
+	Ap ReTypedAp
+	Bp ReTypedBp
+	Cp ReTypedCp
+	Dp ReTypedDp
+
+	Ep ReTypedEp
+	Fp ReTypedFp
+	Gp ReTypedGp
+	Hp ReTypedHp
+
+	Ip ReTypedIp
+	Jp ReTypedJp
+
+	Mp ReTypedMp
+	Np ReTypedNp
+
+	Op ReTypedOp
+	Pp ReTypedPp
+	Qp ReTypedQp
+	Rp ReTypedRp
+	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	//Sp ReTypedSp
+
+	// Bug in encoding/json: Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedAa
+	// Aa ReTypedAa
+	Ba ReTypedBa
+	Ca ReTypedCa
+	Da ReTypedDa
+
+	Ea ReTypedEa
+	Fa ReTypedFa
+	Ga ReTypedGa
+	Ha ReTypedHa
+
+	Ia ReTypedIa
+	Ja ReTypedJa
+
+	// Bug in encoding/json: Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedMa
+	//Ma ReTypedMa
+	Na ReTypedNa
+
+	Oa ReTypedOa
+	Pa ReTypedPa
+	Qa ReTypedQa
+	Ra ReTypedRa
+
+	Aap ReTypedAap
+	Bap ReTypedBap
+	Cap ReTypedCap
+	Dap ReTypedDap
+
+	Eap ReTypedEap
+	Fap ReTypedFap
+	Gap ReTypedGap
+	Hap ReTypedHap
+
+	Iap ReTypedIap
+	Jap ReTypedJap
+
+	Map ReTypedMap
+	Nap ReTypedNap
+
+	Oap ReTypedOap
+	Pap ReTypedPap
+	Qap ReTypedQap
+	Rap ReTypedRap
+
+	Xa ReTypedXa
+	Xb ReTypedXb
+}
