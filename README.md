@@ -132,6 +132,11 @@ This is probably the easiest optimization for you. Instead of going through enco
 ```
 This simple change is likely to double the speed of your encoding/decoding.
 
+
+[![GoDoc][1]][2]
+[1]: https://godoc.org/github.com/pquerna/ffjson/ffjson?status.svg
+[2]: https://godoc.org/github.com/pquerna/ffjson/ffjson#Marshal
+
 ### Tip 2: Pooling the buffer
 
 On servers where you have a lot of concurrent encoding going on, you can hand back the byte buffer you get from json.Marshal once you are done using it. An example could look like this:
@@ -151,6 +156,9 @@ func Encode(item interface{}, out io.Writer) {
 ```
 Note that the buffers you put back in the pool can still be reclaimed by the garbage collector, so you wont risk your program building up a big memory use by pooling the buffers.
 
+[![GoDoc][1]][2]
+[1]: https://godoc.org/github.com/pquerna/ffjson/ffjson?status.svg
+[2]: https://godoc.org/github.com/pquerna/ffjson/ffjson#Pool
 
 ### Tip 3: Calling ffjson directly
 
@@ -166,7 +174,7 @@ func EncodeItems(items []Item, out io.Writer) {
 	var buffer fflib.Buffer
 	
 	for _, item := range items {
-	   // We want a clean buffer
+	        // We want a clean buffer
 		buffer.Reset()
 		
 		// Encode into the buffer
