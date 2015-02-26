@@ -120,7 +120,13 @@ func poolNum(i int) int {
 // You may no longer utilize the content of the buffer, since it may be used
 // by other goroutines.
 func Pool(b []byte) {
+	if b == nil {
+		return
+	}
 	c := cap(b)
+	if c < 64 {
+		return
+	}
 	pn := poolNum(c)
 	if pn != -1 {
 		pools[pn].Put(b[0:0])
