@@ -79,7 +79,7 @@ func BenchmarkMarshalJSONNative(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := ffjson.MarshalFast(*record)
+		_, err := ffjson.MarshalFast(record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
@@ -97,11 +97,11 @@ func BenchmarkMarshalJSONNativePool(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		bytes, err := record.MarshalJSON()
+		bytes, err := ffjson.MarshalFast(record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
-		fflib.Pool(bytes)
+		ffjson.Pool(bytes)
 	}
 }
 
