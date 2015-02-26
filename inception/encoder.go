@@ -88,6 +88,7 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
+		out += "fflib.Pool(obj)" + "\n"
 		return out
 	}
 
@@ -129,6 +130,7 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
+		out += "fflib.Pool(obj)" + "\n"
 	}
 	return out
 }
@@ -264,6 +266,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
+		out += "fflib.Pool(obj)" + "\n"
 	case reflect.Map:
 		out += getMapValue(ic, ptname, typ, ptr, forceString)
 	default:
@@ -274,6 +277,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += "  return err" + "\n"
 		out += "}" + "\n"
 		out += "buf.Write(obj)" + "\n"
+		out += "fflib.Pool(obj)" + "\n"
 	}
 
 	return out
