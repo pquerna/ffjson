@@ -698,10 +698,3 @@ func TestInlineStructs(t *testing.T) {
 	testSameMarshal(t, &a, &b)
 	testCycle(t, &a, &b)
 }
-
-func TestInlineStructs(t *testing.T) {
-	a := TInlineStructs{}
-	b := XInlineStructs{}
-	testSameMarshal(t, &a, &b)
-	testCycle(t, &a, &b)
-}
