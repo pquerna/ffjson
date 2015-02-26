@@ -20,6 +20,14 @@ func (w *ConditionalWrite) DeleteLast() {
 	w.Queued = w.Queued[:len(w.Queued)-1]
 }
 
+// Last will return the last added write
+func (w *ConditionalWrite) Last() string {
+	if len(w.Queued) == 0 {
+		return ""
+	}
+	return w.Queued[len(w.Queued)-1]
+}
+
 // Flush will return all queued writes, and return
 // "" (empty string) in nothing has been queued
 // "buf.WriteByte('" + byte + "')" + '\n' if one bute has been queued.
