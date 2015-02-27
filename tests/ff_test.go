@@ -125,6 +125,24 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	}
 }
 
+func BenchmarkUnmarshalJSON(b *testing.B) {
+	record := newLogRecord()
+	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	err := json.Unmarshal(buf, record)
+	if err != nil {
+		b.Fatalf("json.Unmarshal: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := json.Unmarshal(buf, record)
+		if err != nil {
+			b.Fatalf("json.UnmarshalO: %v", err)
+		}
+	}
+}
+
 func BenchmarkSimpleUnmarshal(b *testing.B) {
 	record := newLogFFRecord()
 	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
