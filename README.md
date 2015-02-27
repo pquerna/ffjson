@@ -164,8 +164,7 @@ Note that the buffers you put back in the pool can still be reclaimed by the gar
 
 There might be cases where you need to encode many objects at once. This could be a server backing up, writing a lot of entries to files, etc.
 
-For this purpose you can completely avoid using "encoding/json" and encode the file item directly from with ffjson. Here is an example where we want to encode an array of the `Item` type, which has ffjson generated encoders.
-
+<del>For this purpose you can completely avoid using "encoding/json" and encode the file item directly from with ffjson. Here is an example where we want to encode an array of the `Item` type, which has ffjson generated encoders.</del>
 ```Go
 import fflib "github.com/pquerna/ffjson/fflib/v1"
 
@@ -184,8 +183,15 @@ func EncodeItems(items []Item, out io.Writer) {
 	}
 }
 ```
-For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.
+<del>For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.</del>
 
+<strong>NOTE: This is not final, and will change to something similar in the ffjson package.</strong>
+
+##Tip 4: Avoid interfaces
+
+We don't want to dictate how you structure your data, but having interfaces in your code will make ffjson use the golang encoder for these. When ffjson has to do this, it may even become slower than using `json.Marshal` directly. 
+
+To see where that happens, search the generated `_ffjson.go` file for the text `fall back`, which will indicate where ffjson is unable to generate code for your data structure.
 
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
