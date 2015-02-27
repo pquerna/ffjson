@@ -567,6 +567,10 @@ func TestFuzzI18nName(t *testing.T) {
 	testTypeFuzz(t, &TI18nName{}, &XI18nName{})
 }
 
+func TestFuzzInlineStructs(t *testing.T) {
+	testTypeFuzzN(t, &TInlineStructs{}, &XInlineStructs{}, 100)
+}
+
 // This contains maps.
 // Since map order is random, we can expect the encoding order to be random
 // Therefore we cannot use binary compare.
