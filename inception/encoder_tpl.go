@@ -58,7 +58,6 @@ var handleMarshalerTxt = `
 			return err
 		}
 		buf.Write(obj)
-		fflib.Pool(obj)
 	}
 	{{end}}
 `
