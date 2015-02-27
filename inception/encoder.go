@@ -80,14 +80,12 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 	var out = ""
 
 	if typ.Key().Kind() != reflect.String {
-		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
 		out += ic.q.Flush()
-		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "err = buf.Encode(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
 		out += "}" + "\n"
-		out += "buf.Write(obj)" + "\n"
 		return out
 	}
 
@@ -122,13 +120,11 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 
 	default:
 		out += ic.q.Flush()
-		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
-		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "err = buf.Encode(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
 		out += "}" + "\n"
-		out += "buf.Write(obj)" + "\n"
 	}
 	return out
 }
@@ -258,13 +254,11 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += ic.q.WriteFlush("false")
 		out += "}" + "\n"
 	case reflect.Interface:
-		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Interface types must use runtime reflection. type=%v kind=%v */\n", typ, typ.Kind())
-		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "err = buf.Encode(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
 		out += "}" + "\n"
-		out += "buf.Write(obj)" + "\n"
 	case reflect.Map:
 		out += getMapValue(ic, ptname, typ, ptr, forceString)
 	case reflect.Struct:
@@ -290,23 +284,19 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			}
 			out += ic.q.WriteFlush("}")
 		} else {
-			ic.OutputImports[`"encoding/json"`] = true
 			out += fmt.Sprintf("/* Struct fall back. type=%v kind=%v */\n", typ, typ.Kind())
 			out += ic.q.Flush()
-			out += "obj, err = json.Marshal(" + name + ")" + "\n"
+			out += "err = buf.Encode(" + name + ")" + "\n"
 			out += "if err != nil {" + "\n"
 			out += "  return err" + "\n"
 			out += "}" + "\n"
-			out += "buf.Write(obj)" + "\n"
 		}
 	default:
-		ic.OutputImports[`"encoding/json"`] = true
 		out += fmt.Sprintf("/* Falling back. type=%v kind=%v */\n", typ, typ.Kind())
-		out += "obj, err = json.Marshal(" + name + ")" + "\n"
+		out += "err = buf.Encode(" + name + ")" + "\n"
 		out += "if err != nil {" + "\n"
 		out += "  return err" + "\n"
 		out += "}" + "\n"
-		out += "buf.Write(obj)" + "\n"
 	}
 
 	return out

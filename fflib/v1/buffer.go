@@ -8,6 +8,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"sync"
@@ -44,6 +45,10 @@ type rewinder interface {
 	Rewind(n int) (err error)
 }
 
+type encoder interface {
+	Encode(interface{}) error
+}
+
 // TODO(pquerna): continue to reduce these interfaces
 
 type EncodingBuffer interface {
@@ -54,6 +59,7 @@ type EncodingBuffer interface {
 	truncater
 	grower
 	rewinder
+	encoder
 }
 
 type DecodingBuffer interface {
@@ -135,6 +141,7 @@ type Buffer struct {
 	buf       []byte            // contents are the bytes buf[off : len(buf)]
 	off       int               // read at &buf[off], write at &buf[len(buf)]
 	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
+	encoder   *json.Encoder
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
@@ -339,6 +346,13 @@ func (b *Buffer) WriteByte(c byte) error {
 func (b *Buffer) Rewind(n int) error {
 	b.buf = b.buf[:len(b.buf)-n]
 	return nil
+}
+
+func (b *Buffer) Encode(v interface{}) error {
+	if b.encoder == nil {
+		b.encoder = json.NewEncoder(b)
+	}
+	return b.encoder.Encode(v)
 }
 
 // WriteRune appends the UTF-8 encoding of Unicode code point r to the
