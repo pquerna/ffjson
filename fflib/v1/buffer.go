@@ -86,6 +86,8 @@ func init() {
 	pool64 = &pools[0]
 }
 
+// This returns the pool number that will give a buffer of
+// at least 'i' bytes.
 func poolNum(i int) int {
 	// TODO(pquerna): convert to log2 w/ bsr asm instruction:
 	// 	<https://groups.google.com/forum/#!topic/golang-nuts/uAb5J1_y7ns>
@@ -126,8 +128,22 @@ func poolNum(i int) int {
 // You may no longer utilize the content of the buffer, since it may be used
 // by other goroutines.
 func Pool(b []byte) {
+	if b == nil {
+		return
+	}
 	c := cap(b)
-	pn := poolNum(c)
+
+	// Our smallest buffer is 64 bytes, so we discard smaller buffers.
+	if c < 64 {
+		return
+	}
+
+	// We need to put the incoming buffer into the NEXT buffer,
+	// since a buffer guarantees AT LEAST the number of bytes available
+	// that is the top of this buffer.
+	// That is the reason for dividing the cap by 2, so it gets into the NEXT bucket.
+	// We add 2 to avoid rounding down if size is exactly power of 2.
+	pn := poolNum((c + 2) >> 1)
 	if pn != -1 {
 		pools[pn].Put(b[0:0])
 	}
