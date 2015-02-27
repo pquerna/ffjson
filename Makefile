@@ -25,11 +25,19 @@ test-core:
 test: ffize test-core
 	go test -v github.com/pquerna/ffjson/tests/...
 
+STRIPE_SPLIT_FILES = card.go carddata.go coupon.go customer.go discount.go plan.go subscription.go
+
 ffize: install
 	ffjson tests/ff.go
 	ffjson tests/goser/ff/goser.go
 	ffjson tests/go.stripe/ff/customer.go
 	ffjson tests/types/ff/everything.go
+	for file in $(STRIPE_SPLIT_FILES); do \
+		ffjson tests/go.stripe.split/ff/$$file; \
+	done
+	for file in $(STRIPE_SPLIT_FILES); do \
+		ffjson tests/go.stripe.split/ff/$$file; \
+	done
 
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests
