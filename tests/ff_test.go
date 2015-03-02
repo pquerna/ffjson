@@ -698,3 +698,11 @@ func TestInlineStructs(t *testing.T) {
 	testSameMarshal(t, &a, &b)
 	testCycle(t, &a, &b)
 }
+
+// This tests that we behave the same way as encoding/json.
+// That means that if there is more than one field that has the same name
+// set via the json tag ALL fields with this name are dropped.
+func TestDominantField(t *testing.T) {
+	i := 43
+	testType(t, &TDominantField{Y: &i}, &XDominantField{Y: &i})
+}
