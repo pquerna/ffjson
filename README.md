@@ -101,7 +101,7 @@ This is most of what you need to know about go generate, but you can sese more a
 
 That question is really up to you. If you don't, you will have a more complex build process. If you do, you have to keep the generated files updated if you change the content of your structs.
 
-That said, ffjson is operating determiniticly, so it will generate the same code every time it run, so unless your code changes, the generated content should not change. Note however that this is only true if you are using the same ffjson version, so if you have several people working on a project, you might need to synchronize your ffjson version.
+That said, ffjson operates deterministically, so it will generate the same code every time it run, so unless your code changes, the generated content should not change. Note however that this is only true if you are using the same ffjson version, so if you have several people working on a project, you might need to synchronize your ffjson version.
 
 ## Performance pitfalls
 
