@@ -145,7 +145,7 @@ import "github.com/pquerna/ffjson/ffjson"
 
 func Encode(item interface{}, out io.Writer) {
 	// Encode
-	buf, err := ffjson.MarshalJSON(&item)
+	buf, err := ffjson.Marshal(&item)
 	
 	// Write the buffer
 	_,_ = out.Write(buf)
@@ -160,32 +160,34 @@ Note that the buffers you put back in the pool can still be reclaimed by the gar
 [1]: https://godoc.org/github.com/pquerna/ffjson/ffjson?status.svg
 [2]: https://godoc.org/github.com/pquerna/ffjson/ffjson#Pool
 
-### Tip 3: Calling ffjson directly
+### Tip 3: Creating an Encoder
 
 There might be cases where you need to encode many objects at once. This could be a server backing up, writing a lot of entries to files, etc.
 
-<del>For this purpose you can completely avoid using "encoding/json" and encode the file item directly from with ffjson. Here is an example where we want to encode an array of the `Item` type, which has ffjson generated encoders.</del>
+To do this, there is an interface similar to `encoding/json`, that allow you to create a re-usable encoder. Here is an example where we want to encode an array of the `Item` type, with a comma between entries:
 ```Go
-import fflib "github.com/pquerna/ffjson/fflib/v1"
+import "github.com/pquerna/ffjson/ffjson"
 
 func EncodeItems(items []Item, out io.Writer) {
-    // We declare the buffer here, so it can be reused.
-	var buffer fflib.Buffer
+        // We create an encoder.
+	enc := ffjson.NewEncoder(out)
 	
-	for _, item := range items {
-	        // We want a clean buffer
-		buffer.Reset()
-		
+	for i, item := range items {
 		// Encode into the buffer
-		_ = item.MarshalJSONBuf(&buffer)
-
-		_, _ = out.Write(buffer.Bytes())
+		err := enc.Encode(&item)
+		
+		// If err is nil, the content is written to out, so we can write to it as well.
+		if i != len(items) -1 {
+			_,_ = out.Write([]byte{','})
+		}
 	}
 }
 ```
-<del>For single objects you can still apply the same method and either pool the fflib.Buffer yourself or hand back the byte array as described in "Pooling the buffer" above.</del>
 
-<strong>NOTE: This is not final, and will change to something similar in the ffjson package.</strong>
+
+Documentation: [![GoDoc][1]][2]
+[1]: https://godoc.org/github.com/pquerna/ffjson/ffjson?status.svg
+[2]: https://godoc.org/github.com/pquerna/ffjson/ffjson#Encoder
 
 ##Tip 4: Avoid interfaces
 
