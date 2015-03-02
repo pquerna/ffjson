@@ -1594,3 +1594,20 @@ type XInlineStructs struct {
 		}
 	}
 }
+
+// ffjson: skip
+type TDominantField struct {
+	X     *int `json:"Name,omitempty"`
+	Y     *int `json:"Name,omitempty"`
+	Other string
+	Name  *int             `json",omitempty"`
+	A     *struct{ X int } `json:"Name,omitempty"`
+}
+
+type XDominantField struct {
+	X     *int `json:"Name,omitempty"`
+	Y     *int `json:"Name,omitempty"`
+	Other string
+	Name  *int             `json",omitempty"`
+	A     *struct{ X int } `json:"Name,omitempty"`
+}
