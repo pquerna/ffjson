@@ -105,6 +105,12 @@ func BenchmarkMarshalJSONNativePool(b *testing.B) {
 	}
 }
 
+type NopWriter struct{}
+
+func (*NopWriter) Write(buf []byte) (int, error) {
+	return len(buf), nil
+}
+
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
 
@@ -113,15 +119,14 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 		b.Fatalf("Marshal: %v", err)
 	}
 	b.SetBytes(int64(len(buf)))
-	var buffer fflib.Buffer
 
+	enc := ffjson.NewEncoder(&NopWriter{})
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := record.MarshalJSONBuf(&buffer)
+		err := enc.Encode(record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
-		buffer.Reset()
 	}
 }
 
@@ -171,6 +176,49 @@ func TestMarshalFaster(t *testing.T) {
 	require.Error(t, err, "Record should not support MarshalFast")
 	_, err = ffjson.Marshal(r2)
 	require.NoError(t, err)
+}
+
+func TestMarshalEncoder(t *testing.T) {
+	record := newLogFFRecord()
+	out := bytes.Buffer{}
+	enc := ffjson.NewEncoder(&out)
+	err := enc.Encode(record)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
+
+	out.Reset()
+	err = enc.EncodeFast(record)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
+}
+
+func TestMarshalAsyncEncoder(t *testing.T) {
+	record := newLogFFRecord()
+	out := bytes.Buffer{}
+	enc := ffjson.NewEncoderAsync(&out, 10)
+	for i := 0; i < 100; i++ {
+		err := enc.Encode(record)
+		require.NoError(t, err)
+	}
+	err := enc.Close()
+	require.NoError(t, err)
+	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
+	err = enc.Close()
+	require.Error(t, err, "Multiple close should fail")
+}
+
+func TestMarshalAsyncEncoderError(t *testing.T) {
+	out := NopWriter{}
+	enc := ffjson.NewEncoderAsync(&out, 10)
+	// This *may* return an error, but current implementation does not
+	_ = enc.Encode(&GiveError{})
+	// This *must* return an error.
+	err := enc.Close()
+	require.Error(t, err, "expected error from encoder")
+	// .. and Encode should also return it.
+	err2 := enc.Encode(nil)
+	require.Error(t, err2, "expected error from encoder")
+	require.Equal(t, err, err2, "Expected to get same error from encoder")
 }
 
 func TestUnmarshalFaster(t *testing.T) {

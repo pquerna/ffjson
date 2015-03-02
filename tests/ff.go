@@ -18,6 +18,7 @@
 package tff
 
 import (
+	"errors"
 	"math"
 	"time"
 )
@@ -588,6 +589,19 @@ type CText int
 
 func (CText) MarshalText() ([]byte, error) {
 	return []byte(`"<&>"`), nil
+}
+
+var ErrGiveError = errors.New("GiveError error")
+
+// GiveError always returns an ErrGiveError on Marshal/Unmarshal.
+type GiveError struct{}
+
+func (r GiveError) MarshalJSON() ([]byte, error) {
+	return nil, ErrGiveError
+}
+
+func (r *GiveError) UnmarshalJSON([]byte) error {
+	return ErrGiveError
 }
 
 type IntType int
