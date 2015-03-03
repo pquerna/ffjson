@@ -286,7 +286,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		} else {
 			out += fmt.Sprintf("/* Struct fall back. type=%v kind=%v */\n", typ, typ.Kind())
 			out += ic.q.Flush()
-			out += "err = buf.Encode(" + name + ")" + "\n"
+			if ptr {
+				out += "err = buf.Encode(" + name + ")" + "\n"
+			} else {
+				// We send pointer to avoid copying entire struct
+				out += "err = buf.Encode(&" + name + ")" + "\n"
+			}
 			out += "if err != nil {" + "\n"
 			out += "  return err" + "\n"
 			out += "}" + "\n"
