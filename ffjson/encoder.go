@@ -23,7 +23,6 @@ import (
 	fflib "github.com/pquerna/ffjson/fflib/v1"
 	"io"
 	"reflect"
-	"sync"
 )
 
 // This is a reusable encoder.
@@ -43,6 +42,8 @@ func NewEncoder(w io.Writer) *Encoder {
 
 // Encode the data in the supplied value to the stream
 // given on creation.
+// When the function returns the output has been
+// written to the stream.
 func (e *Encoder) Encode(v interface{}) error {
 	f, ok := v.(marshalerFaster)
 	if ok {
@@ -70,132 +71,4 @@ func (e *Encoder) EncodeFast(v interface{}) error {
 		return errors.New("ffjson marshal not available for type " + reflect.TypeOf(v).String())
 	}
 	return e.Encode(v)
-}
-
-// Error returned on async encodings.
-// It contains the object and the error received to assist in debugging.
-type ErrEncoderAsync struct {
-	Err        error
-	Object     interface{}
-	ObjectType string
-}
-
-// Returns the Error as readable string.
-func (e ErrEncoderAsync) Error() string {
-	return "encoding object of type '" + e.ObjectType + "':" + e.Err.Error()
-}
-
-func newErrEncoderAsync(err error, v interface{}) error {
-	return ErrEncoderAsync{Err: err, Object: v, ObjectType: reflect.TypeOf(v).String()}
-}
-
-// This is a reusable asynchronous encoder.
-// It allows to encode many objects to a single writer.
-// It will spawn a goroutine that will encode incoming
-// objects.
-//
-// This is *safe* to use by several goroutines at one,
-// although the order will of course not be predictable.
-//
-// If used by a single goroutine, the order written will be the order
-// given to Encode.
-type EncoderAsync struct {
-	enc      Encoder          // The encoder used
-	incoming chan interface{} // Channel of incoming objects
-	flush    chan bool        // flush signal
-	asyncerr error            // errors received during encoding
-	mu       sync.RWMutex     // protection for 'asyncerr'
-}
-
-// NewEncoderAsync returns a reusable asynchronous encoder.
-//
-// You can specify the number of buffered objects.
-// Output will be written to the supplied writer.
-func NewEncoderAsync(w io.Writer, buffer uint) *EncoderAsync {
-	e := EncoderAsync{enc: Encoder{w: w, enc: json.NewEncoder(w)}}
-
-	e.asyncerr = nil
-	e.incoming = make(chan interface{}, buffer)
-	e.flush = make(chan bool, 0)
-
-	go func() {
-		var err error
-		for {
-			select {
-			case v := <-e.incoming:
-				// If we already have an error, skip this.
-				if e.asyncerr == nil {
-					err = e.enc.Encode(v)
-					if err != nil {
-						e.mu.Lock()
-						e.asyncerr = newErrEncoderAsync(err, v)
-						e.mu.Unlock()
-					}
-				}
-			case <-e.flush:
-				end := false
-				for !end {
-					select {
-					case v := <-e.incoming:
-						err = e.enc.Encode(v)
-						if err != nil {
-							e.asyncerr = newErrEncoderAsync(err, v)
-							end = true
-						}
-					default:
-						end = true
-					}
-				}
-				e.flush <- true
-				return
-			}
-		}
-	}()
-
-	return &e
-}
-
-// Encode the data sent.
-//
-// The function will return immediately.
-//
-// If an error has occurred from encoding other objects,
-// this error will be returned, so a call might receive an error
-// that occurred while encoding a previous object.
-func (e *EncoderAsync) Encode(v interface{}) error {
-	e.mu.RLock()
-	if e.asyncerr != nil {
-		err := e.asyncerr
-		e.mu.RUnlock()
-		return err
-	}
-	e.mu.RUnlock()
-	e.incoming <- v
-	return nil
-}
-
-// Close will flush all pending encodes and write to output.
-// If an error occurred during encode, it will be returned.
-// This should only be called once for an encoder objects.
-func (e *EncoderAsync) Close() error {
-	e.mu.RLock()
-	if e.asyncerr != nil {
-		err := e.asyncerr
-		e.mu.RUnlock()
-		return err
-	}
-	e.mu.RUnlock()
-	// Send signal that we want to flush
-	// Will block until we are in "case e.flush"
-	e.flush <- true
-
-	// Wait for flush to finish.
-	<-e.flush
-	err := e.asyncerr
-
-	// Set this error, so it is returned, if the objct is re-used.
-	if err == nil {
-		e.asyncerr = errors.New("encoder closed")
-	}
-	return err
 }

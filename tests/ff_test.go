@@ -192,33 +192,17 @@ func TestMarshalEncoder(t *testing.T) {
 	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
 }
 
-func TestMarshalAsyncEncoder(t *testing.T) {
-	record := newLogFFRecord()
-	out := bytes.Buffer{}
-	enc := ffjson.NewEncoderAsync(&out, 10)
-	for i := 0; i < 100; i++ {
-		err := enc.Encode(record)
-		require.NoError(t, err)
-	}
-	err := enc.Close()
-	require.NoError(t, err)
-	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
-	err = enc.Close()
-	require.Error(t, err, "Multiple close should fail")
-}
-
-func TestMarshalAsyncEncoderError(t *testing.T) {
+func TestMarshalEncoderError(t *testing.T) {
 	out := NopWriter{}
-	enc := ffjson.NewEncoderAsync(&out, 10)
-	// This *may* return an error, but current implementation does not
-	_ = enc.Encode(&GiveError{})
-	// This *must* return an error.
-	err := enc.Close()
-	require.Error(t, err, "expected error from encoder")
-	// .. and Encode should also return it.
-	err2 := enc.Encode(nil)
-	require.Error(t, err2, "expected error from encoder")
-	require.Equal(t, err, err2, "Expected to get same error from encoder")
+	enc := ffjson.NewEncoder(&out)
+	v := GiveError{}
+	err := enc.Encode(v)
+	require.Error(t, err, "excpected error from encoder")
+	err = enc.Encode(newLogFFRecord())
+	require.NoError(t, err, "error did not clear as expected.")
+
+	err = enc.EncodeFast(newLogRecord())
+	require.Error(t, err, "excpected error from encoder on type that isn't fast")
 }
 
 func TestUnmarshalFaster(t *testing.T) {
