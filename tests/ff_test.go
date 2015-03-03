@@ -105,6 +105,12 @@ func BenchmarkMarshalJSONNativePool(b *testing.B) {
 	}
 }
 
+type NopWriter struct{}
+
+func (*NopWriter) Write(buf []byte) (int, error) {
+	return len(buf), nil
+}
+
 func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	record := newLogFFRecord()
 
@@ -113,15 +119,14 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 		b.Fatalf("Marshal: %v", err)
 	}
 	b.SetBytes(int64(len(buf)))
-	var buffer fflib.Buffer
 
+	enc := ffjson.NewEncoder(&NopWriter{})
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		err := record.MarshalJSONBuf(&buffer)
+		err := enc.Encode(record)
 		if err != nil {
 			b.Fatalf("Marshal: %v", err)
 		}
-		buffer.Reset()
 	}
 }
 
@@ -171,6 +176,33 @@ func TestMarshalFaster(t *testing.T) {
 	require.Error(t, err, "Record should not support MarshalFast")
 	_, err = ffjson.Marshal(r2)
 	require.NoError(t, err)
+}
+
+func TestMarshalEncoder(t *testing.T) {
+	record := newLogFFRecord()
+	out := bytes.Buffer{}
+	enc := ffjson.NewEncoder(&out)
+	err := enc.Encode(record)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
+
+	out.Reset()
+	err = enc.EncodeFast(record)
+	require.NoError(t, err)
+	require.NotEqual(t, 0, out.Len(), "encoded buffer size should not be 0")
+}
+
+func TestMarshalEncoderError(t *testing.T) {
+	out := NopWriter{}
+	enc := ffjson.NewEncoder(&out)
+	v := GiveError{}
+	err := enc.Encode(v)
+	require.Error(t, err, "excpected error from encoder")
+	err = enc.Encode(newLogFFRecord())
+	require.NoError(t, err, "error did not clear as expected.")
+
+	err = enc.EncodeFast(newLogRecord())
+	require.Error(t, err, "excpected error from encoder on type that isn't fast")
 }
 
 func TestUnmarshalFaster(t *testing.T) {
