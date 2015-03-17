@@ -193,7 +193,7 @@ Documentation: [![GoDoc][1]][2]
 
 We don't want to dictate how you structure your data, but having interfaces in your code will make ffjson use the golang encoder for these. When ffjson has to do this, it may even become slower than using `json.Marshal` directly. 
 
-To see where that happens, search the generated `_ffjson.go` file for the text `fall back`, which will indicate where ffjson is unable to generate code for your data structure.
+To see where that happens, search the generated `_ffjson.go` file for the text `Falling back`, which will indicate where ffjson is unable to generate code for your data structure.
 
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
