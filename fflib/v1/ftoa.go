@@ -110,7 +110,7 @@ func AppendFloat(dst EncodingBuffer, val float64, fmt byte, prec, bitSize int) {
 		// Precision for shortest representation mode.
 		switch fmt {
 		case 'e', 'E':
-			prec = digs.nd - 1
+			prec = max(digs.nd-1, 0)
 		case 'f':
 			prec = max(digs.nd-digs.dp, 0)
 		case 'g', 'G':
@@ -347,10 +347,10 @@ func fmtE(dst EncodingBuffer, neg bool, d decimalSlice, prec int, fmt byte) {
 	if prec > 0 {
 		dst.WriteByte('.')
 		i := 1
-		m := d.nd + prec + 1 - max(d.nd, prec+1)
-		for i < m {
-			dst.WriteByte(d.d[i])
-			i++
+		m := min(d.nd, prec+1)
+		if i < m {
+			dst.Write(d.d[i:m])
+			i = m
 		}
 		for i <= prec {
 			dst.WriteByte('0')
@@ -372,27 +372,20 @@ func fmtE(dst EncodingBuffer, neg bool, d decimalSlice, prec int, fmt byte) {
 	}
 	dst.WriteByte(ch)
 
-	// dddd
-	var buf [3]byte
-	i := len(buf)
-	for exp >= 10 {
-		i--
-		buf[i] = byte(exp%10 + '0')
-		exp /= 10
+	// dd or ddd
+	switch {
+	case exp < 10:
+		dst.WriteByte('0')
+		dst.WriteByte(byte(exp) + '0')
+	case exp < 100:
+		dst.WriteByte(byte(exp/10) + '0')
+		dst.WriteByte(byte(exp%10) + '0')
+	default:
+		dst.WriteByte(byte(exp/100) + '0')
+		dst.WriteByte(byte(exp/10)%10 + '0')
+		dst.WriteByte(byte(exp%10) + '0')
 	}
-	// exp < 10
-	i--
-	buf[i] = byte(exp + '0')
 
-	switch i {
-	case 0:
-		dst.Write(buf[0:3])
-	case 1:
-		dst.Write(buf[1:3])
-	case 2:
-		// leading zeroes
-		dst.Write([]byte{'0', buf[2]})
-	}
 	return
 }
 
@@ -405,11 +398,9 @@ func fmtF(dst EncodingBuffer, neg bool, d decimalSlice, prec int) {
 
 	// integer, padded with zeros as needed.
 	if d.dp > 0 {
-		var i int
-		for i = 0; i < d.dp && i < d.nd; i++ {
-			dst.WriteByte(d.d[i])
-		}
-		for ; i < d.dp; i++ {
+		m := min(d.nd, d.dp)
+		dst.Write(d.d[:m])
+		for ; m < d.dp; m++ {
 			dst.WriteByte('0')
 		}
 	} else {
@@ -431,40 +422,34 @@ func fmtF(dst EncodingBuffer, neg bool, d decimalSlice, prec int) {
 	return
 }
 
-// %b: -ddddddddp+ddd
+// %b: -ddddddddp±ddd
 func fmtB(dst EncodingBuffer, neg bool, mant uint64, exp int, flt *floatInfo) {
-	var buf [50]byte
-	w := len(buf)
-	exp -= int(flt.mantbits)
-	esign := byte('+')
-	if exp < 0 {
-		esign = '-'
-		exp = -exp
-	}
-	n := 0
-	for exp > 0 || n < 1 {
-		n++
-		w--
-		buf[w] = byte(exp%10 + '0')
-		exp /= 10
-	}
-	w--
-	buf[w] = esign
-	w--
-	buf[w] = 'p'
-	n = 0
-	for mant > 0 || n < 1 {
-		n++
-		w--
-		buf[w] = byte(mant%10 + '0')
-		mant /= 10
-	}
+	// sign
 	if neg {
-		w--
-		buf[w] = '-'
+		dst.WriteByte('-')
 	}
-	dst.Write(buf[w:])
+
+	// mantissa
+	formatBits(dst, mant, 10, false)
+
+	// p
+	dst.WriteByte('p')
+
+	// ±exponent
+	exp -= int(flt.mantbits)
+	if exp >= 0 {
+		dst.WriteByte('+')
+	}
+	formatBits(dst, uint64(exp), 10, exp < 0)
+
 	return
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func max(a, b int) int {
@@ -472,4 +457,86 @@ func max(a, b int) int {
 		return a
 	}
 	return b
+}
+
+// formatBits computes the string representation of u in the given base.
+// If neg is set, u is treated as negative int64 value.
+func formatBits(dst EncodingBuffer, u uint64, base int, neg bool) {
+	if base < 2 || base > len(digits) {
+		panic("strconv: illegal AppendInt/FormatInt base")
+	}
+	// 2 <= base && base <= len(digits)
+
+	var a [64 + 1]byte // +1 for sign of 64bit value in base 2
+	i := len(a)
+
+	if neg {
+		u = -u
+	}
+
+	// convert bits
+	if base == 10 {
+		// common case: use constants for / because
+		// the compiler can optimize it into a multiply+shift
+
+		if ^uintptr(0)>>32 == 0 {
+			for u > uint64(^uintptr(0)) {
+				q := u / 1e9
+				us := uintptr(u - q*1e9) // us % 1e9 fits into a uintptr
+				for j := 9; j > 0; j-- {
+					i--
+					qs := us / 10
+					a[i] = byte(us - qs*10 + '0')
+					us = qs
+				}
+				u = q
+			}
+		}
+
+		// u guaranteed to fit into a uintptr
+		us := uintptr(u)
+		for us >= 10 {
+			i--
+			q := us / 10
+			a[i] = byte(us - q*10 + '0')
+			us = q
+		}
+		// u < 10
+		i--
+		a[i] = byte(us + '0')
+
+	} else if s := shifts[base]; s > 0 {
+		// base is power of 2: use shifts and masks instead of / and %
+		b := uint64(base)
+		m := uintptr(b) - 1 // == 1<<s - 1
+		for u >= b {
+			i--
+			a[i] = digits[uintptr(u)&m]
+			u >>= s
+		}
+		// u < base
+		i--
+		a[i] = digits[uintptr(u)]
+
+	} else {
+		// general case
+		b := uint64(base)
+		for u >= b {
+			i--
+			q := u / b
+			a[i] = digits[uintptr(u-q*b)]
+			u = q
+		}
+		// u < base
+		i--
+		a[i] = digits[uintptr(u)]
+	}
+
+	// add sign, if any
+	if neg {
+		i--
+		a[i] = '-'
+	}
+
+	dst.Write(a[i:])
 }
