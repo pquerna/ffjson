@@ -44,6 +44,13 @@ func (r *ffReader) Pos() int {
 	return r.i
 }
 
+// Reset the reader, and add new input.
+func (r *ffReader) Reset(d []byte) {
+	r.s = d
+	r.i = 0
+	r.l = len(d)
+}
+
 // Calcuates the Position with line and line offset,
 // because this isn't counted for performance reasons,
 // it will iterate the buffer from the begining, and should
