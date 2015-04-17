@@ -104,6 +104,7 @@ type FFLexer struct {
 	// TODO: convert all of this to an interface
 	lastCurrentChar int
 	captureAll      bool
+	buf             Buffer
 }
 
 func NewFFLexer(input []byte) *FFLexer {
@@ -247,15 +248,15 @@ func (ffl *FFLexer) lexComment() FFTok {
 
 func (ffl *FFLexer) lexString() FFTok {
 	if ffl.captureAll {
-		var buf Buffer
-		err := ffl.reader.SliceString(&buf)
+		ffl.buf.Reset()
+		err := ffl.reader.SliceString(&ffl.buf)
 
 		if err != nil {
 			ffl.BigError = err
 			return FFTok_error
 		}
 
-		WriteJsonString(ffl.Output, buf.String())
+		WriteJson(ffl.Output, ffl.buf.Bytes())
 
 		return FFTok_string
 	} else {
@@ -541,9 +542,9 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 	case FFTok_string:
 		//TODO(pquerna): so, other users expect this to be a quoted string :(
 		if capture {
-			var buf Buffer
-			WriteJsonString(&buf, ffl.Output.String())
-			return buf.Bytes(), nil
+			ffl.buf.Reset()
+			WriteJson(&ffl.buf, ffl.Output.Bytes())
+			return ffl.buf.Bytes(), nil
 		} else {
 			return nil, nil
 		}
