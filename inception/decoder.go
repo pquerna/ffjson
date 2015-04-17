@@ -64,6 +64,8 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
 	umlx := typ.Implements(unmarshalFasterType) || typeInInception(ic, typ, shared.MustDecoder)
+	umlx |= reflect.PtrTo(typ).Implements(unmarshalFasterType) || typeInInception(ic, typ, shared.MustDecoder)
+
 	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
 
 	out += tplStr(decodeTpl["handleUnmarshaler"], handleUnmarshaler{
