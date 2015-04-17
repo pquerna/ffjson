@@ -79,9 +79,14 @@ func (d *Decoder) DecodeReader(r io.Reader, v interface{}) error {
 // If you would like to have fallback to encoding/json you can use the
 // regular Decode() method.
 func (d *Decoder) DecodeFast(data []byte, v interface{}) error {
-	_, ok := v.(unmarshalFaster)
+	f, ok := v.(unmarshalFaster)
 	if !ok {
 		return errors.New("ffjson unmarshal not available for type " + reflect.TypeOf(v).String())
 	}
-	return d.Decode(data, v)
+	if d.fs == nil {
+		d.fs = fflib.NewFFLexer(data)
+	} else {
+		d.fs.Reset(data)
+	}
+	return f.UnmarshalJSONFFLexer(d.fs, fflib.FFParse_map_start)
 }
