@@ -35,10 +35,14 @@ type JsonStringWriter interface {
 	stringWriter
 }
 
+func WriteJsonString(buf JsonStringWriter, s string) {
+	WriteJson(buf, []byte(s))
+}
+
 /**
  * Function ported from encoding/json: func (e *encodeState) string(s string) (int, error)
  */
-func WriteJsonString(buf JsonStringWriter, s string) {
+func WriteJson(buf JsonStringWriter, s []byte) {
 	buf.WriteByte('"')
 	start := 0
 	for i := 0; i < len(s); {
@@ -55,7 +59,7 @@ func WriteJsonString(buf JsonStringWriter, s string) {
 			}
 
 			if start < i {
-				buf.WriteString(s[start:i])
+				buf.Write(s[start:i])
 			}
 			switch b {
 			case '\\', '"':
@@ -80,10 +84,10 @@ func WriteJsonString(buf JsonStringWriter, s string) {
 			start = i
 			continue
 		}
-		c, size := utf8.DecodeRuneInString(s[i:])
+		c, size := utf8.DecodeRune(s[i:])
 		if c == utf8.RuneError && size == 1 {
 			if start < i {
-				buf.WriteString(s[start:i])
+				buf.Write(s[start:i])
 			}
 			buf.WriteString(`\ufffd`)
 			i += size
@@ -99,7 +103,7 @@ func WriteJsonString(buf JsonStringWriter, s string) {
 		// See http://timelessrepo.com/json-isnt-a-javascript-subset for discussion.
 		if c == '\u2028' || c == '\u2029' {
 			if start < i {
-				buf.WriteString(s[start:i])
+				buf.Write(s[start:i])
 			}
 			buf.WriteString(`\u202`)
 			buf.WriteByte(hex[c&0xF])
@@ -110,7 +114,7 @@ func WriteJsonString(buf JsonStringWriter, s string) {
 		i += size
 	}
 	if start < len(s) {
-		buf.WriteString(s[start:])
+		buf.Write(s[start:])
 	}
 	buf.WriteByte('"')
 }
