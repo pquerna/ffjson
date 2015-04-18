@@ -125,6 +125,16 @@ type LexerError struct {
 	err    error
 }
 
+// Reset the Lexer and add new input.
+func (ffl *FFLexer) Reset(input []byte) {
+	ffl.Token = FFTok_init
+	ffl.Error = FFErr_e_ok
+	ffl.BigError = nil
+	ffl.reader.Reset(input)
+	ffl.lastCurrentChar = 0
+	ffl.Output.Reset()
+}
+
 func (le *LexerError) Error() string {
 	return fmt.Sprintf(`ffjson error: (%T)%s offset=%d line=%d char=%d`,
 		le.err, le.err.Error(),
