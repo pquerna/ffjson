@@ -64,7 +64,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
 
 	umlx := typ.Implements(unmarshalFasterType) || typeInInception(ic, typ, shared.MustDecoder)
-	umlx = umlx || reflect.PtrTo(typ).Implements(unmarshalFasterType) || typeInInception(ic, typ, shared.MustDecoder)
+	umlx = umlx || reflect.PtrTo(typ).Implements(unmarshalFasterType)
 
 	umlstd := typ.Implements(unmarshalerType) || reflect.PtrTo(typ).Implements(unmarshalerType)
 
@@ -138,7 +138,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 				Ptr:             reflect.Ptr,
 				UseReflectToSet: useReflectToSet,
 			})
-		} else if typ.Elem().Kind() == reflect.Struct && typ.Name() != "" {
+		} else if typ.Elem().Kind() == reflect.Struct && typ.Elem().Name() != "" {
 			out += tplStr(decodeTpl["handleArray"], handleArray{
 				IC:   ic,
 				Name: name,
@@ -225,7 +225,7 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 		case reflect.Slice:
 			return "[]" + typ.Elem().String()
 		}
-		panic("non-numeric type passed in w/o name: " + name)
+		panic("non-numeric type " + typ.String() + " passed in w/o name: " + name)
 	}
 
 	return s
