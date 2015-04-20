@@ -138,6 +138,13 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 				Ptr:             reflect.Ptr,
 				UseReflectToSet: useReflectToSet,
 			})
+		} else if typ.Elem().Kind() == reflect.Struct && typ.Name() != "" {
+			out += tplStr(decodeTpl["handleArray"], handleArray{
+				IC:   ic,
+				Name: name,
+				Typ:  typ,
+				Ptr:  reflect.Ptr,
+			})
 		} else if (typ.Elem().Kind() == reflect.Struct || typ.Elem().Kind() == reflect.Map) ||
 			typ.Elem().Kind() == reflect.Array || typ.Elem().Kind() == reflect.Slice &&
 			typ.Elem().Name() == "" {
