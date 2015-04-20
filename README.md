@@ -195,6 +195,18 @@ We don't want to dictate how you structure your data, but having interfaces in y
 
 To see where that happens, search the generated `_ffjson.go` file for the text `Falling back`, which will indicate where ffjson is unable to generate code for your data structure.
 
+##Tip 5: `ffjson` all the things!
+
+You should not only create ffjson code for your main struct, but also any structs that is included/used in your json code.
+
+So if your struct looks like this:
+```Go
+type Foo struct {
+  V Bar
+}
+```
+You should also make sure that code is generated for `Bar` if it is placed in another file. Also note that currently it requires you to do this in order, since generating code for `Foo` will check if code for `Bar` exists. This is only an issue if `Foo` and `Bar` are placed in different files. We are currently working on allowing simultaneous generation of an entire package.
+
 
 ## Improvements, bugs, adding features, and taking ffjson new directions!
 
