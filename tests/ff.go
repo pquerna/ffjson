@@ -1222,6 +1222,23 @@ type ReTypedQap []*string
 type ReTypedRap []*bool
 type ReTypedXa NoDecoder
 type ReTypedXb NoEncoder
+type ReTypedXc *NoDecoder
+type ReTypedXd *NoEncoder
+
+type ReReTypedA ReTypedA
+type ReReTypedS ReTypedS
+type ReReTypedAp ReTypedAp
+type ReReTypedSp ReTypedSp
+type ReReTypedAa ReTypedAa
+type ReReTypedAap ReTypedAap
+type ReReTypedXa ReTypedXa
+type ReReTypedXb ReTypedXb
+type ReReTypedXc ReTypedXc
+type ReReTypedXd ReTypedXd
+
+type RePReTypedA *ReTypedA
+type ReSReTypedS []ReTypedS
+type ReAReTypedAp [4]ReTypedAp
 
 // ffjson: ignore
 type TReTyped struct {
@@ -1316,6 +1333,23 @@ type TReTyped struct {
 
 	Xa ReTypedXa
 	Xb ReTypedXb
+
+	Rra  ReReTypedA
+	Rrs  ReReTypedS
+	Rrap ReReTypedAp
+	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// Rrsp  ReReTypedSp
+	// Rrxc  ReReTypedXc
+	// Rrxd  ReReTypedXd
+
+	// Bug in encoding/json: json: json: cannot unmarshal string into Go value of type tff.ReReTypedAa
+	// Rraa  ReReTypedAa
+	Rraap ReReTypedAap
+	Rrxa  ReReTypedXa
+	Rrxb  ReReTypedXb
+
+	Rpra RePReTypedA
+	Rsrs ReSReTypedS
 }
 
 type XReTyped struct {
@@ -1410,6 +1444,23 @@ type XReTyped struct {
 
 	Xa ReTypedXa
 	Xb ReTypedXb
+
+	Rra  ReReTypedA
+	Rrs  ReReTypedS
+	Rrap ReReTypedAp
+	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// Rrsp  ReReTypedSp
+	// Rrxc  ReReTypedXc
+	// Rrxd  ReReTypedXd
+
+	// Bug in encoding/json: json: json: cannot unmarshal string into Go value of type tff.ReReTypedAa
+	// Rraa  ReReTypedAa
+	Rraap ReReTypedAap
+	Rrxa  ReReTypedXa
+	Rrxb  ReReTypedXb
+
+	Rpra RePReTypedA
+	Rsrs ReSReTypedS
 }
 
 // ffjson: skip

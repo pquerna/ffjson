@@ -26,6 +26,7 @@ import (
 	"go/parser"
 	"go/token"
 	"regexp"
+	"strings"
 )
 
 var noEncoder = flag.Bool("noencoder", false, "Do not generate encoder functions")
@@ -54,6 +55,33 @@ var skipre = regexp.MustCompile("(.*)ffjson:(\\s*)((skip)|(ignore))(.*)")
 var skipdec = regexp.MustCompile("(.*)ffjson:(\\s*)((skipdecoder)|(nodecoder))(.*)")
 var skipenc = regexp.MustCompile("(.*)ffjson:(\\s*)((skipencoder)|(noencoder))(.*)")
 
+func shouldInclude(d *ast.Object) (bool, error) {
+	ts, ok := d.Decl.(*ast.TypeSpec)
+	if !ok {
+		return false, fmt.Errorf("Unknown type without TypeSec: %v", d)
+	}
+
+	_, ok = ts.Type.(*ast.StructType)
+	if !ok {
+		ident, ok := ts.Type.(*ast.Ident)
+		if !ok || ident.Name == "" {
+			return false, nil
+		}
+
+		// It must be in this package, and not a pointer alias
+		if strings.Contains(ident.Name, ".") || strings.Contains(ident.Name, "*") {
+			return false, nil
+		}
+
+		// if Obj is nil, we have an external type or built-in.
+		if ident.Obj == nil || ident.Obj.Decl == nil {
+			return false, nil
+		}
+		return shouldInclude(ident.Obj)
+	}
+	return true, nil
+}
+
 func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 	fset := token.NewFileSet()
 
@@ -68,20 +96,15 @@ func ExtractStructs(inputPath string) (string, []*StructInfo, error) {
 
 	for k, d := range f.Scope.Objects {
 		if d.Kind == ast.Typ {
-			ts, ok := d.Decl.(*ast.TypeSpec)
-			if !ok {
-				return "", nil, fmt.Errorf("Unknown type without TypeSec: %v", d)
+			incl, err := shouldInclude(d)
+			if err != nil {
+				return "", nil, err
 			}
+			if incl {
+				stobj := NewStructInfo(k)
 
-			_, ok = ts.Type.(*ast.StructType)
-			if !ok {
-				continue
+				structs[k] = stobj
 			}
-
-			// TODO(pquerna): Add // ffjson:skip or similiar tagging.
-			stobj := NewStructInfo(k)
-
-			structs[k] = stobj
 		}
 	}
 
