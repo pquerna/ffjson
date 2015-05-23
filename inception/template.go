@@ -19,11 +19,7 @@ package ffjsoninception
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
-	"github.com/pquerna/ffjson/shared"
-	"io/ioutil"
-	"os"
+	"go/format"
 	"text/template"
 )
 
@@ -47,33 +43,13 @@ import (
 `
 
 func RenderTemplate(ic *Inception) ([]byte, error) {
-	var keep = false
-	f, err := ioutil.TempFile("", "ffjson-fmt")
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if !keep {
-			os.Remove(f.Name())
-		}
-	}()
-
 	t := template.Must(template.New("ffjson.go").Parse(ffjsonTemplate))
-
-	err = t.Execute(f, ic)
-
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, ic)
 	if err != nil {
 		return nil, err
 	}
-
-	out, err := shared.GoFmt(f.Name())
-	if err != nil {
-		keep = true
-		return nil, errors.New(fmt.Sprintf("Error formating: %s\n%v", f.Name(), err))
-
-	}
-
-	return out.Bytes(), nil
+	return format.Source(buf.Bytes())
 }
 
 func tplStr(t *template.Template, data interface{}) string {
