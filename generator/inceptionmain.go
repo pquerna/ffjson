@@ -21,6 +21,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"go/format"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -137,32 +138,17 @@ func getExposePath(inputPath string) string {
 }
 
 func (im *InceptionMain) renderTpl(f *os.File, t *template.Template, tc *templateCtx) error {
-	err := t.Execute(f, tc)
+	buf := new(bytes.Buffer)
+	err := t.Execute(buf, tc)
 	if err != nil {
 		return err
 	}
-
-	out, err := shared.GoFmt(f.Name())
+	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		return err
 	}
-
-	_, err = f.Seek(0, 0)
-	if err != nil {
-		return err
-	}
-
-	err = f.Truncate(0)
-	if err != nil {
-		return err
-	}
-
-	_, err = f.Write(out.Bytes())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err = f.Write(formatted)
+	return err
 }
 
 func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importName string) error {
