@@ -1,3 +1,4 @@
+// +build !appengine
 
 #define NOSPLIT 4
 
