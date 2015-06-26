@@ -136,6 +136,15 @@ type XstringTagged struct {
 }
 
 // ffjson: skip
+type TstringTaggedPtr struct {
+	X *string `json:",string"`
+}
+
+type XstringTaggedPtr struct {
+	X *string `json:",string"`
+}
+
+// ffjson: skip
 type TintTagged struct {
 	X int `json:",string"`
 }

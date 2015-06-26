@@ -19,6 +19,8 @@ package tff
 
 import (
 	"testing"
+	"strings"
+	"runtime"
 )
 
 // Test data from https://github.com/akheron/jansson/tree/master/test/suites/valid
@@ -114,4 +116,36 @@ func TestStringNull(t *testing.T) {
 		"foobar",
 		`null`,
 		&Xstring{X: "foobar"})
+}
+
+func TestStringQuoted(t *testing.T) {
+	ver := runtime.Version()
+	if strings.Contains(ver, "go1.3") || strings.Contains(ver, "go1.2") {
+		t.Skipf("Test requires go v1.4 or later, this is %s", ver)
+	}
+
+	testStrQuoted(t, "\x12 escaped control character")
+	testStrQuoted(t, `\u0012 escaped control character`)
+	testStrQuoted(t, ", one-byte UTF-8")
+	testStrQuoted(t, `\u002c one-byte UTF-8`)
+	testStrQuoted(t, "2ħ籦ö嗏ʑ>嫀")
+	testStrQuoted(t, `2ħ籦ö嗏ʑ\u003e嫀`)
+	testStrQuoted(t, "ģ two-byte UTF-8")
+	testStrQuoted(t, `\u0123 two-byte UTF-8`)
+	testStrQuoted(t, "ࠡ three-byte UTF-8")
+	testStrQuoted(t, `\u0821 three-byte UTF-8`)
+	testStrQuoted(t, `"\`+"\b\f\n\r\t")
+	testStrQuoted(t, "𝄞 surrogate, four-byte UTF-8")
+	testStrQuoted(t, string('\xff')+` <- xFF byte`)
+	testStrQuoted(t, `€þıœəßð some utf-8 ĸʒ×ŋµåäö𝄞`)
+	testStrQuoted(t, `\/`)
+	testStrQuoted(t, `/`)
+	testStrQuoted(t, `\"\\\b\f\n\r\t`)
+	testStrQuoted(t, `\uD834\uDD1E surrogate, four-byte UTF-8`)
+	testStrQuoted(t, `null`)
+}
+
+func testStrQuoted(t *testing.T, str string) {
+	testCycle(t, &TstringTagged{X: str}, &XstringTagged{X: str})
+	testCycle(t, &TstringTaggedPtr{X: &str}, &XstringTaggedPtr{X: &str})
 }
