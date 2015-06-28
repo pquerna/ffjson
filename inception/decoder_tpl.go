@@ -196,7 +196,7 @@ var handleArrayTxt = `
 
 			if tok == fflib.FFTok_comma {
 				if wantVal == true {
-					// TODO(pquerna): this isn't an ideal error message, this handles 
+					// TODO(pquerna): this isn't an ideal error message, this handles
 					// things like [,,,] as an array value.
 					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
 				}
@@ -310,19 +310,13 @@ const (
 	ffj_t_{{.SI.Name}}base = iota
 	ffj_t_{{.SI.Name}}no_such_key
 	{{with $si := .SI}}
-		{{range $index, $field := $si.Fields}}
-			{{if ne $field.JsonName "-"}}
-		ffj_t_{{$si.Name}}_{{$field.Name}}
-			{{end}}
+		{{range $index, $field := $si.Fields}}{{if ne $field.JsonName "-"}}		ffj_t_{{$si.Name}}_{{$field.Name}}{{end}}
 		{{end}}
 	{{end}}
 )
 
 {{with $si := .SI}}
-	{{range $index, $field := $si.Fields}}
-		{{if ne $field.JsonName "-"}}
-var ffj_key_{{$si.Name}}_{{$field.Name}} = []byte({{$field.JsonName}})
-		{{end}}
+	{{range $index, $field := $si.Fields}}{{if ne $field.JsonName "-"}}var ffj_key_{{$si.Name}}_{{$field.Name}} = []byte({{$field.JsonName}}){{end}}
 	{{end}}
 {{end}}
 
@@ -449,8 +443,7 @@ mainparse:
 
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
-	{{with $fieldName := $field.Name | printf "uj.%s"}}
-		{{handleField $ic $fieldName $field.Typ $field.Pointer}}
+	{{with $fieldName := $field.Name | printf "uj.%s"}}{{handleField $ic $fieldName $field.Typ $field.Pointer}}
 		state = fflib.FFParse_after_value
 		goto mainparse
 	{{end}}
