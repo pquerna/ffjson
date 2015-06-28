@@ -57,13 +57,12 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 	return nil
 }
 
-func handleField(ic *Inception, name string, typ reflect.Type, ptr bool) string {
-	return handleFieldAddr(ic, name, false, typ, ptr)
+func handleField(ic *Inception, name string, typ reflect.Type, ptr bool, quoted bool) string {
+	return handleFieldAddr(ic, name, false, typ, ptr, quoted)
 }
 
-func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type, ptr bool) string {
-	out := ""
-	out += fmt.Sprintf("/* handler: %s type=%v kind=%v */\n", name, typ, typ.Kind())
+func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type, ptr bool, quoted bool) string {
+	out := fmt.Sprintf("/* handler: %s type=%v kind=%v quoted=%t*/\n", name, typ, typ.Kind(), quoted)
 
 	umlx := typ.Implements(unmarshalFasterType) || typeInInception(ic, typ, shared.MustDecoder)
 	umlx = umlx || reflect.PtrTo(typ).Implements(unmarshalFasterType)
@@ -91,7 +90,10 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
+
+		allowed := buildTokens(quoted, "FFTok_string", "FFTok_integer", "FFTok_null")
+		out += getAllowTokens(typ.Name(), allowed...)
+
 		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseInt")
 
 	case reflect.Uint,
@@ -99,17 +101,27 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64:
-		out += getAllowTokens(typ.Name(), "FFTok_integer", "FFTok_null")
+
+		allowed := buildTokens(quoted, "FFTok_string", "FFTok_integer", "FFTok_null")
+		out += getAllowTokens(typ.Name(), allowed...)
+
 		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseUint")
 
 	case reflect.Float32,
 		reflect.Float64:
-		out += getAllowTokens(typ.Name(), "FFTok_double", "FFTok_integer", "FFTok_null")
+
+		allowed := buildTokens(quoted, "FFTok_string", "FFTok_double", "FFTok_integer", "FFTok_null")
+		out += getAllowTokens(typ.Name(), allowed...)
+
 		out += getNumberHandler(ic, name, takeAddr || ptr, typ, "ParseFloat")
 
 	case reflect.Bool:
 		ic.OutputImports[`"bytes"`] = true
 		ic.OutputImports[`"errors"`] = true
+
+		allowed := buildTokens(quoted, "FFTok_string", "FFTok_bool", "FFTok_null")
+		out += getAllowTokens(typ.Name(), allowed...)
+
 		out += tplStr(decodeTpl["handleBool"], handleBool{
 			Name:     name,
 			Typ:      typ,
@@ -118,9 +130,10 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Ptr:
 		out += tplStr(decodeTpl["handlePtr"], handlePtr{
-			IC:   ic,
-			Name: name,
-			Typ:  typ,
+			IC:     ic,
+			Name:   name,
+			Typ:    typ,
+			Quoted: quoted,
 		})
 
 	case reflect.Array,
@@ -171,6 +184,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 			Name:     name,
 			Typ:      typ,
 			TakeAddr: takeAddr || ptr,
+			Quoted:   quoted,
 		})
 	case reflect.Interface:
 		ic.OutputImports[`"encoding/json"`] = true
@@ -232,3 +246,29 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 
 	return s
 }
+
+
+func buildTokens(containsOptional bool, optional string, required ...string) []string {
+	if containsOptional {
+		return append(required, optional)
+	}
+
+	return required
+}
+
+func unquoteField(quoted bool) string {
+	// The outer quote of a string is already stripped out by
+	// the lexer. We need to check if the inner string is also
+	// quoted. If so, we will decode it as json string. If decoding
+	// fails, we will use the original string
+	if quoted {
+		return `
+		unquoted, ok := fflib.UnquoteBytes(outBuf)
+		if ok {
+			outBuf = unquoted
+		}
+		`
+	}
+	return ""
+}
+

@@ -540,7 +540,6 @@ func TestForceStringTaggedEscape(t *testing.T) {
 }
 
 func TestForceStringTaggedDecoder(t *testing.T) {
-	t.Skip("https://github.com/pquerna/ffjson/issues/80")
 	testCycle(t, &TstringTagged{}, &XstringTagged{})
 	testCycle(t, &TintTagged{}, &XintTagged{})
 	testCycle(t, &TboolTagged{}, &XboolTagged{})

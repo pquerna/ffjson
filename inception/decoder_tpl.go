@@ -47,6 +47,7 @@ func init() {
 		"getType":         getType,
 		"handleField":     handleField,
 		"handleFieldAddr": handleFieldAddr,
+		"unquoteField":    unquoteField,
 	}
 
 	for k, v := range funcs {
@@ -129,6 +130,7 @@ type handleString struct {
 	Name     string
 	Typ      reflect.Type
 	TakeAddr bool
+	Quoted   bool
 }
 
 var handleStringTxt = `
@@ -143,10 +145,14 @@ var handleStringTxt = `
 	} else {
 	{{if eq .TakeAddr true}}
 		var tval {{getType $ic .Name .Typ}}
-		tval = {{getType $ic .Name .Typ}}(fs.Output.String())
+		outBuf := fs.Output.Bytes()
+		{{unquoteField .Quoted}}
+		tval = {{getType $ic .Name .Typ}}(string(outBuf))
 		{{.Name}} = &tval
 	{{else}}
-		{{.Name}} = {{getType $ic .Name .Typ}}(fs.Output.String())
+		outBuf := fs.Output.Bytes()
+		{{unquoteField .Quoted}}
+		{{.Name}} = {{getType $ic .Name .Typ}}(string(outBuf))
 	{{end}}
 	}
 }
@@ -205,7 +211,7 @@ var handleArrayTxt = `
 				wantVal = true
 			}
 
-			{{handleField .IC "v" .Typ.Elem $ptr}}
+			{{handleField .IC "v" .Typ.Elem $ptr false}}
 			{{.Name}} = append({{.Name}}, v)
 			wantVal = false
 		}
@@ -242,7 +248,6 @@ type handleBool struct {
 
 var handleBoolTxt = `
 {
-	{{getAllowTokens .Typ.Name "FFTok_bool" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 		{{if eq .TakeAddr true}}
 		{{.Name}} = nil
@@ -279,9 +284,10 @@ var handleBoolTxt = `
 `
 
 type handlePtr struct {
-	IC   *Inception
-	Name string
-	Typ  reflect.Type
+	IC     *Inception
+	Name   string
+	Typ    reflect.Type
+	Quoted bool
 }
 
 var handlePtrTxt = `
@@ -295,7 +301,7 @@ var handlePtrTxt = `
 			{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
 		}
 
-		{{handleFieldAddr .IC .Name true .Typ.Elem false}}
+		{{handleFieldAddr .IC .Name true .Typ.Elem false .Quoted}}
 	}
 }
 `
@@ -450,7 +456,7 @@ mainparse:
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
-		{{handleField $ic $fieldName $field.Typ $field.Pointer}}
+		{{handleField $ic $fieldName $field.Typ $field.Pointer $field.ForceString}}
 		state = fflib.FFParse_after_value
 		goto mainparse
 	{{end}}
