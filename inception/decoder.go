@@ -193,6 +193,13 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 			Typ:  typ,
 			Kind: typ.Kind(),
 		})
+	case reflect.Map:
+		out += tplStr(decodeTpl["handleObject"], handleObject{
+			IC:   ic,
+			Name: name,
+			Typ:  typ,
+			Ptr:  reflect.Ptr,
+		})
 	default:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += tplStr(decodeTpl["handleFallback"], handleFallback{
@@ -235,18 +242,11 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 	}
 
 	if s == "" {
-		switch typ.Kind() {
-		case reflect.Interface:
-			return "interface{}"
-		case reflect.Slice:
-			return "[]" + typ.Elem().String()
-		}
-		panic("non-numeric type " + typ.String() + " passed in w/o name: " + name)
+		return typ.String()
 	}
 
 	return s
 }
-
 
 func buildTokens(containsOptional bool, optional string, required ...string) []string {
 	if containsOptional {
@@ -271,4 +271,3 @@ func unquoteField(quoted bool) string {
 	}
 	return ""
 }
-

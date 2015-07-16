@@ -32,6 +32,7 @@ func init() {
 		"allowTokens":       allowTokensTxt,
 		"handleFallback":    handleFallbackTxt,
 		"handleString":      handleStringTxt,
+		"handleObject":      handleObjectTxt,
 		"handleArray":       handleArrayTxt,
 		"handleByteArray":   handleByteArrayTxt,
 		"handleBool":        handleBoolTxt,
@@ -158,6 +159,90 @@ var handleStringTxt = `
 }
 `
 
+type handleObject struct {
+	IC   *Inception
+	Name string
+	Typ  reflect.Type
+	Ptr  reflect.Kind
+}
+
+var handleObjectTxt = `
+{
+	{{$ic := .IC}}
+	{{getAllowTokens .Typ.Name "FFTok_left_bracket" "FFTok_null"}}
+	if tok == fflib.FFTok_null {
+		{{.Name}} = nil
+	} else {
+		{{if eq .Typ.Elem.Kind .Ptr }}
+			{{if eq .Typ.Key.Kind .Ptr }}
+			{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+			{{else}}
+			{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+			{{end}}
+		{{else}}
+			{{if eq .Typ.Key.Kind .Ptr }}
+			{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]{{getType $ic .Name .Typ.Elem}}, 0)
+			{{else}}
+			{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]{{getType $ic .Name .Typ.Elem}}, 0)
+			{{end}}
+		{{end}}
+
+		wantVal := true
+
+		for {
+		{{$keyPtr := false}}
+		{{if eq .Typ.Key.Kind .Ptr }}
+			{{$keyPtr := true}}
+			var k *{{getType $ic .Name .Typ.Key.Elem}}
+		{{else}}
+			var k {{getType $ic .Name .Typ.Key}}
+		{{end}}
+
+		{{$valPtr := false}}
+		{{if eq .Typ.Elem.Kind .Ptr }}
+			{{$valPtr := true}}
+			var v *{{getType $ic .Name .Typ.Elem.Elem}}
+		{{else}}
+			var v {{getType $ic .Name .Typ.Elem}}
+		{{end}}
+
+			tok = fs.Scan()
+			if tok == fflib.FFTok_error {
+				goto tokerror
+			}
+			if tok == fflib.FFTok_right_bracket {
+				break
+			}
+
+			if tok == fflib.FFTok_comma {
+				if wantVal == true {
+					// TODO(pquerna): this isn't an ideal error message, this handles
+					// things like [,,,] as an array value.
+					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+				}
+				continue
+			} else {
+				wantVal = true
+			}
+
+			{{handleField .IC "k" .Typ.Key $valPtr false}}
+
+			// Expect ':' after key
+			tok = fs.Scan()
+			if tok != fflib.FFTok_colon {
+				return fs.WrapErr(fmt.Errorf("wanted colon token, but got token: %v", tok))
+			}
+
+			tok = fs.Scan()
+			{{handleField .IC "v" .Typ.Elem $valPtr false}}
+
+			{{.Name}}[k] = v
+			wantVal = false
+		}
+	}
+}
+`
+
 type handleArray struct {
 	IC              *Inception
 	Name            string
@@ -202,7 +287,7 @@ var handleArrayTxt = `
 
 			if tok == fflib.FFTok_comma {
 				if wantVal == true {
-					// TODO(pquerna): this isn't an ideal error message, this handles 
+					// TODO(pquerna): this isn't an ideal error message, this handles
 					// things like [,,,] as an array value.
 					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
 				}
