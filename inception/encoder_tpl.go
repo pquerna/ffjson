@@ -18,6 +18,7 @@
 package ffjsoninception
 
 import (
+	"reflect"
 	"text/template"
 )
 
@@ -39,25 +40,32 @@ func init() {
 type handleMarshaler struct {
 	IC             *Inception
 	Name           string
+	Typ            reflect.Type
+	Ptr            reflect.Kind
 	MarshalJSONBuf bool
 	Marshaler      bool
 }
 
 var handleMarshalerTxt = `
-	{{if eq .MarshalJSONBuf true}}
 	{
+		{{if eq .Typ.Kind .Ptr}}
+		if {{.Name}} == nil {
+			buf.WriteString("null")
+			return nil
+		}
+		{{end}}
+
+		{{if eq .MarshalJSONBuf true}}
 		err = {{.Name}}.MarshalJSONBuf(buf)
 		if err != nil {
 			return err
 		}
-	}
-	{{else if eq .Marshaler true}}
-	{
+		{{else if eq .Marshaler true}}
 		obj, err = {{.Name}}.MarshalJSON()
 		if err != nil {
 			return err
 		}
 		buf.Write(obj)
+		{{end}}
 	}
-	{{end}}
 `

@@ -147,6 +147,8 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		out += tplStr(encodeTpl["handleMarshaler"], handleMarshaler{
 			IC:             ic,
 			Name:           name,
+			Typ:            typ,
+			Ptr:            reflect.Ptr,
 			MarshalJSONBuf: typ.Implements(marshalerFasterType) || reflect.PtrTo(typ).Implements(marshalerFasterType) || typeInInception(ic, typ, shared.MustEncoder),
 			Marshaler:      typ.Implements(marshalerType) || reflect.PtrTo(typ).Implements(marshalerType),
 		})
@@ -471,6 +473,11 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf fflib.Buffer` + "\n"
 
+	out += `if mh == nil {` + "\n"
+	out += `  buf.WriteString("null")` + "\n"
+	out += "  return buf, nil" + "\n"
+	out += `}` + "\n"
+
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
@@ -479,6 +486,11 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
+	out += `  if mh == nil {` + "\n"
+	out += `    buf.WriteString("null")` + "\n"
+	out += "    return buf, nil" + "\n"
+	out += `  }` + "\n"
+
 	out += `var err error` + "\n"
 	out += `var obj []byte` + "\n"
 	out += `_ = obj` + "\n"
