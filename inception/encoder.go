@@ -473,9 +473,9 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf fflib.Buffer` + "\n"
 
-	out += `if mh == nil {` + "\n"
+	out += `if mj == nil {` + "\n"
 	out += `  buf.WriteString("null")` + "\n"
-	out += "  return buf, nil" + "\n"
+	out += "  return buf.Bytes(), nil" + "\n"
 	out += `}` + "\n"
 
 	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
@@ -486,9 +486,9 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 
 	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
-	out += `  if mh == nil {` + "\n"
+	out += `  if mj == nil {` + "\n"
 	out += `    buf.WriteString("null")` + "\n"
-	out += "    return buf, nil" + "\n"
+	out += "    return nil" + "\n"
 	out += `  }` + "\n"
 
 	out += `var err error` + "\n"
