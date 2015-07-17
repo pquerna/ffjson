@@ -195,10 +195,11 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		})
 	case reflect.Map:
 		out += tplStr(decodeTpl["handleObject"], handleObject{
-			IC:   ic,
-			Name: name,
-			Typ:  typ,
-			Ptr:  reflect.Ptr,
+			IC:       ic,
+			Name:     name,
+			Typ:      typ,
+			Ptr:      reflect.Ptr,
+			TakeAddr: takeAddr || ptr,
 		})
 	default:
 		ic.OutputImports[`"encoding/json"`] = true

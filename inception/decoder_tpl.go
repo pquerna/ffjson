@@ -160,10 +160,11 @@ var handleStringTxt = `
 `
 
 type handleObject struct {
-	IC   *Inception
-	Name string
-	Typ  reflect.Type
-	Ptr  reflect.Kind
+	IC       *Inception
+	Name     string
+	Typ      reflect.Type
+	Ptr      reflect.Kind
+	TakeAddr bool
 }
 
 var handleObjectTxt = `
@@ -173,17 +174,34 @@ var handleObjectTxt = `
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
-		{{if eq .Typ.Elem.Kind .Ptr }}
-			{{if eq .Typ.Key.Kind .Ptr }}
-			{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+
+		{{if eq .TakeAddr true}}
+			{{if eq .Typ.Elem.Kind .Ptr }}
+				{{if eq .Typ.Key.Kind .Ptr }}
+				var tval = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+				{{else}}
+				var tval = make(map[{{getType $ic .Name .Typ.Key}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+				{{end}}
 			{{else}}
-			{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+				{{if eq .Typ.Key.Kind .Ptr }}
+				var tval = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]{{getType $ic .Name .Typ.Elem}}, 0)
+				{{else}}
+				var tval = make(map[{{getType $ic .Name .Typ.Key}}]{{getType $ic .Name .Typ.Elem}}, 0)
+				{{end}}
 			{{end}}
 		{{else}}
-			{{if eq .Typ.Key.Kind .Ptr }}
-			{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]{{getType $ic .Name .Typ.Elem}}, 0)
+			{{if eq .Typ.Elem.Kind .Ptr }}
+				{{if eq .Typ.Key.Kind .Ptr }}
+				{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+				{{else}}
+				{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+				{{end}}
 			{{else}}
-			{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]{{getType $ic .Name .Typ.Elem}}, 0)
+				{{if eq .Typ.Key.Kind .Ptr }}
+				{{.Name}} = make(map[*{{getType $ic .Name .Typ.Key.Elem}}]{{getType $ic .Name .Typ.Elem}}, 0)
+				{{else}}
+				{{.Name}} = make(map[{{getType $ic .Name .Typ.Key}}]{{getType $ic .Name .Typ.Elem}}, 0)
+				{{end}}
 			{{end}}
 		{{end}}
 
@@ -225,7 +243,7 @@ var handleObjectTxt = `
 				wantVal = true
 			}
 
-			{{handleField .IC "k" .Typ.Key $valPtr false}}
+			{{handleField .IC "k" .Typ.Key $keyPtr false}}
 
 			// Expect ':' after key
 			tok = fs.Scan()
@@ -236,9 +254,17 @@ var handleObjectTxt = `
 			tok = fs.Scan()
 			{{handleField .IC "v" .Typ.Elem $valPtr false}}
 
+			{{if eq .TakeAddr true}}
+			tval[k] = v
+			{{else}}
 			{{.Name}}[k] = v
+			{{end}}
 			wantVal = false
 		}
+
+		{{if eq .TakeAddr true}}
+		{{.Name}} = &tval
+		{{end}}
 	}
 }
 `
