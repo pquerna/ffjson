@@ -27,6 +27,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
@@ -52,12 +53,61 @@ func main() {
 	}
 
 	inputPath := filepath.ToSlash(extra[0])
+	inputFiles := make([]string, 0)
 
 	var outputPath string
-	if outputPathFlag == nil || *outputPathFlag == "" {
-		outputPath = extRe.ReplaceAllString(inputPath, "${1}_ffjson.go")
+	if extRe.MatchString(inputPath) {
+		if outputPathFlag == nil || *outputPathFlag == "" {
+			outputPath = extRe.ReplaceAllString(inputPath, "${1}_ffjson.go")
+		} else {
+			outputPath = *outputPathFlag
+		}
+		inputFiles = []string{inputPath}
 	} else {
-		outputPath = *outputPathFlag
+		// No extension, try package
+		if inputPath == "." {
+			var err error
+			inputPath, err = os.Getwd()
+			if err != nil {
+				panic(err)
+			}
+			inputPath = filepath.ToSlash(inputPath)
+		}
+		parts := strings.Split(inputPath, "/")
+		pname := parts[len(parts)-1]
+		if outputPathFlag == nil || *outputPathFlag == "" {
+			outputPath = inputPath + "/" + pname + "_ffjson.go"
+		} else {
+			outputPath = *outputPathFlag
+		}
+		fmt.Println("Walking " + inputPath)
+		filepath.Walk(inputPath+"/.", func(path string, info os.FileInfo, err error) error {
+			if info == nil {
+				return nil
+			}
+			if info.IsDir() && "." != info.Name() {
+				fmt.Println("Skipping " + info.Name())
+				return filepath.SkipDir
+			}
+			if strings.HasSuffix(info.Name(), "_ffjson.go") {
+				return nil
+			}
+			if strings.HasSuffix(info.Name(), "ffjson_expose.go") {
+				return nil
+			}
+			if strings.HasSuffix(info.Name(), "_test.go") {
+				return nil
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".go") {
+				fmt.Println("Found " + filepath.ToSlash(path))
+				inputFiles = append(inputFiles, filepath.ToSlash(path))
+			}
+			return nil
+		})
+		if len(inputFiles) == 0 {
+			fmt.Println("No files found")
+			usage()
+		}
 	}
 
 	var goCmd string
@@ -72,7 +122,7 @@ func main() {
 		importName = *importNameFlag
 	}
 
-	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName)
+	err := generator.GenerateFiles(goCmd, inputFiles, outputPath, importName)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
