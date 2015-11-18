@@ -19,7 +19,7 @@ package main
 
 import (
 	_ "github.com/pquerna/ffjson/fflib/v1"
-	"github.com/kipal/ffjson/generator"
+	"github.com/pquerna/ffjson/generator"
 	_ "github.com/pquerna/ffjson/inception"
 
 	"flag"
