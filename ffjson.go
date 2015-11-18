@@ -19,7 +19,7 @@ package main
 
 import (
 	_ "github.com/pquerna/ffjson/fflib/v1"
-	"github.com/pquerna/ffjson/generator"
+	"github.com/kipal/ffjson/generator"
 	_ "github.com/pquerna/ffjson/inception"
 
 	"flag"
@@ -29,9 +29,10 @@ import (
 	"regexp"
 )
 
-var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
-var goCmdFlag = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
-var importNameFlag = flag.String("import-name", "", "Override import name in case it cannot be detected.")
+var outputPathFlag      = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
+var goCmdFlag           = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
+var importNameFlag      = flag.String("import-name", "", "Override import name in case it cannot be detected.")
+var forceRegenerateFlag = flag.Bool("force-regenerate", false, "Regenerate every input file, without cheching modification date.")
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
@@ -72,7 +73,7 @@ func main() {
 		importName = *importNameFlag
 	}
 
-	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName)
+	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName, *forceRegenerateFlag)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
