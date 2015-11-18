@@ -20,9 +20,24 @@ package generator
 import (
 	"errors"
 	"fmt"
+	"os"
 )
 
-func GenerateFiles(goCmd string, inputPath string, outputPath string, importName string) error {
+func GenerateFiles(goCmd string, inputPath string, outputPath string, importName string, forceRegenerate bool) error {
+
+	if _, StatErr := os.Stat(outputPath); !os.IsNotExist(StatErr) {
+		inputFileInfo, inputFileErr   := os.Stat(inputPath)
+		outputFileInfo, outputFileErr := os.Stat(outputPath)
+
+		if nil == outputFileErr && nil == inputFileErr {
+			if !forceRegenerate && inputFileInfo.ModTime().Before(outputFileInfo.ModTime()) {
+				fmt.Println("File " + outputPath + " already exists.")
+
+				return nil
+			}
+		}
+	}
+
 	packageName, structs, err := ExtractStructs(inputPath)
 	if err != nil {
 		return err
