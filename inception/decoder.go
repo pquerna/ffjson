@@ -19,8 +19,9 @@ package ffjsoninception
 
 import (
 	"fmt"
-	"github.com/pquerna/ffjson/shared"
 	"reflect"
+
+	"github.com/pquerna/ffjson/shared"
 )
 
 var validValues []string = []string{
@@ -138,45 +139,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Array,
 		reflect.Slice:
-		if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
-			ic.OutputImports[`"encoding/base64"`] = true
-			useReflectToSet := false
-			if typ.Elem().Name() != "byte" {
-				ic.OutputImports[`"reflect"`] = true
-				useReflectToSet = true
-			}
-
-			out += tplStr(decodeTpl["handleByteArray"], handleArray{
-				IC:              ic,
-				Name:            name,
-				Typ:             typ,
-				Ptr:             reflect.Ptr,
-				UseReflectToSet: useReflectToSet,
-			})
-		} else if typ.Elem().Kind() == reflect.Struct && typ.Elem().Name() != "" {
-			out += tplStr(decodeTpl["handleArray"], handleArray{
-				IC:   ic,
-				Name: name,
-				Typ:  typ,
-				Ptr:  reflect.Ptr,
-			})
-		} else if (typ.Elem().Kind() == reflect.Struct || typ.Elem().Kind() == reflect.Map) ||
-			typ.Elem().Kind() == reflect.Array || typ.Elem().Kind() == reflect.Slice &&
-			typ.Elem().Name() == "" {
-			ic.OutputImports[`"encoding/json"`] = true
-			out += tplStr(decodeTpl["handleFallback"], handleFallback{
-				Name: name,
-				Typ:  typ,
-				Kind: typ.Kind(),
-			})
-		} else {
-			out += tplStr(decodeTpl["handleArray"], handleArray{
-				IC:   ic,
-				Name: name,
-				Typ:  typ,
-				Ptr:  reflect.Ptr,
-			})
-		}
+		out += getArrayHandler(ic, name, typ)
 
 	case reflect.String:
 		out += tplStr(decodeTpl["handleString"], handleString{
@@ -211,6 +174,59 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	}
 
 	return out
+}
+
+func getArrayHandler(ic *Inception, name string, typ reflect.Type) string {
+	if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
+		ic.OutputImports[`"encoding/base64"`] = true
+		useReflectToSet := false
+		if typ.Elem().Name() != "byte" {
+			ic.OutputImports[`"reflect"`] = true
+			useReflectToSet = true
+		}
+
+		return tplStr(decodeTpl["handleByteSlice"], handleArray{
+			IC:              ic,
+			Name:            name,
+			Typ:             typ,
+			Ptr:             reflect.Ptr,
+			UseReflectToSet: useReflectToSet,
+		})
+	}
+
+	if typ.Elem().Kind() == reflect.Struct && typ.Elem().Name() != "" {
+		goto sliceOrArray
+	}
+
+	if (typ.Elem().Kind() == reflect.Struct || typ.Elem().Kind() == reflect.Map) ||
+		typ.Elem().Kind() == reflect.Array || typ.Elem().Kind() == reflect.Slice &&
+		typ.Elem().Name() == "" {
+		ic.OutputImports[`"encoding/json"`] = true
+
+		return tplStr(decodeTpl["handleFallback"], handleFallback{
+			Name: name,
+			Typ:  typ,
+			Kind: typ.Kind(),
+		})
+	}
+
+sliceOrArray:
+
+	if typ.Kind() == reflect.Array {
+		return tplStr(decodeTpl["handleArray"], handleArray{
+			IC:   ic,
+			Name: name,
+			Typ:  typ,
+			Ptr:  reflect.Ptr,
+		})
+	}
+
+	return tplStr(decodeTpl["handleSlice"], handleArray{
+		IC:   ic,
+		Name: name,
+		Typ:  typ,
+		Ptr:  reflect.Ptr,
+	})
 }
 
 func getAllowTokens(name string, tokens ...string) string {

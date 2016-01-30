@@ -34,7 +34,8 @@ func init() {
 		"handleString":      handleStringTxt,
 		"handleObject":      handleObjectTxt,
 		"handleArray":       handleArrayTxt,
-		"handleByteArray":   handleByteArrayTxt,
+		"handleSlice":       handleSliceTxt,
+		"handleByteSlice":   handleByteSliceTxt,
 		"handleBool":        handleBoolTxt,
 		"handlePtr":         handlePtrTxt,
 		"header":            headerTxt,
@@ -281,6 +282,62 @@ var handleArrayTxt = `
 {
 	{{$ic := .IC}}
 	{{getAllowTokens .Typ.Name "FFTok_left_brace" "FFTok_null"}}
+	{{if eq .Typ.Elem.Kind .Ptr}}
+		{{.Name}} = [{{.Typ.Len}}]*{{getType $ic .Name .Typ.Elem.Elem}}{}
+	{{else}}
+		{{.Name}} = [{{.Typ.Len}}]{{getType $ic .Name .Typ.Elem}}{}
+	{{end}}
+	if tok != fflib.FFTok_null {
+		wantVal := true
+
+		idx := 0
+		for {
+		{{$ptr := false}}
+		{{if eq .Typ.Elem.Kind .Ptr }}
+			{{$ptr := true}}
+			var v *{{getType $ic .Name .Typ.Elem.Elem}}
+		{{else}}
+			var v {{getType $ic .Name .Typ.Elem}}
+		{{end}}
+
+			tok = fs.Scan()
+			if tok == fflib.FFTok_error {
+				goto tokerror
+			}
+			if tok == fflib.FFTok_right_brace {
+				break
+			}
+
+			if tok == fflib.FFTok_comma {
+				if wantVal == true {
+					// TODO(pquerna): this isn't an ideal error message, this handles
+					// things like [,,,] as an array value.
+					return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+				}
+				continue
+			} else {
+				wantVal = true
+			}
+
+			{{handleField .IC "v" .Typ.Elem $ptr false}}
+
+			// Standard json.Unmarshal ignores elements out of array bounds,
+			// that what we do as well.
+			if idx < {{.Typ.Len}} {
+				{{.Name}}[idx] = v
+				idx++
+			}
+
+			wantVal = false
+		}
+	}
+}
+`
+
+var handleSliceTxt = `
+{
+	{{$ic := .IC}}
+	{{getAllowTokens .Typ.Name "FFTok_left_brace" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
@@ -330,7 +387,7 @@ var handleArrayTxt = `
 }
 `
 
-var handleByteArrayTxt = `
+var handleByteSliceTxt = `
 {
 	{{getAllowTokens .Typ.Name "FFTok_string" "FFTok_null"}}
 	if tok == fflib.FFTok_null {
