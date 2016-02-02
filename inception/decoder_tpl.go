@@ -352,13 +352,13 @@ var handleSliceTxt = `
 		wantVal := true
 
 		for {
-		{{$ptr := false}}
-		{{if eq .Typ.Elem.Kind .Ptr }}
-			{{$ptr := true}}
-			var v *{{getType $ic .Name .Typ.Elem.Elem}}
-		{{else}}
-			var v {{getType $ic .Name .Typ.Elem}}
-		{{end}}
+			{{$ptr := false}}
+			{{if eq .Typ.Elem.Kind .Ptr }}
+				{{$ptr := true}}
+				var v *{{getType $ic .Name .Typ.Elem.Elem}}
+			{{else}}
+				var v {{getType $ic .Name .Typ.Elem}}
+			{{end}}
 
 			tok = fs.Scan()
 			if tok == fflib.FFTok_error {
