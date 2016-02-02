@@ -578,6 +578,39 @@ type SXtime struct {
 	X []time.Time
 }
 
+// Nested
+// ffjson: skip
+type TMapStringMapString struct {
+	X map[string]map[string]string
+}
+type XMapStringMapString struct {
+	X map[string]map[string]string
+}
+
+// ffjson: skip
+type TMapStringAString struct {
+	X map[string][3]string
+}
+type XMapStringAString struct {
+	X map[string][3]string
+}
+
+// ffjson: skip
+type TSAAtring struct {
+	X [2][3]string
+}
+type XSAAtring struct {
+	X [2][3]string
+}
+
+// ffjson: skip
+type TSAString struct {
+	X [][3]string
+}
+type XSAString struct {
+	X [][3]string
+}
+
 // Tests from golang test suite
 type Optionals struct {
 	Sr string `json:"sr"`

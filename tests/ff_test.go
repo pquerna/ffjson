@@ -716,6 +716,22 @@ func TestSliceTime(t *testing.T) {
 	testType(t, &STtime{}, &SXtime{})
 }
 
+func TestTMapStringMapString(t *testing.T) {
+	testType(t, &TMapStringMapString{}, &XMapStringMapString{})
+}
+
+func TestTMapStringAString(t *testing.T) {
+	testType(t, &TMapStringAString{}, &XMapStringAString{})
+}
+
+func TestTSAAtring(t *testing.T) {
+	testType(t, &TSAAtring{}, &XSAAtring{})
+}
+
+func TestTSAString(t *testing.T) {
+	testType(t, &TSAString{}, &XSAString{})
+}
+
 func TestNoDecoder(t *testing.T) {
 	var test interface{} = &NoDecoder{}
 	if _, ok := test.(unmarshalFaster); ok {

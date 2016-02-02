@@ -50,6 +50,7 @@ func init() {
 		"handleField":     handleField,
 		"handleFieldAddr": handleFieldAddr,
 		"unquoteField":    unquoteField,
+		"getTmpVarFor":    getTmpVarFor,
 	}
 
 	for k, v := range funcs {
@@ -218,11 +219,12 @@ var handleObjectTxt = `
 		{{end}}
 
 		{{$valPtr := false}}
+		{{$tmpVar := getTmpVarFor .Name}}
 		{{if eq .Typ.Elem.Kind .Ptr }}
 			{{$valPtr := true}}
-			var v *{{getType $ic .Name .Typ.Elem.Elem}}
+			var {{$tmpVar}} *{{getType $ic .Name .Typ.Elem.Elem}}
 		{{else}}
-			var v {{getType $ic .Name .Typ.Elem}}
+			var {{$tmpVar}} {{getType $ic .Name .Typ.Elem}}
 		{{end}}
 
 			tok = fs.Scan()
@@ -253,12 +255,12 @@ var handleObjectTxt = `
 			}
 
 			tok = fs.Scan()
-			{{handleField .IC "v" .Typ.Elem $valPtr false}}
+			{{handleField .IC $tmpVar .Typ.Elem $valPtr false}}
 
 			{{if eq .TakeAddr true}}
-			tval[k] = v
+			tval[k] = {{$tmpVar}}
 			{{else}}
-			{{.Name}}[k] = v
+			{{.Name}}[k] = {{$tmpVar}}
 			{{end}}
 			wantVal = false
 		}
@@ -293,11 +295,12 @@ var handleArrayTxt = `
 		idx := 0
 		for {
 			{{$ptr := false}}
+			{{$tmpVar := getTmpVarFor .Name}}
 			{{if eq .Typ.Elem.Kind .Ptr }}
 				{{$ptr := true}}
-				var v *{{getType $ic .Name .Typ.Elem.Elem}}
+				var {{$tmpVar}} *{{getType $ic .Name .Typ.Elem.Elem}}
 			{{else}}
-				var v {{getType $ic .Name .Typ.Elem}}
+				var {{$tmpVar}} {{getType $ic .Name .Typ.Elem}}
 			{{end}}
 
 			tok = fs.Scan()
@@ -319,12 +322,12 @@ var handleArrayTxt = `
 				wantVal = true
 			}
 
-			{{handleField .IC "v" .Typ.Elem $ptr false}}
+			{{handleField .IC $tmpVar .Typ.Elem $ptr false}}
 
 			// Standard json.Unmarshal ignores elements out of array bounds,
 			// that what we do as well.
 			if idx < {{.Typ.Len}} {
-				{{.Name}}[idx] = v
+				{{.Name}}[idx] = {{$tmpVar}}
 				idx++
 			}
 
@@ -353,11 +356,12 @@ var handleSliceTxt = `
 
 		for {
 			{{$ptr := false}}
+			{{$tmpVar := getTmpVarFor .Name}}
 			{{if eq .Typ.Elem.Kind .Ptr }}
 				{{$ptr := true}}
-				var v *{{getType $ic .Name .Typ.Elem.Elem}}
+				var {{$tmpVar}} *{{getType $ic .Name .Typ.Elem.Elem}}
 			{{else}}
-				var v {{getType $ic .Name .Typ.Elem}}
+				var {{$tmpVar}} {{getType $ic .Name .Typ.Elem}}
 			{{end}}
 
 			tok = fs.Scan()
@@ -379,8 +383,8 @@ var handleSliceTxt = `
 				wantVal = true
 			}
 
-			{{handleField .IC "v" .Typ.Elem $ptr false}}
-			{{.Name}} = append({{.Name}}, v)
+			{{handleField .IC $tmpVar .Typ.Elem $ptr false}}
+			{{.Name}} = append({{.Name}}, {{$tmpVar}})
 			wantVal = false
 		}
 	}
