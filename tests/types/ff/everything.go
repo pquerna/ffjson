@@ -49,7 +49,8 @@ type Everything struct {
 	Uintptr          uintptr
 	Float32          float32
 	Float64          float64
-	Array            []int
+	Array            [2]int
+	Slice            []int
 	Map              map[string]int
 	String           string
 	StringPointer    *string
@@ -82,7 +83,8 @@ func NewEverything(e *Everything) {
 	e.Uintptr = 104
 	e.Float32 = 3.14
 	e.Float64 = 3.15
-	e.Array = []int{1, 2, 3}
+	e.Array = [2]int{11, 12}
+	e.Slice = []int{1, 2, 3}
 	e.Map = map[string]int{
 		"foo": 1,
 		"bar": 2,
