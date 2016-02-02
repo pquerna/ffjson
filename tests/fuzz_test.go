@@ -19,13 +19,14 @@ package tff
 
 import (
 	"encoding/json"
-	fuzz "github.com/google/gofuzz"
-	"github.com/stretchr/testify/require"
 	"math/rand"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
+
+	fuzz "github.com/google/gofuzz"
+	"github.com/stretchr/testify/require"
 )
 
 type Fuzz struct {
@@ -126,7 +127,7 @@ func fuzzTime(t *time.Time, c fuzz.Continue) {
 	*t = time.Unix(sec, nsec)
 }
 
-func fuzzTimeArray(t *[]time.Time, c fuzz.Continue) {
+func fuzzTimeSlice(t *[]time.Time, c fuzz.Continue) {
 	var i uint64
 	rv := make([]time.Time, 0)
 	count := c.RandUint64() % 50
@@ -378,7 +379,7 @@ func TestFuzzStringCycle(t *testing.T) {
 		testSameMarshal(t, &r, &rFF)
 
 		// Test for https://github.com/pquerna/ffjson/issues/80
-//		testCycle(t, &r, &rFF)
+		//		testCycle(t, &r, &rFF)
 	}
 }
 
@@ -405,7 +406,7 @@ func testTypeFuzzN(t *testing.T, base interface{}, ff interface{}, n int) {
 	f := fuzz.New()
 	f.NumElements(0, 1+n/40)
 	f.NilChance(0.2)
-	f.Funcs(fuzzTime, fuzzTimeArray)
+	f.Funcs(fuzzTime, fuzzTimeSlice)
 	for i := 0; i < n; i++ {
 		f.RandSource(rand.New(rand.NewSource(int64(i * 5275))))
 		f.Fuzz(base)
@@ -418,11 +419,19 @@ func testTypeFuzzN(t *testing.T, base interface{}, ff interface{}, n int) {
 }
 
 func TestFuzzArray(t *testing.T) {
-	testTypeFuzz(t, &Tarray{X: []int{}}, &Xarray{X: []int{}})
+	testTypeFuzz(t, &Tarray{X: [3]int{}}, &Xarray{X: [3]int{}})
 }
 
 func TestFuzzArrayPtr(t *testing.T) {
-	testTypeFuzz(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{X: []*int{}})
+	testTypeFuzz(t, &TarrayPtr{X: [3]*int{}}, &XarrayPtr{X: [3]*int{}})
+}
+
+func TestFuzzSlice(t *testing.T) {
+	testTypeFuzz(t, &Tslice{X: []int{}}, &Xslice{X: []int{}})
+}
+
+func TestFuzzSlicePtr(t *testing.T) {
+	testTypeFuzz(t, &TslicePtr{X: []*int{}}, &XslicePtr{X: []*int{}})
 }
 
 func TestFuzzTimeDuration(t *testing.T) {
@@ -561,6 +570,74 @@ func TestFuzzArrayFloat64(t *testing.T) {
 
 func TestFuzzArrayTime(t *testing.T) {
 	testTypeFuzz(t, &ATtime{}, &AXtime{})
+}
+
+func TestFuzzSliceTimeDuration(t *testing.T) {
+	testTypeFuzz(t, &STduration{}, &SXduration{})
+}
+
+func TestFuzzSliceBool(t *testing.T) {
+	testTypeFuzz(t, &STbool{}, &SXbool{})
+}
+
+func TestFuzzSliceInt(t *testing.T) {
+	testTypeFuzz(t, &STint{}, &SXint{})
+}
+
+func TestFuzzSliceByte(t *testing.T) {
+	testTypeFuzz(t, &STbyte{}, &SXbyte{})
+}
+
+func TestFuzzSliceInt8(t *testing.T) {
+	testTypeFuzz(t, &STint8{}, &SXint8{})
+}
+
+func TestFuzzSliceInt16(t *testing.T) {
+	testTypeFuzz(t, &STint16{}, &SXint16{})
+}
+
+func TestFuzzSliceInt32(t *testing.T) {
+	testTypeFuzz(t, &STint32{}, &SXint32{})
+}
+
+func TestFuzzSliceInt64(t *testing.T) {
+	testTypeFuzz(t, &STint64{}, &SXint64{})
+}
+
+func TestFuzzSliceUint(t *testing.T) {
+	testTypeFuzz(t, &STuint{}, &SXuint{})
+}
+
+func TestFuzzSliceUint8(t *testing.T) {
+	testTypeFuzz(t, &STuint8{}, &SXuint8{})
+}
+
+func TestFuzzSliceUint16(t *testing.T) {
+	testTypeFuzz(t, &STuint16{}, &SXuint16{})
+}
+
+func TestFuzzSliceUint32(t *testing.T) {
+	testTypeFuzz(t, &STuint32{}, &SXuint32{})
+}
+
+func TestFuzzSliceUint64(t *testing.T) {
+	testTypeFuzz(t, &STuint64{}, &SXuint64{})
+}
+
+func TestFuzzSliceUintptr(t *testing.T) {
+	testTypeFuzz(t, &STuintptr{}, &SXuintptr{})
+}
+
+func TestFuzzSliceFloat32(t *testing.T) {
+	testTypeFuzz(t, &STfloat32{}, &SXfloat32{})
+}
+
+func TestFuzzSliceFloat64(t *testing.T) {
+	testTypeFuzz(t, &STfloat64{}, &SXfloat64{})
+}
+
+func TestFuzzSliceTime(t *testing.T) {
+	testTypeFuzz(t, &STtime{}, &SXtime{})
 }
 
 func TestFuzzI18nName(t *testing.T) {

@@ -428,21 +428,39 @@ func getXValue(thing interface{}) interface{} {
 }
 
 func TestArray(t *testing.T) {
-	testType(t, &Tarray{X: []int{}}, &Xarray{X: []int{}})
-	testCycle(t, &Tarray{X: []int{42, -42, 44}}, &Xarray{X: []int{}})
+	testType(t, &Tarray{X: [3]int{}}, &Xarray{X: [3]int{}})
+	testCycle(t, &Tarray{X: [3]int{42, -42, 44}}, &Xarray{X: [3]int{}})
 
-	x := Xarray{X: []int{222}}
+	x := Xarray{X: [3]int{222}}
 	buf := []byte(`{"X": null}`)
 	err := json.Unmarshal(buf, &x)
 	require.NoError(t, err, "Unmarshal of null into array.")
-	var eq []int = nil
+	var eq [3]int = [3]int{}
 	require.Equal(t, x.X, eq)
 }
 
 func TestArrayPtr(t *testing.T) {
-	testType(t, &TarrayPtr{X: []*int{}}, &XarrayPtr{X: []*int{}})
+	testType(t, &TarrayPtr{X: [3]*int{}}, &XarrayPtr{X: [3]*int{}})
 	v := 33
-	testCycle(t, &TarrayPtr{X: []*int{&v}}, &XarrayPtr{X: []*int{}})
+	testCycle(t, &TarrayPtr{X: [3]*int{&v}}, &XarrayPtr{X: [3]*int{}})
+}
+
+func TestSlice(t *testing.T) {
+	testType(t, &Tslice{X: []int{}}, &Xslice{X: []int{}})
+	testCycle(t, &Tslice{X: []int{42, -42, 44}}, &Xslice{X: []int{}})
+
+	x := Xslice{X: []int{222}}
+	buf := []byte(`{"X": null}`)
+	err := json.Unmarshal(buf, &x)
+	require.NoError(t, err, "Unmarshal of null into slice.")
+	var eq []int = nil
+	require.Equal(t, x.X, eq)
+}
+
+func TestSlicePtr(t *testing.T) {
+	testType(t, &TslicePtr{X: []*int{}}, &XslicePtr{X: []*int{}})
+	v := 33
+	testCycle(t, &TslicePtr{X: []*int{&v}}, &XslicePtr{X: []*int{}})
 }
 
 func TestTimeDuration(t *testing.T) {
@@ -631,6 +649,71 @@ func TestArrayFloat64(t *testing.T) {
 
 func TestArrayTime(t *testing.T) {
 	testType(t, &ATtime{}, &AXtime{})
+}
+
+// Test slices
+func TestSliceBool(t *testing.T) {
+	testType(t, &STbool{}, &SXbool{})
+}
+
+func TestSliceInt(t *testing.T) {
+	testType(t, &STint{}, &SXint{})
+}
+
+func TestSliceByte(t *testing.T) {
+	testType(t, &STbyte{}, &SXbyte{})
+}
+
+func TestSliceInt8(t *testing.T) {
+	testType(t, &STint8{}, &SXint8{})
+}
+
+func TestSliceInt16(t *testing.T) {
+	testType(t, &STint16{}, &SXint16{})
+}
+
+func TestSliceInt32(t *testing.T) {
+	testType(t, &STint32{}, &SXint32{})
+}
+
+func TestSliceInt64(t *testing.T) {
+	testType(t, &STint64{}, &SXint64{})
+}
+
+func TestSliceUint(t *testing.T) {
+	testType(t, &STuint{}, &SXuint{})
+}
+
+func TestSliceUint8(t *testing.T) {
+	testType(t, &STuint8{}, &SXuint8{})
+}
+
+func TestSliceUint16(t *testing.T) {
+	testType(t, &STuint16{}, &SXuint16{})
+}
+
+func TestSliceUint32(t *testing.T) {
+	testType(t, &STuint32{}, &SXuint32{})
+}
+
+func TestSliceUint64(t *testing.T) {
+	testType(t, &STuint64{}, &SXuint64{})
+}
+
+func TestSliceUintptr(t *testing.T) {
+	testType(t, &STuintptr{}, &SXuintptr{})
+}
+
+func TestSliceFloat32(t *testing.T) {
+	testType(t, &STfloat32{}, &SXfloat32{})
+}
+
+func TestSliceFloat64(t *testing.T) {
+	testType(t, &STfloat64{}, &SXfloat64{})
+}
+
+func TestSliceTime(t *testing.T) {
+	testType(t, &STtime{}, &SXtime{})
 }
 
 func TestNoDecoder(t *testing.T) {
