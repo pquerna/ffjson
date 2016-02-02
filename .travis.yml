@@ -9,7 +9,4 @@ install:
 script: make clean && make test && make test
 
 go:
-  - 1.2
-  - 1.3
-  - 1.4
-  - tip
+  - 1.5
