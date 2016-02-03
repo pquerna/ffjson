@@ -57,6 +57,8 @@ type Everything struct {
 	Int64Pointer     *int64
 	FooStruct        *Foo
 	MySweetInterface SweetInterface
+	MapMap           map[string]map[string]string
+	MapArraySlice    map[string][3][]int
 	nonexported
 }
 
@@ -93,4 +95,16 @@ func NewEverything(e *Everything) {
 	e.FooStruct = &Foo{Bar: 1}
 	e.Something = 99
 	e.MySweetInterface = &Cats{}
+	e.MapMap = map[string]map[string]string{
+		"a": map[string]string{"b": "2", "c": "3", "d": "4"},
+		"e": map[string]string{},
+		"f": map[string]string{"g": "9"},
+	}
+	e.MapArraySlice = map[string][3][]int{
+		"a": [3][]int{
+			0: []int{1, 2, 3},
+			1: []int{},
+			2: []int{4},
+		},
+	}
 }

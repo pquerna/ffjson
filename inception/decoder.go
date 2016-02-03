@@ -20,6 +20,7 @@ package ffjsoninception
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/pquerna/ffjson/shared"
 )
@@ -287,4 +288,8 @@ func unquoteField(quoted bool) string {
 		`
 	}
 	return ""
+}
+
+func getTmpVarFor(name string) string {
+	return "tmp_" + strings.Replace(name, ".", "__", -1)
 }
