@@ -53,7 +53,7 @@ func (r *ffReader) Reset(d []byte) {
 
 // Calcuates the Position with line and line offset,
 // because this isn't counted for performance reasons,
-// it will iterate the buffer from the begining, and should
+// it will iterate the buffer from the beginning, and should
 // only be used in error-paths.
 func (r *ffReader) PosWithLine() (int, int) {
 	currentLine := 1
