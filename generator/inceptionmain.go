@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"go/format"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,6 +91,7 @@ type InceptionMain struct {
 	exposePath   string
 	outputPath   string
 	TempMainPath string
+	tempDir      string
 	tempMain     *os.File
 	tempExpose   *os.File
 }
@@ -161,9 +163,14 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importNa
 		}
 	}
 
+	im.tempDir, err = ioutil.TempDir(filepath.Dir(im.inputPath), "ffjson-inception")
+	if err != nil {
+		return err
+	}
+
 	importName = filepath.ToSlash(importName)
 	// for `go run` to work, we must have a file ending in ".go".
-	im.tempMain, err = TempFileWithPostfix("", "ffjson-inception", ".go")
+	im.tempMain, err = TempFileWithPostfix(im.tempDir, "ffjson-inception", ".go")
 	if err != nil {
 		return err
 	}
@@ -234,6 +241,7 @@ func (im *InceptionMain) Run() error {
 
 		os.Remove(im.TempMainPath)
 		os.Remove(im.exposePath)
+		os.Remove(im.tempDir)
 	}()
 
 	return nil
