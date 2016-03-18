@@ -61,7 +61,7 @@ func Marshal(v interface{}) ([]byte, error) {
 	return json.Marshal(v)
 }
 
-// MarshalFast will unmarshal the data if fast marshall is available.
+// MarshalFast will marshal the data if fast marshal is available.
 // This function can be used if you want to be sure the fast
 // marshal is used or in testing.
 // If you would like to have fallback to encoding/json you can use the
