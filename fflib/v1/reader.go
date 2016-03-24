@@ -40,6 +40,10 @@ func newffReader(d []byte) *ffReader {
 	}
 }
 
+func (r *ffReader) Slice(start, stop int) []byte {
+	return r.s[start:stop]
+}
+
 func (r *ffReader) Pos() int {
 	return r.i
 }

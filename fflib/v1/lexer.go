@@ -188,6 +188,7 @@ func (ffl *FFLexer) unreadByte() {
 }
 
 func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
+	startPos := ffl.reader.Pos()
 	for _, b := range want {
 		c, err := ffl.readByte()
 
@@ -202,10 +203,10 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 			ffl.Error = FFErr_invalid_string
 			return FFTok_error
 		}
-
-		ffl.Output.WriteByte(c)
 	}
 
+	endPos := ffl.reader.Pos()
+	ffl.Output.Write(ffl.reader.Slice(startPos, endPos))
 	return iftrue
 }
 
@@ -284,6 +285,7 @@ func (ffl *FFLexer) lexString() FFTok {
 func (ffl *FFLexer) lexNumber() FFTok {
 	var numRead int = 0
 	tok := FFTok_integer
+	startPos := ffl.reader.Pos()
 
 	c, err := ffl.readByte()
 	if err != nil {
@@ -292,7 +294,6 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	/* optional leading minus */
 	if c == '-' {
-		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
@@ -301,14 +302,12 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	/* a single zero, or a series of integers */
 	if c == '0' {
-		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
 		}
 	} else if c >= '1' && c <= '9' {
 		for c >= '0' && c <= '9' {
-			ffl.Output.WriteByte(c)
 			c, err = ffl.readByte()
 			if err != nil {
 				return FFTok_error
@@ -322,14 +321,12 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	if c == '.' {
 		numRead = 0
-		ffl.Output.WriteByte(c)
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
 		}
 
 		for c >= '0' && c <= '9' {
-			ffl.Output.WriteByte(c)
 			numRead++
 			c, err = ffl.readByte()
 			if err != nil {
@@ -350,8 +347,6 @@ func (ffl *FFLexer) lexNumber() FFTok {
 	/* optional exponent (indicates this is floating point) */
 	if c == 'e' || c == 'E' {
 		numRead = 0
-		ffl.Output.WriteByte(c)
-
 		c, err = ffl.readByte()
 		if err != nil {
 			return FFTok_error
@@ -359,7 +354,6 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 		/* optional sign */
 		if c == '+' || c == '-' {
-			ffl.Output.WriteByte(c)
 			c, err = ffl.readByte()
 			if err != nil {
 				return FFTok_error
@@ -367,7 +361,6 @@ func (ffl *FFLexer) lexNumber() FFTok {
 		}
 
 		for c >= '0' && c <= '9' {
-			ffl.Output.WriteByte(c)
 			numRead++
 			c, err = ffl.readByte()
 			if err != nil {
@@ -385,6 +378,8 @@ func (ffl *FFLexer) lexNumber() FFTok {
 
 	ffl.unreadByte()
 
+	endPos := ffl.reader.Pos()
+	ffl.Output.Write(ffl.reader.Slice(startPos, endPos))
 	return tok
 }
 
