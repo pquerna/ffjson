@@ -17,6 +17,65 @@
 
 package ff
 
+import (
+	"regexp"
+	"runtime"
+	"strconv"
+)
+
+var ExpectedSomethingValue int8
+var GoLangVersionPre16 bool
+
+func init() {
+	// since go1.6 reflect package changed behaivour:
+	//
+	// --------
+	// https://tip.golang.org/doc/go1.6
+	//
+	// The reflect package has resolved a long-standing incompatibility between
+	// the gc and gccgo toolchains regarding embedded unexported struct types
+	// containing exported fields. Code that walks data structures using
+	// reflection, especially to implement serialization in the spirit of the
+	// encoding/json and encoding/xml packages, may need to be updated.
+	//
+	// The problem arises when using reflection to walk through an embedded
+	// unexported struct-typed field into an exported field of that struct. In
+	// this case, reflect had incorrectly reported the embedded field as exported,
+	// by returning an empty Field.PkgPath. Now it correctly reports the field as
+	// unexported but ignores that fact when evaluating access to exported fields
+	// contained within the struct.
+	//
+	// Updating: Typically, code that previously walked over structs and used
+	//
+	// f.PkgPath != ""
+	// to exclude inaccessible fields should now use
+	//
+	// f.PkgPath != "" && !f.Anonymous
+	// For example, see the changes to the implementations of encoding/json and
+	// encoding/xml.
+	//
+	// --------
+	//
+	// I didn't find better option to get Go's version rather then parsing
+	// runtime.Version(). Godoc say that Version() can return multiple things:
+	//
+	// Version returns the Go tree's version string. It is either the commit
+	// hash and date at the time of the build or, when possible, a release tag
+	// like "go1.3".
+	//
+	// So, I'll assumes that if Version() returns not a release tag, running
+	// version is younger then 1.5. Patches welcome :-)
+
+	versionRegexp := regexp.MustCompile("^go[0-9]+\\.([0-9]+)")
+	if res := versionRegexp.FindStringSubmatch(runtime.Version()); len(res) > 1 {
+		if i, _ := strconv.Atoi(res[1]); i < 6 {
+			// pre go1.6
+			GoLangVersionPre16 = true
+			ExpectedSomethingValue = 99
+		}
+	}
+}
+
 type SweetInterface interface {
 	Cats() int
 }
@@ -93,7 +152,7 @@ func NewEverything(e *Everything) {
 	}
 	e.String = "snowman->☃"
 	e.FooStruct = &Foo{Bar: 1}
-	e.Something = 99
+	e.Something = ExpectedSomethingValue
 	e.MySweetInterface = &Cats{}
 	e.MapMap = map[string]map[string]string{
 		"a": map[string]string{"b": "2", "c": "3", "d": "4"},
