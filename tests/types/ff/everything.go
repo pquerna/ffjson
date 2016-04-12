@@ -21,6 +21,8 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+
+	"z" // embed stuff pkg
 )
 
 var ExpectedSomethingValue int8
@@ -93,6 +95,7 @@ type Embed struct {
 }
 
 type Everything struct {
+	z.VendorStruct
 	Embed
 	Bool             bool
 	Int              int
@@ -130,6 +133,7 @@ type Foo struct {
 }
 
 func NewEverything(e *Everything) {
+	e.VendorStructBool = true
 	e.SuperBool = true
 	e.Bool = true
 	e.Int = 1
