@@ -119,7 +119,6 @@ type Everything struct {
 	MapMap           map[string]map[string]string
 	MapArraySlice    map[string][3][]int
 	nonexported
-	NoFF
 }
 
 type nonexported struct {
@@ -128,12 +127,6 @@ type nonexported struct {
 
 type Foo struct {
 	Bar int
-}
-
-// ffjson: skip
-type NoFF struct {
-    Foo
-    Baz int
 }
 
 func NewEverything(e *Everything) {
@@ -173,6 +166,4 @@ func NewEverything(e *Everything) {
 			2: []int{4},
 		},
 	}
-    e.NoFF.Foo.Bar = 1
-    e.NoFF.Baz = 1
 }
