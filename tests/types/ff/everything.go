@@ -21,8 +21,6 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
-
-	"z" // embed stuff pkg
 )
 
 var ExpectedSomethingValue int8
@@ -121,7 +119,7 @@ type Everything struct {
 	MapMap           map[string]map[string]string
 	MapArraySlice    map[string][3][]int
 	nonexported
-	z.VendorStruct
+	NoFF
 }
 
 type nonexported struct {
@@ -132,8 +130,13 @@ type Foo struct {
 	Bar int
 }
 
+// ffjson: skip
+type NoFF struct {
+    Foo
+    Baz int
+}
+
 func NewEverything(e *Everything) {
-	e.VendorStructBool = true
 	e.SuperBool = true
 	e.Bool = true
 	e.Int = 1
@@ -170,4 +173,6 @@ func NewEverything(e *Everything) {
 			2: []int{4},
 		},
 	}
+    e.NoFF.Foo.Bar = 1
+    e.NoFF.Baz = 1
 }

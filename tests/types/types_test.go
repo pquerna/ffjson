@@ -102,7 +102,11 @@ const (
   "FooStruct": {
     "Bar": 1
   },
-  "Something": 99
+  "Something": 99,
+  "NoFF": {
+      "Foo": 1,
+      "Baz": 1
+  }
 }`
 )
 
