@@ -72,7 +72,6 @@ func TestUnmarshalEmpty(t *testing.T) {
 
 const (
 	everythingJson = `{
-  "VendorStructBool": true,
   "Bool": true,
   "Int": 1,
   "Int8": 2,
@@ -106,7 +105,6 @@ const (
 }`
 
 NoFFJSON = `{
-  "VendorStructBool": true,
   "Bool": true,
   "Int": 1,
   "Int8": 2,
