@@ -95,7 +95,6 @@ type Embed struct {
 }
 
 type Everything struct {
-	z.VendorStruct
 	Embed
 	Bool             bool
 	Int              int
@@ -122,6 +121,7 @@ type Everything struct {
 	MapMap           map[string]map[string]string
 	MapArraySlice    map[string][3][]int
 	nonexported
+	z.VendorStruct
 }
 
 type nonexported struct {
