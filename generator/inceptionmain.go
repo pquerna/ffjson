@@ -112,7 +112,11 @@ func getImportName(inputPath string) (string, error) {
 		return "", err
 	}
 
-	dpath := filepath.Dir(p)
+	dir := filepath.Dir(p)
+	dpath, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Could not evaluate %s: %s", dir, err.Error()))
+	}
 
 	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
