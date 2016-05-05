@@ -75,10 +75,11 @@ type DecodingBuffer interface {
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
 // The zero value for Buffer is an empty buffer ready to use.
 type Buffer struct {
-	buf       []byte            // contents are the bytes buf[off : len(buf)]
-	off       int               // read at &buf[off], write at &buf[len(buf)]
-	runeBytes [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
-	encoder   *json.Encoder
+	buf              []byte            // contents are the bytes buf[off : len(buf)]
+	off              int               // read at &buf[off], write at &buf[len(buf)]
+	runeBytes        [utf8.UTFMax]byte // avoid allocation of slice on each WriteByte or Rune
+	encoder          *json.Encoder
+	skipTrailingByte bool
 }
 
 // ErrTooLarge is passed to panic if memory cannot be allocated to store data in a buffer.
@@ -173,6 +174,9 @@ func (b *Buffer) Grow(n int) {
 // needed. The return value n is the length of p; err is always nil. If the
 // buffer becomes too large, Write will panic with ErrTooLarge.
 func (b *Buffer) Write(p []byte) (n int, err error) {
+	if b.skipTrailingByte {
+		p = p[:len(p)-1]
+	}
 	m := b.grow(len(p))
 	return copy(b.buf[m:], p), nil
 }
@@ -273,7 +277,10 @@ func (b *Buffer) Encode(v interface{}) error {
 	if b.encoder == nil {
 		b.encoder = json.NewEncoder(b)
 	}
-	return b.encoder.Encode(v)
+	b.skipTrailingByte = true
+	err := b.encoder.Encode(v)
+	b.skipTrailingByte = false
+	return err
 }
 
 // WriteRune appends the UTF-8 encoding of Unicode code point r to the
