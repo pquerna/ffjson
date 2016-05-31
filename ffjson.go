@@ -32,7 +32,7 @@ import (
 var outputPathFlag      = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
 var goCmdFlag           = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
 var importNameFlag      = flag.String("import-name", "", "Override import name in case it cannot be detected.")
-var forceRegenerateFlag = flag.Bool("force-regenerate", false, "Regenerate every input file, without cheching modification date.")
+var forceRegenerateFlag = flag.Bool("force-regenerate", false, "Regenerate every input file, without checking modification date.")
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
