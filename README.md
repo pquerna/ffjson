@@ -76,7 +76,7 @@ You can also disable encoders/decoders entirely for a file by using the `-noenco
 
 ## Using ffjson with `go generate`
 
-`ffjson` is a great fit with `go generate`. It allows you to specify the ffjson command inside inside your individual go files and run them all at once. This way you don't have to maintain a separate build file with the files you need to generate.
+`ffjson` is a great fit with `go generate`. It allows you to specify the ffjson command inside your individual go files and run them all at once. This way you don't have to maintain a separate build file with the files you need to generate.
 
 Add this comment anywhere inside your go files:
 
