@@ -143,13 +143,25 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		out += getArrayHandler(ic, name, typ)
 
 	case reflect.String:
-		out += tplStr(decodeTpl["handleString"], handleString{
-			IC:       ic,
-			Name:     name,
-			Typ:      typ,
-			TakeAddr: takeAddr || ptr,
-			Quoted:   quoted,
-		})
+		// Is it a json.Number?
+		if typ.PkgPath() == "encoding/json" && typ.Name() == "Number" {
+			// Fall back to json package to rely on the valid number check.
+			// See: https://github.com/golang/go/blob/f05c3aa24d815cd3869153750c9875e35fc48a6e/src/encoding/json/decode.go#L897
+			ic.OutputImports[`"encoding/json"`] = true
+			out += tplStr(decodeTpl["handleFallback"], handleFallback{
+				Name: name,
+				Typ:  typ,
+				Kind: typ.Kind(),
+			})
+		} else {
+			out += tplStr(decodeTpl["handleString"], handleString{
+				IC:       ic,
+				Name:     name,
+				Typ:      typ,
+				TakeAddr: takeAddr || ptr,
+				Quoted:   quoted,
+			})
+		}
 	case reflect.Interface:
 		ic.OutputImports[`"encoding/json"`] = true
 		out += tplStr(decodeTpl["handleFallback"], handleFallback{
