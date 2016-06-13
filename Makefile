@@ -30,6 +30,7 @@ ffize: install
 	ffjson tests/goser/ff/goser.go
 	ffjson tests/go.stripe/ff/customer.go
 	ffjson tests/types/ff/everything.go
+	ffjson tests/number/ff/number.go
 
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests

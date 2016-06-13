@@ -223,6 +223,7 @@ Please [open issues in Github](https://github.com/pquerna/ffjson/issues) for ide
 
 * [Klaus Post](https://github.com/klauspost)
 * [Paul Querna](https://github.com/pquerna) 
+* [Erik Dubbelboer](https://github.com/erikdubbelboer)
 
 ## License
 

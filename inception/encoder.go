@@ -224,16 +224,27 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			out += "}" + "\n"
 		}
 	case reflect.String:
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
-		if forceString {
-			// Forcestring on strings does double-escaping of the entire value.
-			// We create a temporary buffer, encode to that an re-encode it.
-			out += "tmpbuf := fflib.Buffer{}" + "\n"
-			out += "tmpbuf.Grow(len(" + ptname + ") + 16)" + "\n"
-			out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "))" + "\n"
-			out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `))` + "\n"
+		// Is it a json.Number?
+		if typ.PkgPath() == "encoding/json" && typ.Name() == "Number" {
+			// Fall back to json package to rely on the valid number check.
+			// See: https://github.com/golang/go/blob/92cd6e3af9f423ab4d8ac78f24e7fd81c31a8ce6/src/encoding/json/encode.go#L550
+			out += fmt.Sprintf("/* json.Number */\n")
+			out += "err = buf.Encode(" + name + ")" + "\n"
+			out += "if err != nil {" + "\n"
+			out += "  return err" + "\n"
+			out += "}" + "\n"
 		} else {
-			out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
+			ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+			if forceString {
+				// Forcestring on strings does double-escaping of the entire value.
+				// We create a temporary buffer, encode to that an re-encode it.
+				out += "tmpbuf := fflib.Buffer{}" + "\n"
+				out += "tmpbuf.Grow(len(" + ptname + ") + 16)" + "\n"
+				out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "))" + "\n"
+				out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `))` + "\n"
+			} else {
+				out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
+			}
 		}
 	case reflect.Ptr:
 		out += "if " + name + "!= nil {" + "\n"
