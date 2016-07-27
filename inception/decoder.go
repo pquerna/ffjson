@@ -140,7 +140,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 
 	case reflect.Array,
 		reflect.Slice:
-		out += getArrayHandler(ic, name, typ)
+		out += getArrayHandler(ic, name, typ, ptr)
 
 	case reflect.String:
 		// Is it a json.Number?
@@ -189,7 +189,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 	return out
 }
 
-func getArrayHandler(ic *Inception, name string, typ reflect.Type) string {
+func getArrayHandler(ic *Inception, name string, typ reflect.Type, ptr bool) string {
 	if typ.Kind() == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
 		ic.OutputImports[`"encoding/base64"`] = true
 		useReflectToSet := false
@@ -230,6 +230,7 @@ sliceOrArray:
 			IC:   ic,
 			Name: name,
 			Typ:  typ,
+			IsPtr: ptr,
 			Ptr:  reflect.Ptr,
 		})
 	}
@@ -238,6 +239,7 @@ sliceOrArray:
 		IC:   ic,
 		Name: name,
 		Typ:  typ,
+		IsPtr: ptr,
 		Ptr:  reflect.Ptr,
 	})
 }

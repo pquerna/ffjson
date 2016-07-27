@@ -278,6 +278,7 @@ type handleArray struct {
 	Typ             reflect.Type
 	Ptr             reflect.Kind
 	UseReflectToSet bool
+	IsPtr bool
 }
 
 var handleArrayTxt = `
@@ -344,12 +345,18 @@ var handleSliceTxt = `
 	if tok == fflib.FFTok_null {
 		{{.Name}} = nil
 	} else {
-
-
 		{{if eq .Typ.Elem.Kind .Ptr }}
-			{{.Name}} = make([]*{{getType $ic .Name .Typ.Elem.Elem}}, 0)
+			{{if eq .IsPtr true}}
+				{{.Name}} = &[]*{{getType $ic .Name .Typ.Elem.Elem}}{}
+			{{else}}
+				{{.Name}} = []*{{getType $ic .Name .Typ.Elem.Elem}}{}
+			{{end}}
 		{{else}}
-			{{.Name}} = make([]{{getType $ic .Name .Typ.Elem}}, 0)
+			{{if eq .IsPtr true}}
+				{{.Name}} = &[]{{getType $ic .Name .Typ.Elem}}{}
+			{{else}}
+				{{.Name}} = []{{getType $ic .Name .Typ.Elem}}{}
+			{{end}}
 		{{end}}
 
 		wantVal := true
@@ -384,7 +391,11 @@ var handleSliceTxt = `
 			}
 
 			{{handleField .IC $tmpVar .Typ.Elem $ptr false}}
-			{{.Name}} = append({{.Name}}, {{$tmpVar}})
+			{{if eq .IsPtr true}}
+				*{{.Name}} = append(*{{.Name}}, {{$tmpVar}})
+			{{else}}
+				{{.Name}} = append({{.Name}}, {{$tmpVar}})
+			{{end}}
 			wantVal = false
 		}
 	}

@@ -110,6 +110,7 @@ type Everything struct {
 	Float64          float64
 	Array            [2]int
 	Slice            []int
+	SlicePointer     *[]string
 	Map              map[string]int
 	String           string
 	StringPointer    *string
@@ -146,6 +147,7 @@ func NewEverything(e *Everything) {
 	e.Float64 = 3.15
 	e.Array = [2]int{11, 12}
 	e.Slice = []int{1, 2, 3}
+	e.SlicePointer = &[]string{"a", "b"}
 	e.Map = map[string]int{
 		"foo": 1,
 		"bar": 2,

@@ -210,7 +210,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			out += "buf.WriteString(`\"`)" + "\n"
 		} else {
 			out += "buf.WriteString(`[`)" + "\n"
-			out += "for i, v := range " + name + "{" + "\n"
+			out += "for i, v := range " + ptname + "{" + "\n"
 			out += "if i != 0 {" + "\n"
 			out += "buf.WriteString(`,`)" + "\n"
 			out += "}" + "\n"
