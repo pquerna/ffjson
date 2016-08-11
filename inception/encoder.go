@@ -238,10 +238,12 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			if forceString {
 				// Forcestring on strings does double-escaping of the entire value.
 				// We create a temporary buffer, encode to that an re-encode it.
+				out += "{" + "\n"
 				out += "tmpbuf := fflib.Buffer{}" + "\n"
 				out += "tmpbuf.Grow(len(" + ptname + ") + 16)" + "\n"
 				out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "))" + "\n"
 				out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `))` + "\n"
+				out += "}" + "\n"
 			} else {
 				out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
 			}
