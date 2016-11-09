@@ -52,6 +52,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 		SI:          si,
 		IC:          ic,
 		ValidValues: validValues,
+		ResetFields: ic.ResetFields,
 	})
 
 	ic.OutputFuncs = append(ic.OutputFuncs, out)
@@ -227,20 +228,20 @@ sliceOrArray:
 
 	if typ.Kind() == reflect.Array {
 		return tplStr(decodeTpl["handleArray"], handleArray{
-			IC:   ic,
-			Name: name,
-			Typ:  typ,
+			IC:    ic,
+			Name:  name,
+			Typ:   typ,
 			IsPtr: ptr,
-			Ptr:  reflect.Ptr,
+			Ptr:   reflect.Ptr,
 		})
 	}
 
 	return tplStr(decodeTpl["handleSlice"], handleArray{
-		IC:   ic,
-		Name: name,
-		Typ:  typ,
+		IC:    ic,
+		Name:  name,
+		Typ:   typ,
 		IsPtr: ptr,
-		Ptr:  reflect.Ptr,
+		Ptr:   reflect.Ptr,
 	})
 }
 

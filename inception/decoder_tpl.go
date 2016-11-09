@@ -19,6 +19,7 @@ package ffjsoninception
 
 import (
 	"reflect"
+	"strconv"
 	"text/template"
 )
 
@@ -278,7 +279,7 @@ type handleArray struct {
 	Typ             reflect.Type
 	Ptr             reflect.Kind
 	UseReflectToSet bool
-	IsPtr bool
+	IsPtr           bool
 }
 
 var handleArrayTxt = `
@@ -521,6 +522,7 @@ type ujFunc struct {
 	IC          *Inception
 	SI          *StructInfo
 	ValidValues []string
+	ResetFields bool
 }
 
 var ujFuncTxt = `
@@ -538,6 +540,12 @@ func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFPa
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
+
+				{{if eq .ResetFields true}}
+				{{range $index, $field := $si.Fields}}
+				var ffj_set_{{$si.Name}}_{{$field.Name}} = false
+ 				{{end}}
+				{{end}}
 
 mainparse:
 	for {
@@ -635,11 +643,13 @@ mainparse:
 			}
 		}
 	}
-
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
 		{{handleField $ic $fieldName $field.Typ $field.Pointer $field.ForceString}}
+		{{if eq $.ResetFields true}}
+		ffj_set_{{$si.Name}}_{{$field.Name}} = true
+		{{end}}
 		state = fflib.FFParse_after_value
 		goto mainparse
 	{{end}}
@@ -659,9 +669,35 @@ tokerror:
 	}
 	panic("ffjson-generated: unreachable, please report bug.")
 done:
+{{if eq .ResetFields true}}
+{{range $index, $field := $si.Fields}}
+	if !ffj_set_{{$si.Name}}_{{$field.Name}} {
+	{{with $fieldName := $field.Name | printf "uj.%s"}}
+	{{if eq $field.Pointer true}}
+		{{$fieldName}} = nil
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Interface), 10) + `}}
+		{{$fieldName}} = nil
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Slice), 10) + `}}
+		{{$fieldName}} = nil
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Array), 10) + `}}
+		{{$fieldName}} = [{{$field.Typ.Len}}]{{getType $ic $fieldName $field.Typ.Elem}}{}
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Map), 10) + `}}
+		{{$fieldName}} = nil
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Bool), 10) + `}}
+		{{$fieldName}} = false
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.String), 10) + `}}
+		{{$fieldName}} = ""
+	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Struct), 10) + `}}
+		{{$fieldName}} = {{getType $ic $fieldName $field.Typ}}{}
+	{{else}}
+		{{$fieldName}} = {{getType $ic $fieldName $field.Typ}}(0)
+	{{end}}
+	{{end}}
+	}
+{{end}}
+{{end}}
 	return nil
 }
-
 `
 
 type handleUnmarshaler struct {

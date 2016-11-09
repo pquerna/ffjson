@@ -29,10 +29,11 @@ import (
 	"regexp"
 )
 
-var outputPathFlag      = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
-var goCmdFlag           = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
-var importNameFlag      = flag.String("import-name", "", "Override import name in case it cannot be detected.")
+var outputPathFlag = flag.String("w", "", "Write generate code to this path instead of ${input}_ffjson.go.")
+var goCmdFlag = flag.String("go-cmd", "", "Path to go command; Useful for `goapp` support.")
+var importNameFlag = flag.String("import-name", "", "Override import name in case it cannot be detected.")
 var forceRegenerateFlag = flag.Bool("force-regenerate", false, "Regenerate every input file, without checking modification date.")
+var resetFields = flag.Bool("reset-fields", false, "When unmarshalling reset all fields missing in the JSON")
 
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage of %s:\n\n", os.Args[0])
@@ -73,7 +74,7 @@ func main() {
 		importName = *importNameFlag
 	}
 
-	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName, *forceRegenerateFlag)
+	err := generator.GenerateFiles(goCmd, inputPath, outputPath, importName, *forceRegenerateFlag, *resetFields)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s:\n\n", err)
