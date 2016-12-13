@@ -45,7 +45,7 @@ import (
 )
 
 func main() {
-	i := ffjsoninception.NewInception("{{.InputPath}}", "{{.PackageName}}", "{{.OutputPath}}")
+	i := ffjsoninception.NewInception("{{.InputPath}}", "{{.PackageName}}", "{{.OutputPath}}", {{.ResetFields}})
 	i.AddMany(importedinceptionpackage.FFJSONExpose())
 	i.Execute()
 }
@@ -83,6 +83,7 @@ type templateCtx struct {
 	PackageName string
 	InputPath   string
 	OutputPath  string
+	ResetFields bool
 }
 
 type InceptionMain struct {
@@ -94,15 +95,17 @@ type InceptionMain struct {
 	tempDir      string
 	tempMain     *os.File
 	tempExpose   *os.File
+	resetFields  bool
 }
 
-func NewInceptionMain(goCmd string, inputPath string, outputPath string) *InceptionMain {
+func NewInceptionMain(goCmd string, inputPath string, outputPath string, resetFields bool) *InceptionMain {
 	exposePath := getExposePath(inputPath)
 	return &InceptionMain{
-		goCmd:      goCmd,
-		inputPath:  inputPath,
-		outputPath: outputPath,
-		exposePath: exposePath,
+		goCmd:       goCmd,
+		inputPath:   inputPath,
+		outputPath:  outputPath,
+		exposePath:  exposePath,
+		resetFields: resetFields,
 	}
 }
 
@@ -192,6 +195,7 @@ func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importNa
 		StructNames: sn,
 		InputPath:   im.inputPath,
 		OutputPath:  im.outputPath,
+		ResetFields: im.resetFields,
 	}
 
 	t := template.Must(template.New("inception.go").Parse(inceptionMainTemplate))

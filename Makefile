@@ -26,11 +26,11 @@ test: ffize test-core
 	go test -v github.com/pquerna/ffjson/tests/...
 
 ffize: install
-	ffjson tests/ff.go
-	ffjson tests/goser/ff/goser.go
-	ffjson tests/go.stripe/ff/customer.go
-	ffjson tests/types/ff/everything.go
-	ffjson tests/number/ff/number.go
+	ffjson -force-regenerate tests/ff.go
+	ffjson -force-regenerate tests/goser/ff/goser.go
+	ffjson -force-regenerate tests/go.stripe/ff/customer.go
+	ffjson -force-regenerate -reset-fields tests/types/ff/everything.go
+	ffjson -force-regenerate tests/number/ff/number.go
 
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests
@@ -39,6 +39,6 @@ bench: ffize all
 
 clean:
 	go clean -i github.com/pquerna/ffjson/...
-	rm -f tests/*/ff/*_ffjson.go tests/*_ffjson.go
+	rm -rf tests/ff/*_ffjson.go tests/*_ffjson.go tests/ffjson-inception*
 
 .PHONY: deps clean test fmt install all

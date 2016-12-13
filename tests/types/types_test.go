@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	ff "github.com/pquerna/ffjson/tests/types/ff"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -133,5 +134,54 @@ func TestUnmarshalNullPointer(t *testing.T) {
 	}
 	if record.FooStruct != nil {
 		t.Fatalf("record.Something decoding problem, expected: nil got: %v", record.FooStruct)
+	}
+}
+
+func TestUnmarshalToReusedObject(t *testing.T) {
+	JSONParts := []string{
+		`"Bool":true`,
+		`"Int":1`,
+		`"Int8": 2`,
+		`"Int16": 3`,
+		`"Int32": -4`,
+		`"Int64": 57`,
+		`"Uint": 100`,
+		`"Uint8": 101`,
+		`"Uint16": 102`,
+		`"Uint32": 50`,
+		`"Uint64": 103`,
+		`"Uintptr": 104`,
+		`"Float32": 3.14`,
+		`"Float64": 3.15`,
+		`"Array": [1,2,3]`,
+		`"Map": {"bar": 2,"foo": 1}`,
+		`"String": "snowman☃\uD801\uDC37"`,
+		`"StringPointer": "pointed snowman☃\uD801\uDC37"`,
+		`"Int64Pointer": 44`,
+		`"FooStruct": {"Bar": 1}`,
+		`"MapMap": {"a0": {"b0":"foo"}, "a1":{"a2":"bar"}}`,
+		`"MapArraySlice": {"foo":[[1,2,3],[4,5,6],[7]], "bar": [[1,2,3,4],[5,6,7]]}`,
+		`"Something": 99`,
+	}
+
+	JSONWhole := "{" + strings.Join(JSONParts, ",") + "}"
+	var record ff.Everything
+	if err := record.UnmarshalJSON([]byte(JSONWhole)); err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+
+	for _, part := range JSONParts {
+		reuseRecord := record
+		if err := reuseRecord.UnmarshalJSON([]byte("{" + part + "}")); err != nil {
+			t.Fatalf("UnmarshalJSON: %v", err)
+		}
+		var emptyRecord ff.Everything
+		if err := emptyRecord.UnmarshalJSON([]byte("{" + part + "}")); err != nil {
+			t.Fatalf("UnmarshalJSON: %v", err)
+		}
+
+		if !reflect.DeepEqual(reuseRecord, emptyRecord) {
+			t.Errorf("%#v should be equal to %#v", reuseRecord, emptyRecord)
+		}
 	}
 }
