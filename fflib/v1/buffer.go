@@ -148,9 +148,9 @@ func (b *Buffer) grow(n int) int {
 			// not enough space anywhere
 			buf = makeSlice(2*cap(b.buf) + n)
 			copy(buf, b.buf[b.off:])
+			Pool(b.buf)
+			b.buf = buf
 		}
-		Pool(b.buf)
-		b.buf = buf
 		b.off = 0
 	}
 	b.buf = b.buf[0 : b.off+m+n]
