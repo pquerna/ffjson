@@ -116,11 +116,6 @@ func getImportName(inputPath string) (string, error) {
 	}
 
 	dir := filepath.Dir(p)
-	dpath, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		return "", errors.New(fmt.Sprintf("Could not evaluate %s: %s", dir, err.Error()))
-	}
-
 	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
 	for _, path := range gopaths {
@@ -128,7 +123,7 @@ func getImportName(inputPath string) (string, error) {
 		if err != nil {
 			continue
 		}
-		rel, err := filepath.Rel(filepath.ToSlash(gpath), dpath)
+		rel, err := filepath.Rel(filepath.ToSlash(gpath), dir)
 		if err != nil {
 			return "", err
 		}
@@ -138,7 +133,7 @@ func getImportName(inputPath string) (string, error) {
 		}
 		return rel[4:], nil
 	}
-	return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gopaths, dpath))
+	return "", errors.New(fmt.Sprintf("Could not find source directory: GOPATH=%q REL=%q", gopaths, dir))
 
 }
 
