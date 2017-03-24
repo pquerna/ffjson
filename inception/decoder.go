@@ -53,6 +53,7 @@ func CreateUnmarshalJSON(ic *Inception, si *StructInfo) error {
 		IC:          ic,
 		ValidValues: validValues,
 		ResetFields: ic.ResetFields,
+		Strict:      ic.Strict,
 	})
 
 	ic.OutputFuncs = append(ic.OutputFuncs, out)
