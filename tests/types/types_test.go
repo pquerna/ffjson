@@ -19,10 +19,11 @@ package types
 
 import (
 	"encoding/json"
-	ff "github.com/pquerna/ffjson/tests/types/ff"
 	"reflect"
 	"strings"
 	"testing"
+
+	ff "github.com/pquerna/ffjson/tests/types/ff"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -183,5 +184,16 @@ func TestUnmarshalToReusedObject(t *testing.T) {
 		if !reflect.DeepEqual(reuseRecord, emptyRecord) {
 			t.Errorf("%#v should be equal to %#v", reuseRecord, emptyRecord)
 		}
+	}
+}
+
+func TestUnmarshalNullPointer(t *testing.T) {
+	record := ff.Everything{}
+	err := record.UnmarshalJSON([]byte(`{"FooStruct": null,"Something":99}`))
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+	if record.FooStruct != nil {
+		t.Fatalf("record.Something decoding problem, expected: nil got: %v", record.FooStruct)
 	}
 }
