@@ -190,13 +190,13 @@ Documentation: [![GoDoc][1]][2]
 [1]: https://godoc.org/github.com/pquerna/ffjson/ffjson?status.svg
 [2]: https://godoc.org/github.com/pquerna/ffjson/ffjson#Encoder
 
-##Tip 4: Avoid interfaces
+## Tip 4: Avoid interfaces
 
 We don't want to dictate how you structure your data, but having interfaces in your code will make ffjson use the golang encoder for these. When ffjson has to do this, it may even become slower than using `json.Marshal` directly. 
 
 To see where that happens, search the generated `_ffjson.go` file for the text `Falling back`, which will indicate where ffjson is unable to generate code for your data structure.
 
-##Tip 5: `ffjson` all the things!
+## Tip 5: `ffjson` all the things!
 
 You should not only create ffjson code for your main struct, but also any structs that is included/used in your json code.
 
