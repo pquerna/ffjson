@@ -270,7 +270,8 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 	s := typ.Name()
 
 	if typ.PkgPath() != "" && typ.PkgPath() != ic.PackagePath {
-		ic.OutputImports[`"`+typ.PkgPath()+`"`] = true
+		path := removeVendor(typ.PkgPath())
+		ic.OutputImports[`"`+path+`"`] = true
 		s = typ.String()
 	}
 
@@ -279,6 +280,18 @@ func getType(ic *Inception, name string, typ reflect.Type) string {
 	}
 
 	return s
+}
+
+// removeVendor removes everything before and including a '/vendor/'
+// substring in the package path.
+// This is needed becuase that full path can't be used in the
+// import statement.
+func removeVendor(path string) string {
+	i := strings.Index(path, "/vendor/")
+	if i == -1 {
+		return path
+	}
+	return path[i+8:]
 }
 
 func buildTokens(containsOptional bool, optional string, required ...string) []string {
