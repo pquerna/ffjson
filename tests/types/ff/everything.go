@@ -21,6 +21,8 @@ import (
 	"regexp"
 	"runtime"
 	"strconv"
+
+	"github.com/foo/vendored"
 )
 
 var ExpectedSomethingValue int8
@@ -128,6 +130,7 @@ type nonexported struct {
 
 type Foo struct {
 	Bar int
+	Baz vendored.Foo
 }
 
 func NewEverything(e *Everything) {
@@ -153,7 +156,7 @@ func NewEverything(e *Everything) {
 		"bar": 2,
 	}
 	e.String = "snowman->☃"
-	e.FooStruct = &Foo{Bar: 1}
+	e.FooStruct = &Foo{Bar: 1, Baz: vendored.Foo{A: "a", B: 1}}
 	e.Something = ExpectedSomethingValue
 	e.MySweetInterface = &Cats{}
 	e.MapMap = map[string]map[string]string{
