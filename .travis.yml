@@ -8,5 +8,3 @@ script: make clean && make test && make test
 
 go:
   - 1.7
-  - 1.6
-  - 1.5
