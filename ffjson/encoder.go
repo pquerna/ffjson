@@ -34,6 +34,17 @@ type Encoder struct {
 	enc *json.Encoder
 }
 
+// SetEscapeHTML specifies whether problematic HTML characters
+// should be escaped inside JSON quoted strings.
+// The default behavior is to escape &, <, and > to \u0026, \u003c, and \u003e
+// to avoid certain safety problems that can arise when embedding JSON in HTML.
+//
+// In non-HTML settings where the escaping interferes with the readability
+// of the output, SetEscapeHTML(false) disables this behavior.
+func (enc *Encoder) SetEscapeHTML(on bool) {
+	enc.enc.SetEscapeHTML(on)
+}
+
 // NewEncoder returns a reusable Encoder.
 // Output will be written to the supplied writer.
 func NewEncoder(w io.Writer) *Encoder {
