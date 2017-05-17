@@ -36,6 +36,7 @@ type FFRecord struct {
 	ServerIp  string
 	RemoteIp  string
 	BytesSent uint64
+	Ext       interface{}
 }
 
 // ffjson: skip

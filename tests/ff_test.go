@@ -40,6 +40,10 @@ func newLogRecord() *Record {
 	return &Record{
 		OriginId: 11,
 		Method:   "POST",
+		Ext: map[string]interface{}{
+			"a": []int{3, 4, 5},
+			"b": "what?",
+		},
 	}
 }
 
@@ -47,8 +51,14 @@ func newLogFFRecord() *FFRecord {
 	return &FFRecord{
 		OriginId: 11,
 		Method:   "POST",
+		Ext: map[string]interface{}{
+			"a": []int{3, 4, 5},
+			"b": "what?",
+		},
 	}
 }
+
+var marshaled = `{"id": 123213, "OriginId": 22, "meth": "GET", "Ext": {"a": [3,"yay"], "b": null}}`
 
 func BenchmarkMarshalJSON(b *testing.B) {
 	record := newLogRecord()
@@ -130,9 +140,27 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 	}
 }
 
+func BenchmarkUnmarshalJSON(b *testing.B) {
+	record := newLogRecord()
+	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	err := json.Unmarshal(buf, record)
+	if err != nil {
+		b.Fatalf("json.Unmarshal: %v", err)
+	}
+	b.SetBytes(int64(len(buf)))
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		err := json.Unmarshal(buf, record)
+		if err != nil {
+			b.Fatalf("json.UnmarshalO: %v", err)
+		}
+	}
+}
+
 func BenchmarkSimpleUnmarshal(b *testing.B) {
 	record := newLogFFRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(marshaled)
 	err := record.UnmarshalJSON(buf)
 	if err != nil {
 		b.Fatalf("UnmarshalJSON: %v", err)
@@ -148,9 +176,9 @@ func BenchmarkSimpleUnmarshal(b *testing.B) {
 	}
 }
 
-func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
-	record := newLogRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+func BenchmarkSimpleUnmarshalNative(b *testing.B) {
+	record := newLogFFRecord()
+	buf := []byte(marshaled)
 	err := json.Unmarshal(buf, record)
 	if err != nil {
 		b.Fatalf("json.Unmarshal: %v", err)
@@ -221,7 +249,7 @@ func TestUnmarshalFaster(t *testing.T) {
 func TestSimpleUnmarshal(t *testing.T) {
 	record := newLogFFRecord()
 
-	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
+	err := record.UnmarshalJSON([]byte(marshaled))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
@@ -236,6 +264,29 @@ func TestSimpleUnmarshal(t *testing.T) {
 
 	if record.Method != "GET" {
 		t.Fatalf("record.Method: expected: GET got: %v", record.Method)
+	}
+
+	ext, ok := record.Ext.(map[string]interface{})
+	if !ok {
+		t.Fatalf("record.Ext: expected map[string]interface{}, got %T", ext)
+	}
+
+	a, ok := ext["a"].([]interface{})
+	if !ok {
+		t.Fatalf(`record.Ext["a"]: expected []interface{}, got %T`, ext["a"])
+	}
+
+	if len(a) != 2 {
+		t.Fatalf(`record.Ext["a"]: expected slice of length 3, got %d`, len(a))
+	}
+	if a0, ok := a[0].(float64); !ok || a0 != 3 {
+		t.Fatalf(`record.Ext["a"][0]: expected 3, got %v`, a[0])
+	}
+	if a1, ok := a[1].(string); !ok || a1 != "yay" {
+		t.Fatalf(`record.Ext["a"][1]: expected "yay", got %v`, a[1])
+	}
+	if ext["b"] != nil {
+		t.Fatalf(`record.Ext["b"]: expected nil, got %v`, ext["b"])
 	}
 }
 
