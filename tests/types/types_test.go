@@ -104,6 +104,40 @@ const (
   },
   "Something": 99
 }`
+
+NoFFJSON = `{
+  "Bool": true,
+  "Int": 1,
+  "Int8": 2,
+  "Int16": 3,
+  "Int32": -4,
+  "Int64": 57,
+  "Uint": 100,
+  "Uint8": 101,
+  "Uint16": 102,
+  "Uint32": 0,
+  "Uint64": 103,
+  "Uintptr": 104,
+  "Float32": 3.14,
+  "Float64": 3.15,
+  "Array": [
+    1,
+    2,
+    3
+  ],
+  "Map": {
+    "bar": 2,
+    "foo": 1
+  },
+  "String": "snowman☃\uD801\uDC37",
+  "StringPointer": null,
+  "Int64Pointer": null,
+  "FooStruct": {
+    "Bar": 1
+  },
+  "Something": 99,
+  "Baz": 1
+}`
 )
 
 func TestUnmarshalFull(t *testing.T) {
@@ -123,6 +157,22 @@ func TestUnmarshalFull(t *testing.T) {
 	if record.Something != ff.ExpectedSomethingValue {
 		t.Fatalf("record.Something decoding problem, expected: %d got: %v",
 			ff.ExpectedSomethingValue, record.Something)
+	}
+}
+
+func TestUnmarshalMixedStuff(t *testing.T) {
+	var record ff.NoFF
+	var recordTripped ff.NoFF
+    ff.NewNoFF(&record)
+    
+    err := recordTripped.UnmarshalJSON([]byte(NoFFJSON))
+	if err != nil {
+		t.Fatalf("UnmarshalJSON: %v", err)
+	}
+    
+    good := reflect.DeepEqual(record, recordTripped)
+	if !good {
+		t.Fatalf("Expected: %v\n Got: %v", record, recordTripped)
 	}
 }
 
