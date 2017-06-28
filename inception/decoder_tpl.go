@@ -497,12 +497,12 @@ type header struct {
 
 var headerTxt = `
 const (
-	ffj_t_{{.SI.Name}}base = iota
-	ffj_t_{{.SI.Name}}no_such_key
+	ffjt{{.SI.Name}}base = iota
+	ffjt{{.SI.Name}}no_such_key
 	{{with $si := .SI}}
 		{{range $index, $field := $si.Fields}}
 			{{if ne $field.JsonName "-"}}
-		ffj_t_{{$si.Name}}_{{$field.Name}}
+		ffjt{{$si.Name}}{{$field.Name}}
 			{{end}}
 		{{end}}
 	{{end}}
@@ -536,7 +536,7 @@ func (uj *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
 
 func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error = nil
-	currentKey := ffj_t_{{.SI.Name}}base
+	currentKey := ffjt{{.SI.Name}}base
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
@@ -588,7 +588,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}no_such_key
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -597,7 +597,7 @@ mainparse:
 				case '{{$byte}}':
 					{{range $index, $field := $fields}}
 						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
-						currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+						currentKey = ffjt{{$si.Name}}{{$field.Name}}
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					{{end}} }
@@ -605,12 +605,12 @@ mainparse:
 				}
 				{{range $index, $field := $si.ReverseFields}}
 				if {{$field.FoldFuncName}}(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
-					currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+					currentKey = ffjt{{$si.Name}}{{$field.Name}}
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 				{{end}}
-				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}no_such_key
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -627,10 +627,10 @@ mainparse:
 			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == fflib.{{$v}}{{end}} {
 				switch currentKey {
 				{{range $index, $field := $si.Fields}}
-				case ffj_t_{{$si.Name}}_{{$field.Name}}:
+				case ffjt{{$si.Name}}_{{$field.Name}}:
 					goto handle_{{$field.Name}}
 				{{end}}
-				case ffj_t_{{$si.Name}}no_such_key:
+				case ffjt{{$si.Name}}no_such_key:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
