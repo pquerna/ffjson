@@ -498,7 +498,7 @@ type header struct {
 var headerTxt = `
 const (
 	ffjt{{.SI.Name}}base = iota
-	ffjt{{.SI.Name}}no_such_key
+	ffjt{{.SI.Name}}nosuchkey
 	{{with $si := .SI}}
 		{{range $index, $field := $si.Fields}}
 			{{if ne $field.JsonName "-"}}
@@ -588,7 +588,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffjt{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}nosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -610,7 +610,7 @@ mainparse:
 					goto mainparse
 				}
 				{{end}}
-				currentKey = ffjt{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}nosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -627,10 +627,10 @@ mainparse:
 			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == fflib.{{$v}}{{end}} {
 				switch currentKey {
 				{{range $index, $field := $si.Fields}}
-				case ffjt{{$si.Name}}_{{$field.Name}}:
+				case ffjt{{$si.Name}}{{$field.Name}}:
 					goto handle_{{$field.Name}}
 				{{end}}
-				case ffjt{{$si.Name}}no_such_key:
+				case ffjt{{$si.Name}}nosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
