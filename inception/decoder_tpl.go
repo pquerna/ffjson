@@ -530,13 +530,13 @@ var ujFuncTxt = `
 {{$ic := .IC}}
 
 // UnmarshalJSON umarshall json - template of ffjson
-func (uj *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
+func (j *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
     fs := fflib.NewFFLexer(input)
-    return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+    return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
 // UnmarshalJSONFFLexer fast json unmarshall - template ffjson
-func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+func (j *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
 	var err error
 	currentKey := ffjt{{.SI.Name}}base
 	_ = currentKey
@@ -647,7 +647,7 @@ mainparse:
 	}
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
-	{{with $fieldName := $field.Name | printf "uj.%s"}}
+	{{with $fieldName := $field.Name | printf "j.%s"}}
 		{{handleField $ic $fieldName $field.Typ $field.Pointer $field.ForceString}}
 		{{if eq $.ResetFields true}}
 		ffjSet{{$si.Name}}{{$field.Name}} = true
@@ -674,7 +674,7 @@ done:
 {{if eq .ResetFields true}}
 {{range $index, $field := $si.Fields}}
 	if !ffjSet{{$si.Name}}{{$field.Name}} {
-	{{with $fieldName := $field.Name | printf "uj.%s"}}
+	{{with $fieldName := $field.Name | printf "j.%s"}}
 	{{if eq $field.Pointer true}}
 		{{$fieldName}} = nil
 	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Interface), 10) + `}}
