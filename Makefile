@@ -33,6 +33,7 @@ ffize: install
 	ffjson -force-regenerate tests/number/ff/number.go
 
 lint: ffize
+    go get github.com/golang/lint/golint
 	golint tests/...
 
 bench: ffize all
