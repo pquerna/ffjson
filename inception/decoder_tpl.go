@@ -529,13 +529,15 @@ var ujFuncTxt = `
 {{$si := .SI}}
 {{$ic := .IC}}
 
+// UnmarshalJSON umarshall json - template of ffjson
 func (uj *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
-	fs := fflib.NewFFLexer(input)
+    fs := fflib.NewFFLexer(input)
     return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
 func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
+	var err error
 	currentKey := ffjt{{.SI.Name}}base
 	_ = currentKey
 	tok := fflib.FFTok_init
