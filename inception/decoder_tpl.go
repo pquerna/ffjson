@@ -511,7 +511,7 @@ const (
 {{with $si := .SI}}
 	{{range $index, $field := $si.Fields}}
 		{{if ne $field.JsonName "-"}}
-var ffj_key_{{$si.Name}}_{{$field.Name}} = []byte({{$field.JsonName}})
+var ffjKey{{$si.Name}}{{$field.Name}} = []byte({{$field.JsonName}})
 		{{end}}
 	{{end}}
 {{end}}
@@ -545,7 +545,7 @@ func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFPa
 
 				{{if eq .ResetFields true}}
 				{{range $index, $field := $si.Fields}}
-				var ffj_set_{{$si.Name}}_{{$field.Name}} = false
+				var ffjSet{{$si.Name}}{{$field.Name}} = false
  				{{end}}
 				{{end}}
 
@@ -598,7 +598,7 @@ mainparse:
 				{{range $byte, $fields := $si.FieldsByFirstByte}}
 				case '{{$byte}}':
 					{{range $index, $field := $fields}}
-						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffjKey{{$si.Name}}{{$field.Name}}, kn) {
 						currentKey = ffjt{{$si.Name}}{{$field.Name}}
 						state = fflib.FFParse_want_colon
 						goto mainparse
@@ -606,7 +606,7 @@ mainparse:
 				{{end}}
 				}
 				{{range $index, $field := $si.ReverseFields}}
-				if {{$field.FoldFuncName}}(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
+				if {{$field.FoldFuncName}}(ffjKey{{$si.Name}}{{$field.Name}}, kn) {
 					currentKey = ffjt{{$si.Name}}{{$field.Name}}
 					state = fflib.FFParse_want_colon
 					goto mainparse
@@ -650,7 +650,7 @@ handle_{{$field.Name}}:
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
 		{{handleField $ic $fieldName $field.Typ $field.Pointer $field.ForceString}}
 		{{if eq $.ResetFields true}}
-		ffj_set_{{$si.Name}}_{{$field.Name}} = true
+		ffjSet{{$si.Name}}{{$field.Name}} = true
 		{{end}}
 		state = fflib.FFParse_after_value
 		goto mainparse
@@ -673,7 +673,7 @@ tokerror:
 done:
 {{if eq .ResetFields true}}
 {{range $index, $field := $si.Fields}}
-	if !ffj_set_{{$si.Name}}_{{$field.Name}} {
+	if !ffjSet{{$si.Name}}{{$field.Name}} {
 	{{with $fieldName := $field.Name | printf "uj.%s"}}
 	{{if eq $field.Pointer true}}
 		{{$fieldName}} = nil
