@@ -231,7 +231,7 @@ func TestSimpleUnmarshal(t *testing.T) {
 	}
 
 	if record.OriginID != 22 {
-		t.Fatalf("record.OriginID: expected: 22 got: %v", record.OriginId)
+		t.Fatalf("record.OriginID: expected: 22 got: %v", record.OriginID)
 	}
 
 	if record.Method != "GET" {
