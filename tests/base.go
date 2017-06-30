@@ -8,7 +8,7 @@ type Foo struct {
 // Record struct
 type Record struct {
 	Timestamp int64 `json:"id,omitempty"`
-	OriginId  uint32
+	OriginID  uint32
 	Bar       Foo
 	Method    string `json:"meth"`
 	ReqID     string
