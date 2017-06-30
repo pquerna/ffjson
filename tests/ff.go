@@ -29,7 +29,7 @@ type FFFoo struct {
 
 type FFRecord struct {
 	Timestamp int64 `json:"id,omitempty"`
-	OriginId  uint32
+	OriginID  uint32
 	Bar       FFFoo
 	Method    string `json:"meth"`
 	ReqId     string
