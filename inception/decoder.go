@@ -319,5 +319,5 @@ func unquoteField(quoted bool) string {
 }
 
 func getTmpVarFor(name string) string {
-	return "tmp_" + strings.Replace(name, ".", "__", -1)
+	return "tmp" + strings.Replace(strings.Title(strings.Replace(name, ".", " ", -1)), " ", "", -1)
 }
