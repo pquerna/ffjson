@@ -19,9 +19,10 @@ package types
 
 import (
 	"encoding/json"
-	ff "github.com/pquerna/ffjson/tests/number/ff"
 	"reflect"
 	"testing"
+
+	ff "github.com/pquerna/ffjson/tests/number/ff"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -54,7 +55,7 @@ func TestUnmarshalEmpty(t *testing.T) {
 }
 
 const (
-	numberJson = `{
+	numberJSON = `{
   "Int": 1,
   "Float": 3.14
 }`
@@ -62,7 +63,7 @@ const (
 
 func TestUnmarshalFull(t *testing.T) {
 	record := ff.Number{}
-	err := record.UnmarshalJSON([]byte(numberJson))
+	err := record.UnmarshalJSON([]byte(numberJSON))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
