@@ -62,7 +62,7 @@ type Fuzz struct {
 	Gp *int32
 	Hp *int64
 
-	Ip *float32
+	IP *float32
 	Jp *float64
 
 	Mp *byte
@@ -181,7 +181,7 @@ func TestFuzzCycle(t *testing.T) {
 		rFF.Fp = r.Fp
 		rFF.Gp = r.Gp
 		rFF.Hp = r.Hp
-		rFF.Ip = r.Ip
+		rFF.IP = r.IP
 		rFF.Jp = r.Jp
 		rFF.Mp = r.Mp
 		rFF.Np = r.Np
@@ -269,7 +269,7 @@ func TestFuzzOmitCycle(t *testing.T) {
 		rFF.Fp = r.Fp
 		rFF.Gp = r.Gp
 		rFF.Hp = r.Hp
-		rFF.Ip = r.Ip
+		rFF.IP = r.IP
 		rFF.Jp = r.Jp
 		rFF.Mp = r.Mp
 		rFF.Np = r.Np
@@ -363,7 +363,7 @@ func TestFuzzStringCycle(t *testing.T) {
 		rFF.Fp = r.Fp
 		rFF.Gp = r.Gp
 		rFF.Hp = r.Hp
-		rFF.Ip = r.Ip
+		rFF.IP = r.IP
 		rFF.Jp = r.Jp
 		rFF.Mp = r.Mp
 		rFF.Np = r.Np

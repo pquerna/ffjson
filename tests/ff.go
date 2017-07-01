@@ -2190,7 +2190,7 @@ type XInlineStructs struct {
 		Gp *int32
 		Hp *int64
 
-		Ip *float32
+		IP *float32
 		Jp *float64
 
 		Mp *byte
