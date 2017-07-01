@@ -191,7 +191,7 @@ type XstringTagged struct {
 	X string `json:",string"`
 }
 
-// TstringTagedPtr struct
+// TstringTaggedPtr struct
 // ffjson: skip
 type TstringTaggedPtr struct {
 	X *string `json:",string"`
@@ -312,7 +312,7 @@ type Xint64 struct {
 	X int64
 }
 
-// Tuiny struct
+// Tuint struct
 // ffjson: skip
 type Tuint struct {
 	X uint
@@ -445,7 +445,7 @@ type AXbyte struct {
 	X [3]byte
 }
 
-// ATint8
+// ATint8 struct
 // ffjson: skip
 type ATint8 struct {
 	X [3]int8
@@ -544,13 +544,13 @@ type AXuint64 struct {
 	X [3]uint64
 }
 
-// ATuintptr
+// ATuintptr struct
 // ffjson: skip
 type ATuintptr struct {
 	X [3]uintptr
 }
 
-// AXuintptr
+// AXuintptr struct
 type AXuintptr struct {
 	X [3]uintptr
 }
@@ -566,7 +566,7 @@ type AXfloat32 struct {
 	X [3]float32
 }
 
-// ATfloat54 struct
+// ATfloat64 struct
 // ffjson: skip
 type ATfloat64 struct {
 	X [3]float64
@@ -947,7 +947,7 @@ type ByteSliceRenamed struct {
 	X renamedByteSlice
 }
 
-// ByteSliceDoubleRenamned struct
+// ByteSliceDoubleRenamed struct
 type ByteSliceDoubleRenamed struct {
 	X renamedRenamedByteSlice
 }
@@ -1028,7 +1028,7 @@ func (r *GiveError) UnmarshalJSON([]byte) error {
 	return ErrGiveError
 }
 
-// IntType
+// IntType type
 type IntType int
 
 // MyStruct struc
@@ -1114,7 +1114,7 @@ type FfFuzz struct {
 	Gp *int32
 	Hp *int64
 
-	Ip *float32
+	IP *float32
 	Jp *float64
 
 	Mp *byte
@@ -1204,7 +1204,7 @@ type FuzzOmitEmpty struct {
 	Gp *int32 `json:",omitempty"`
 	Hp *int64 `json:",omitempty"`
 
-	Ip *float32 `json:",omitempty"`
+	IP *float32 `json:",omitempty"`
 	Jp *float64 `json:",omitempty"`
 
 	Mp *byte `json:",omitempty"`
@@ -1293,7 +1293,7 @@ type FfFuzzOmitEmpty struct {
 	Gp *int32 `json:",omitempty"`
 	Hp *int64 `json:",omitempty"`
 
-	Ip *float32 `json:",omitempty"`
+	IP *float32 `json:",omitempty"`
 	Jp *float64 `json:",omitempty"`
 
 	Mp *byte `json:",omitempty"`
@@ -1348,6 +1348,7 @@ type FfFuzzOmitEmpty struct {
 	Rap []*bool   `json:",omitempty"`
 }
 
+// FuzzString struct
 // ffjson: skip
 type FuzzString struct {
 	A uint8  `json:",string"`
@@ -1385,7 +1386,7 @@ type FuzzString struct {
 	Gp *int32 `json:",string"`
 	Hp *int64 `json:",string"`
 
-	Ip *float32 `json:",string"`
+	IP *float32 `json:",string"`
 	Jp *float64 `json:",string"`
 
 	Mp *byte `json:",string"`
@@ -1399,6 +1400,7 @@ type FuzzString struct {
 	// Sp *time.Time `json:",string"`
 }
 
+// FfFuzzString struct
 type FfFuzzString struct {
 	A uint8  `json:",string"`
 	B uint16 `json:",string"`
@@ -1435,7 +1437,7 @@ type FfFuzzString struct {
 	Gp *int32 `json:",string"`
 	Hp *int64 `json:",string"`
 
-	Ip *float32 `json:",string"`
+	IP *float32 `json:",string"`
 	Jp *float64 `json:",string"`
 
 	Mp *byte `json:",string"`
@@ -1654,8 +1656,8 @@ type ReTypedGp *int32
 // ReTypedHp type
 type ReTypedHp *int64
 
-// ReTypedIp type
-type ReTypedIp *float32
+// ReTypedIP type
+type ReTypedIP *float32
 
 // ReTypedJp type
 type ReTypedJp *float64
@@ -1863,7 +1865,7 @@ type TReTyped struct {
 	Gp ReTypedGp
 	Hp ReTypedHp
 
-	Ip ReTypedIp
+	IP ReTypedIP
 	Jp ReTypedJp
 
 	Mp ReTypedMp
@@ -1975,7 +1977,7 @@ type XReTyped struct {
 	Gp ReTypedGp
 	Hp ReTypedHp
 
-	Ip ReTypedIp
+	IP ReTypedIP
 	Jp ReTypedJp
 
 	Mp ReTypedMp
@@ -2089,7 +2091,7 @@ type TInlineStructs struct {
 		Gp *int32
 		Hp *int64
 
-		Ip *float32
+		IP *float32
 		Jp *float64
 
 		Mp *byte
