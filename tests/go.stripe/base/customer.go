@@ -130,6 +130,7 @@ type Plan struct {
 	Livemode        bool   `json:"livemode"`
 }
 
+// NewCustomer creates a new customer
 func NewCustomer() *Customer {
 
 	return &Customer{
