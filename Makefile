@@ -34,7 +34,7 @@ ffize: install
 
 lint: ffize
 	go get github.com/golang/lint/golint
-	golint tests/...
+	golint --set_exit_status tests/...
 
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests
