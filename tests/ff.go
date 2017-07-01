@@ -688,104 +688,140 @@ type SXuint struct {
 	X []uint
 }
 
+// STuint8 struct
 // ffjson: skip
 type STuint8 struct {
 	X []uint8
 }
+
+// SXuint8 struct
 type SXuint8 struct {
 	X []uint8
 }
 
+// STuint16 struct
 // ffjson: skip
 type STuint16 struct {
 	X []uint16
 }
+
+// SXuint16 struct
 type SXuint16 struct {
 	X []uint16
 }
 
+// STuint32 struct
 // ffjson: skip
 type STuint32 struct {
 	X []uint32
 }
+
+// SXuint32 struct
 type SXuint32 struct {
 	X []uint32
 }
 
+// STuint64 struct
 // ffjson: skip
 type STuint64 struct {
 	X []uint64
 }
+
+// SXuint64 struct
 type SXuint64 struct {
 	X []uint64
 }
 
+// STuintptr struct
 // ffjson: skip
 type STuintptr struct {
 	X []uintptr
 }
+
+// SXuintptr struct
 type SXuintptr struct {
 	X []uintptr
 }
 
+// STfloat32 struct
 // ffjson: skip
 type STfloat32 struct {
 	X []float32
 }
+
+// SXfloat32 struct
 type SXfloat32 struct {
 	X []float32
 }
 
+// STfloat64 struct
 // ffjson: skip
 type STfloat64 struct {
 	X []float64
 }
+
+// SXfloat64 struct
 type SXfloat64 struct {
 	X []float64
 }
 
+// STtime struct
 // ffjson: skip
 type STtime struct {
 	X []time.Time
 }
+
+// SXtime struct
 type SXtime struct {
 	X []time.Time
 }
 
+// TMapStringMapString struct
 // Nested
 // ffjson: skip
 type TMapStringMapString struct {
 	X map[string]map[string]string
 }
+
+// XMapStringMapString struct
 type XMapStringMapString struct {
 	X map[string]map[string]string
 }
 
+// TMapStringAString struct
 // ffjson: skip
 type TMapStringAString struct {
 	X map[string][3]string
 }
+
+// XMapStringAString struct
 type XMapStringAString struct {
 	X map[string][3]string
 }
 
+// TSAAtring struct
 // ffjson: skip
 type TSAAtring struct {
 	X [2][3]string
 }
+
+// XSAAtring struct
 type XSAAtring struct {
 	X [2][3]string
 }
 
+// TSAString struct
 // ffjson: skip
 type TSAString struct {
 	X [][3]string
 }
+
+// XSAString struct
 type XSAString struct {
 	X [][3]string
 }
 
-// Tests from golang test suite
+// Optionals tests from golang test suite
 type Optionals struct {
 	Sr string `json:"sr"`
 	So string `json:"so,omitempty"`
@@ -831,6 +867,7 @@ var optionalsExpected = `{
  "sto": {}
 }`
 
+// StringTag struct
 type StringTag struct {
 	BoolStr bool    `json:",string"`
 	IntStr  int64   `json:",string"`
@@ -845,6 +882,7 @@ var stringTagExpected = `{
  "StrStr": "\"xzbit\""
 }`
 
+// OmitAll struct
 type OmitAll struct {
 	Ostr    string                 `json:",omitempty"`
 	Oint    int                    `json:",omitempty"`
@@ -865,6 +903,7 @@ type OmitAll struct {
 
 var omitAllExpected = `{}`
 
+// NoExported struct
 type NoExported struct {
 	field1 string
 	field2 string
@@ -873,6 +912,7 @@ type NoExported struct {
 
 var noExportedExpected = `{}`
 
+// OmitFirst struct
 type OmitFirst struct {
 	Ostr string `json:",omitempty"`
 	Str  string
@@ -882,6 +922,7 @@ var omitFirstExpected = `{
  "Str": ""
 }`
 
+// OmitLast struct
 type OmitLast struct {
 	Xstr string `json:",omitempty"`
 	Str  string
@@ -896,14 +937,17 @@ type renamedByte byte
 type renamedByteSlice []byte
 type renamedRenamedByteSlice []renamedByte
 
+// ByteSliceNormal struct
 type ByteSliceNormal struct {
 	X []byte
 }
 
+// ByteSliceRenamed stuct
 type ByteSliceRenamed struct {
 	X renamedByteSlice
 }
 
+// ByteSliceDoubleRenamned struct
 type ByteSliceDoubleRenamed struct {
 	X renamedRenamedByteSlice
 }
@@ -911,10 +955,12 @@ type ByteSliceDoubleRenamed struct {
 // Ref has Marshaler and Unmarshaler methods with pointer receiver.
 type Ref int
 
+// MarshalJSON func
 func (*Ref) MarshalJSON() ([]byte, error) {
 	return []byte(`"ref"`), nil
 }
 
+// UnmarshalJSON func
 func (r *Ref) UnmarshalJSON([]byte) error {
 	*r = 12
 	return nil
@@ -923,6 +969,7 @@ func (r *Ref) UnmarshalJSON([]byte) error {
 // Val has Marshaler methods with value receiver.
 type Val int
 
+// MarshalJSON var
 func (Val) MarshalJSON() ([]byte, error) {
 	return []byte(`"val"`), nil
 }
@@ -930,10 +977,12 @@ func (Val) MarshalJSON() ([]byte, error) {
 // RefText has Marshaler and Unmarshaler methods with pointer receiver.
 type RefText int
 
+// MarshalText func
 func (*RefText) MarshalText() ([]byte, error) {
 	return []byte(`"ref"`), nil
 }
 
+// UnmarshalText func
 func (r *RefText) UnmarshalText([]byte) error {
 	*r = 13
 	return nil
@@ -942,6 +991,7 @@ func (r *RefText) UnmarshalText([]byte) error {
 // ValText has Marshaler methods with value receiver.
 type ValText int
 
+// MarshalText val
 func (ValText) MarshalText() ([]byte, error) {
 	return []byte(`"val"`), nil
 }
@@ -949,6 +999,7 @@ func (ValText) MarshalText() ([]byte, error) {
 // C implements Marshaler and returns unescaped JSON.
 type C int
 
+// MarshalJSON func
 func (C) MarshalJSON() ([]byte, error) {
 	return []byte(`"<&>"`), nil
 }
@@ -956,33 +1007,41 @@ func (C) MarshalJSON() ([]byte, error) {
 // CText implements Marshaler and returns unescaped text.
 type CText int
 
+// MarshalText func
 func (CText) MarshalText() ([]byte, error) {
 	return []byte(`"<&>"`), nil
 }
 
+// ErrGiveError generates error
 var ErrGiveError = errors.New("GiveError error")
 
 // GiveError always returns an ErrGiveError on Marshal/Unmarshal.
 type GiveError struct{}
 
+// MarshalJSON func
 func (r GiveError) MarshalJSON() ([]byte, error) {
 	return nil, ErrGiveError
 }
 
+// UnmarshalJSON func
 func (r *GiveError) UnmarshalJSON([]byte) error {
 	return ErrGiveError
 }
 
+// IntType
 type IntType int
 
+// MyStruct struc
 type MyStruct struct {
 	IntType
 }
 
+// BugA struct
 type BugA struct {
 	S string
 }
 
+// BugB struct
 type BugB struct {
 	BugA
 	S string
