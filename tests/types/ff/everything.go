@@ -25,7 +25,10 @@ import (
 	"github.com/foo/vendored"
 )
 
+// ExpectedSomethingValue maybe expects something of value
 var ExpectedSomethingValue int8
+
+// GoLangVersionPre16 indicates if golang before 1.6
 var GoLangVersionPre16 bool
 
 func init() {
@@ -78,22 +81,27 @@ func init() {
 	}
 }
 
+// SweetInterface is a sweet interface
 type SweetInterface interface {
 	Cats() int
 }
 
+// Cats they allways fallback on their legs
 type Cats struct {
 	FieldOnCats int
 }
 
+// Cats initialize a cat
 func (c *Cats) Cats() int {
 	return 42
 }
 
+// Embed structure
 type Embed struct {
 	SuperBool bool
 }
 
+// Everything a bit of everything... take care what yy-ou which for
 type Everything struct {
 	Embed
 	Bool             bool
@@ -128,11 +136,13 @@ type nonexported struct {
 	Something int8
 }
 
+// Foo a foo's structure (it's a bar !?!)
 type Foo struct {
 	Bar int
 	Baz vendored.Foo
 }
 
+// NewEverything kind of renew the world
 func NewEverything(e *Everything) {
 	e.SuperBool = true
 	e.Bool = true
