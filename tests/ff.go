@@ -1047,10 +1047,12 @@ type BugB struct {
 	S string
 }
 
+// BugC struct
 type BugC struct {
 	S string
 }
 
+// BugX struct
 // Legal Go: We never use the repeated embedded field (S).
 type BugX struct {
 	A int
@@ -1058,16 +1060,19 @@ type BugX struct {
 	BugB
 }
 
+// BugD struct
 type BugD struct { // Same as BugA after tagging.
 	XXX string `json:"S"`
 }
 
+// BugY struct
 // BugD's tagged S field should dominate BugA's.
 type BugY struct {
 	BugA
 	BugD
 }
 
+// BugZ struct
 // There are no tags here, so S should not appear.
 type BugZ struct {
 	BugA
@@ -1075,6 +1080,7 @@ type BugZ struct {
 	BugY // Contains a tagged S field through BugD; should not dominate.
 }
 
+// FfFuzz struct
 type FfFuzz struct {
 	A uint8
 	B uint16
@@ -1163,6 +1169,7 @@ type FfFuzz struct {
 	Rap []*bool
 }
 
+// FuzzOmitEmpty struct
 // ffjson: skip
 type FuzzOmitEmpty struct {
 	A uint8  `json:",omitempty"`
@@ -1252,6 +1259,7 @@ type FuzzOmitEmpty struct {
 	Rap []*bool   `json:",omitempty"`
 }
 
+// FfFuzzOmitEmpty struct
 type FfFuzzOmitEmpty struct {
 	A uint8  `json:",omitempty"`
 	B uint16 `json:",omitempty"`
@@ -1441,6 +1449,7 @@ type FfFuzzString struct {
 	// Sp *time.Time `json:",string"`
 }
 
+// TTestMaps struct
 // ffjson: skip
 type TTestMaps struct {
 	Aa map[string]uint8
@@ -1486,22 +1495,26 @@ type TTestMaps struct {
 	RaP map[string]*bool
 }
 
+// XTestMaps struct
 type XTestMaps struct {
 	TTestMaps
 }
 
+// NoEncoder struct
 // ffjson: noencoder
 type NoEncoder struct {
 	C string
 	B int `json:"A"`
 }
 
+// NoDecoder struct
 // ffjson: nodecoder
 type NoDecoder struct {
 	C string
 	B int `json:"A"`
 }
 
+// TEmbeddedStructures struct
 // ffjson: skip
 type TEmbeddedStructures struct {
 	X []interface{}
@@ -1523,6 +1536,7 @@ type TEmbeddedStructures struct {
 	Q [][]string
 }
 
+// XEmbeddedStructures struct
 type XEmbeddedStructures struct {
 	X []interface{}
 	Y struct {
@@ -1543,6 +1557,7 @@ type XEmbeddedStructures struct {
 	Q [][]string
 }
 
+// TRenameTypes struct
 // ffjson: skip
 // Side-effect of this test is also to verify that Encoder/Decoder skipping works.
 type TRenameTypes struct {
@@ -1554,6 +1569,7 @@ type TRenameTypes struct {
 	U *NoDecoder `json:"U-renamed"`
 }
 
+// XRenameTypes struct
 type XRenameTypes struct {
 	X struct {
 		X int
@@ -1563,111 +1579,256 @@ type XRenameTypes struct {
 	U *NoDecoder `json:"U-renamed"`
 }
 
+// ReTypedA type
 type ReTypedA uint8
+
+// ReTypedB type
 type ReTypedB uint16
+
+// ReTypedC type
 type ReTypedC uint32
+
+// ReTypedD type
 type ReTypedD uint64
 
+// ReTypedE type
 type ReTypedE int8
+
+// ReTypedF type
 type ReTypedF int16
+
+// ReTypedG type
 type ReTypedG int32
+
+// ReTypedH type
 type ReTypedH int64
 
+// ReTypedI type
 type ReTypedI float32
+
+// ReTypedJ type
 type ReTypedJ float64
 
+// ReTypedM type
 type ReTypedM byte
+
+// ReTypedN type
 type ReTypedN rune
 
+// ReTypedO type
 type ReTypedO int
+
+// ReTypedP type
 type ReTypedP uint
+
+// ReTypedQ type
 type ReTypedQ string
+
+// ReTypedR type
 type ReTypedR bool
+
+// ReTypedS type
 type ReTypedS time.Time
 
+// ReTypedAp type
 type ReTypedAp *uint8
+
+// ReTypedBp type
 type ReTypedBp *uint16
+
+// ReTypedCp type
 type ReTypedCp *uint32
+
+// ReTypedDp type
 type ReTypedDp *uint64
 
+// ReTypedEp type
 type ReTypedEp *int8
+
+// ReTypedFp type
 type ReTypedFp *int16
+
+// ReTypedGp type
 type ReTypedGp *int32
+
+// ReTypedHp type
 type ReTypedHp *int64
 
+// ReTypedIp type
 type ReTypedIp *float32
+
+// ReTypedJp type
 type ReTypedJp *float64
 
+// ReTypedMp type
 type ReTypedMp *byte
+
+// ReTypedNp type
 type ReTypedNp *rune
 
+// ReTypedOp type
 type ReTypedOp *int
+
+// ReTypedPp type
 type ReTypedPp *uint
+
+// ReTypedQp type
 type ReTypedQp *string
+
+// ReTypedRp type
 type ReTypedRp *bool
+
+// ReTypedSp type
 type ReTypedSp *time.Time
 
+// ReTypedAa type
 type ReTypedAa []uint8
+
+// ReTypedBa type
 type ReTypedBa []uint16
+
+// ReTypedCa type
 type ReTypedCa []uint32
+
+// ReTypedDa type
 type ReTypedDa []uint64
 
+// ReTypedEa type
 type ReTypedEa []int8
+
+// ReTypedFa type
 type ReTypedFa []int16
+
+// ReTypedGa type
 type ReTypedGa []int32
+
+// ReTypedHa type
 type ReTypedHa []int64
 
+// ReTypedIa type
 type ReTypedIa []float32
+
+// ReTypedJa type
 type ReTypedJa []float64
 
+// ReTypedMa type
 type ReTypedMa []byte
+
+// ReTypedNa type
 type ReTypedNa []rune
 
+// ReTypedOa type
 type ReTypedOa []int
+
+// ReTypedPa type
 type ReTypedPa []uint
+
+// ReTypedQa type
 type ReTypedQa []string
+
+// ReTypedRa type
 type ReTypedRa []bool
 
+// ReTypedAap type
 type ReTypedAap []*uint8
+
+// ReTypedBap type
 type ReTypedBap []*uint16
+
+// ReTypedCap type
 type ReTypedCap []*uint32
+
+// ReTypedDap type
 type ReTypedDap []*uint64
 
+// ReTypedEap type
 type ReTypedEap []*int8
+
+// ReTypedFap type
 type ReTypedFap []*int16
+
+// ReTypedGap type
 type ReTypedGap []*int32
+
+// ReTypedHap type
 type ReTypedHap []*int64
 
+// ReTypedIap type
 type ReTypedIap []*float32
+
+// ReTypedJap type
 type ReTypedJap []*float64
 
+// ReTypedMap type
 type ReTypedMap []*byte
+
+// ReTypedNap type
 type ReTypedNap []*rune
 
+// ReTypedOap type
 type ReTypedOap []*int
+
+// ReTypedPap type
 type ReTypedPap []*uint
+
+// ReTypedQap type
 type ReTypedQap []*string
+
+// ReTypedRap type
 type ReTypedRap []*bool
+
+// ReTypedXa type
 type ReTypedXa NoDecoder
+
+// ReTypedXb type
 type ReTypedXb NoEncoder
+
+// ReTypedXc type
 type ReTypedXc *NoDecoder
+
+// ReTypedXd type
 type ReTypedXd *NoEncoder
 
+// ReReTypedA type
 type ReReTypedA ReTypedA
+
+// ReReTypedS type
 type ReReTypedS ReTypedS
+
+// ReReTypedAp type
 type ReReTypedAp ReTypedAp
+
+// ReReTypedSp type
 type ReReTypedSp ReTypedSp
+
+// ReReTypedAa type
 type ReReTypedAa ReTypedAa
+
+// ReReTypedAap type
 type ReReTypedAap ReTypedAap
+
+// ReReTypedXa type
 type ReReTypedXa ReTypedXa
+
+// ReReTypedXb type
 type ReReTypedXb ReTypedXb
+
+// ReReTypedXc type
 type ReReTypedXc ReTypedXc
+
+// ReReTypedXd type
 type ReReTypedXd ReTypedXd
 
+// RePReTypedA type
 type RePReTypedA *ReTypedA
+
+// ReSReTypedS type
 type ReSReTypedS []ReTypedS
+
+// ReAReTypedAp type
 type ReAReTypedAp [4]ReTypedAp
 
+// TReTyped struct
 // ffjson: ignore
 type TReTyped struct {
 	A ReTypedA
@@ -1780,6 +1941,7 @@ type TReTyped struct {
 	Rsrs ReSReTypedS
 }
 
+// XReTyped struct
 type XReTyped struct {
 	A ReTypedA
 	B ReTypedB
@@ -1891,6 +2053,7 @@ type XReTyped struct {
 	Rsrs ReSReTypedS
 }
 
+// TInlineStructs struct
 // ffjson: skip
 type TInlineStructs struct {
 	B struct {
@@ -1990,6 +2153,7 @@ type TInlineStructs struct {
 	}
 }
 
+// XInlineStructs struct
 type XInlineStructs struct {
 	B struct {
 		A uint8
@@ -2088,6 +2252,7 @@ type XInlineStructs struct {
 	}
 }
 
+// TDominantField struct
 // ffjson: skip
 type TDominantField struct {
 	X     *int `json:"Name,omitempty"`
@@ -2097,6 +2262,7 @@ type TDominantField struct {
 	A     *struct{ X int } `json:"Name,omitempty"`
 }
 
+// XDominantField struct
 type XDominantField struct {
 	X     *int `json:"Name,omitempty"`
 	Y     *int `json:"Name,omitempty"`
