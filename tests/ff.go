@@ -235,332 +235,455 @@ type XMapStringString struct {
 	X map[string]string
 }
 
+// Tbool struct
 // ffjson: skip
 type Tbool struct {
 	X bool
 }
+
+// Xbool struct
 type Xbool struct {
 	X bool
 }
 
+// Tint struct
 // ffjson: skip
 type Tint struct {
 	X int
 }
+
+// Xint struct
 type Xint struct {
 	X int
 }
 
+// Tbyte struct
 // ffjson: skip
 type Tbyte struct {
 	X byte
 }
+
+// Xbyte struct
 type Xbyte struct {
 	X byte
 }
 
+// Tint8 struct
 // ffjson: skip
 type Tint8 struct {
 	X int8
 }
+
+// Xint8 struct
 type Xint8 struct {
 	X int8
 }
 
+// Tint16 struct
 // ffjson: skip
 type Tint16 struct {
 	X int16
 }
+
+// Xint16 stuct
 type Xint16 struct {
 	X int16
 }
 
+// Tint32 struct
 // ffjson: skip
 type Tint32 struct {
 	X int32
 }
+
+// Xint32 struct
 type Xint32 struct {
 	X int32
 }
 
+// Tint64 struct
 // ffjson: skip
 type Tint64 struct {
 	X int64
 }
+
+// Xint64 struct
 type Xint64 struct {
 	X int64
 }
 
+// Tuiny struct
 // ffjson: skip
 type Tuint struct {
 	X uint
 }
+
+// Xuint struct
 type Xuint struct {
 	X uint
 }
 
+// Tuint8 struct
 // ffjson: skip
 type Tuint8 struct {
 	X uint8
 }
+
+// Xuint8 struct
 type Xuint8 struct {
 	X uint8
 }
 
+// Tuint16 struct
 // ffjson: skip
 type Tuint16 struct {
 	X uint16
 }
+
+// Xuint16 struct
 type Xuint16 struct {
 	X uint16
 }
 
+// Tuint32 struct
 // ffjson: skip
 type Tuint32 struct {
 	X uint32
 }
+
+// Xuint32 struct
 type Xuint32 struct {
 	X uint32
 }
 
+// Tuint64 struct
 // ffjson: skip
 type Tuint64 struct {
 	X uint64
 }
+
+// Xuint64 struct
 type Xuint64 struct {
 	X uint64
 }
 
+// Tuintptr struct
 // ffjson: skip
 type Tuintptr struct {
 	X uintptr
 }
+
+// Xuintptr struct
 type Xuintptr struct {
 	X uintptr
 }
 
+// Tfloat32 struct
 // ffjson: skip
 type Tfloat32 struct {
 	X float32
 }
+
+// Xfloat32 struct
 type Xfloat32 struct {
 	X float32
 }
 
+// Tfloat64 struct
 // ffjson: skip
 type Tfloat64 struct {
 	X float64
 }
+
+// Xfloat64 struct
 type Xfloat64 struct {
 	X float64
 }
 
+// ATduration struct
 // Arrays
 // ffjson: skip
 type ATduration struct {
 	X [3]time.Duration
 }
+
+// AXduration struct
 type AXduration struct {
 	X [3]time.Duration
 }
 
+// ATbool struct
 // ffjson: skip
 type ATbool struct {
 	X [3]bool
 }
+
+// AXbool struct
 type AXbool struct {
 	X [3]bool
 }
 
+// ATint struct
 // ffjson: skip
 type ATint struct {
 	X [3]int
 }
+
+// AXint struct
 type AXint struct {
 	X [3]int
 }
 
+// ATbyte struct
 // ffjson: skip
 type ATbyte struct {
 	X [3]byte
 }
+
+// AXbyte struct
 type AXbyte struct {
 	X [3]byte
 }
 
+// ATint8
 // ffjson: skip
 type ATint8 struct {
 	X [3]int8
 }
+
+// AXint8 struct
 type AXint8 struct {
 	X [3]int8
 }
 
+// ATint16 struct
 // ffjson: skip
 type ATint16 struct {
 	X [3]int16
 }
+
+// AXint16 struct
 type AXint16 struct {
 	X [3]int16
 }
 
+// ATint32 struct
 // ffjson: skip
 type ATint32 struct {
 	X [3]int32
 }
+
+// AXint32 struct
 type AXint32 struct {
 	X [3]int32
 }
 
+// ATint64 struct
 // ffjson: skip
 type ATint64 struct {
 	X [3]int64
 }
+
+// AXint64 struct
 type AXint64 struct {
 	X [3]int64
 }
 
+// ATuint struct
 // ffjson: skip
 type ATuint struct {
 	X [3]uint
 }
+
+// AXuint struct
 type AXuint struct {
 	X [3]uint
 }
 
+// ATuint8 struct
 // ffjson: skip
 type ATuint8 struct {
 	X [3]uint8
 }
+
+// AXuint8 struct
 type AXuint8 struct {
 	X [3]uint8
 }
 
+// ATuint16 struct
 // ffjson: skip
 type ATuint16 struct {
 	X [3]uint16
 }
+
+// AXuint16 struct
 type AXuint16 struct {
 	X [3]uint16
 }
 
+// ATuint32 struct
 // ffjson: skip
 type ATuint32 struct {
 	X [3]uint32
 }
+
+// AXuint32 struct
 type AXuint32 struct {
 	X [3]uint32
 }
 
+// ATuint64 struct
 // ffjson: skip
 type ATuint64 struct {
 	X [3]uint64
 }
+
+// AXuint64 struct
 type AXuint64 struct {
 	X [3]uint64
 }
 
+// ATuintptr
 // ffjson: skip
 type ATuintptr struct {
 	X [3]uintptr
 }
+
+// AXuintptr
 type AXuintptr struct {
 	X [3]uintptr
 }
 
+// ATfloat32 struct
 // ffjson: skip
 type ATfloat32 struct {
 	X [3]float32
 }
+
+// AXfloat32 struct
 type AXfloat32 struct {
 	X [3]float32
 }
 
+// ATfloat54 struct
 // ffjson: skip
 type ATfloat64 struct {
 	X [3]float64
 }
+
+// AXfloat64 struct
 type AXfloat64 struct {
 	X [3]float64
 }
 
+// ATtime struct
 // ffjson: skip
 type ATtime struct {
 	X [3]time.Time
 }
+
+// AXtime struct
 type AXtime struct {
 	X [3]time.Time
 }
 
+// STduration struct
 // Slices
 // ffjson: skip
 type STduration struct {
 	X []time.Duration
 }
+
+// SXduration struct
 type SXduration struct {
 	X []time.Duration
 }
 
+// STbool struct
 // ffjson: skip
 type STbool struct {
 	X []bool
 }
+
+// SXbool struct
 type SXbool struct {
 	X []bool
 }
 
+// STint struct
 // ffjson: skip
 type STint struct {
 	X []int
 }
+
+// SXint struct
 type SXint struct {
 	X []int
 }
 
+// STbyte struct
 // ffjson: skip
 type STbyte struct {
 	X []byte
 }
+
+// SXbyte struct
 type SXbyte struct {
 	X []byte
 }
 
+// STint8 struct
 // ffjson: skip
 type STint8 struct {
 	X []int8
 }
+
+// SXint8 struct
 type SXint8 struct {
 	X []int8
 }
 
+// STint16 struct
 // ffjson: skip
 type STint16 struct {
 	X []int16
 }
+
+// SXint16 struct
 type SXint16 struct {
 	X []int16
 }
 
+// STint32 struct
 // ffjson: skip
 type STint32 struct {
 	X []int32
 }
+
+// SXint32 struct
 type SXint32 struct {
 	X []int32
 }
 
+// STint64 struct
 // ffjson: skip
 type STint64 struct {
 	X []int64
 }
+
+// SXint64 struct
 type SXint64 struct {
 	X []int64
 }
 
+// STuint struct
 // ffjson: skip
 type STuint struct {
 	X []uint
 }
+
+// SXuint struct
 type SXuint struct {
 	X []uint
 }
