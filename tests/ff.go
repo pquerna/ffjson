@@ -23,21 +23,24 @@ import (
 	"time"
 )
 
+// FFFoo struc... just  blah
 type FFFoo struct {
 	Blah int
 }
 
+// FFRecord struct
 type FFRecord struct {
 	Timestamp int64 `json:"id,omitempty"`
 	OriginID  uint32
 	Bar       FFFoo
 	Method    string `json:"meth"`
-	ReqId     string
-	ServerIp  string
-	RemoteIp  string
+	ReqID     string
+	ServerIP  string
+	RemoteIP  string
 	BytesSent uint64
 }
 
+// TI18nName struct
 // ffjson: skip
 type TI18nName struct {
 	Ændret   int64
@@ -45,6 +48,7 @@ type TI18nName struct {
 	Позната  string
 }
 
+// XI18nName struct
 type XI18nName struct {
 	Ændret   int64
 	Aוההקלדה uint32
@@ -53,133 +57,180 @@ type XI18nName struct {
 
 type mystring string
 
+// TsortName struct
 // ffjson: skip
 type TsortName struct {
 	C string
 	B int `json:"A"`
 }
+
+// XsortName struct
 type XsortName struct {
 	C string
 	B int `json:"A"`
 }
 
+// Tobj struct
 // ffjson: skip
 type Tobj struct {
 	X Tint
 }
+
+// Xobj struct
 type Xobj struct {
 	X Xint
 }
 
+// Tduration struct
 // ffjson: skip
 type Tduration struct {
 	X time.Duration
 }
+
+// Xduration struct
 type Xduration struct {
 	X time.Duration
 }
 
+// TtimePtr struct
 // ffjson: skip
 type TtimePtr struct {
 	X *time.Time
 }
+
+// XtimePtr struct
 type XtimePtr struct {
 	X *time.Time
 }
 
+// Tarray struct
 // ffjson: skip
 type Tarray struct {
 	X [3]int
 }
+
+// Xarray struct
 type Xarray struct {
 	X [3]int
 }
 
+// TarrayPtr struct
 // ffjson: skip
 type TarrayPtr struct {
 	X [3]*int
 }
+
+// XarrayPtr struct
 type XarrayPtr struct {
 	X [3]*int
 }
 
+// Tslice struct
 // ffjson: skip
 type Tslice struct {
 	X []int
 }
+
+//Xslice struct
 type Xslice struct {
 	X []int
 }
 
+// TslicePtr struct
 // ffjson: skip
 type TslicePtr struct {
 	X []*int
 }
+
+// XslicePtr struct
 type XslicePtr struct {
 	X []*int
 }
 
+// Tstring struct
 // ffjson: skip
 type Tstring struct {
 	X string
 }
+
+// Xstring struct
 type Xstring struct {
 	X string
 }
 
+// Tmystring struct
 // ffjson: skip
 type Tmystring struct {
 	X mystring
 }
+
+// Xmystring struct
 type Xmystring struct {
 	X mystring
 }
 
+// TmystringPtr struct
 // ffjson: skip
 type TmystringPtr struct {
 	X *mystring
 }
+
+// XmystringPtr struct
 type XmystringPtr struct {
 	X *mystring
 }
 
+// TstringTagged struct
 // ffjson: skip
 type TstringTagged struct {
 	X string `json:",string"`
 }
+
+// XstringTagged struct
 type XstringTagged struct {
 	X string `json:",string"`
 }
 
+// TstringTagedPtr struct
 // ffjson: skip
 type TstringTaggedPtr struct {
 	X *string `json:",string"`
 }
 
+// XstringTaggedPtr struct
 type XstringTaggedPtr struct {
 	X *string `json:",string"`
 }
 
+// TintTagged struct
 // ffjson: skip
 type TintTagged struct {
 	X int `json:",string"`
 }
+
+//XintTagged struct
 type XintTagged struct {
 	X int `json:",string"`
 }
 
+// TboolTagged struct
 // ffjson: skip
 type TboolTagged struct {
 	X int `json:",string"`
 }
+
+// XboolTagged struct
 type XboolTagged struct {
 	X int `json:",string"`
 }
 
+// TMapStringString struct
 // ffjson: skip
 type TMapStringString struct {
 	X map[string]string
 }
+
+// XMapStringString struct
 type XMapStringString struct {
 	X map[string]string
 }
