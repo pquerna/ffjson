@@ -32,6 +32,10 @@ ffize: install
 	ffjson -force-regenerate -reset-fields tests/types/ff/everything.go
 	ffjson -force-regenerate tests/number/ff/number.go
 
+lint: ffize
+	go get github.com/golang/lint/golint
+	golint --set_exit_status tests/...
+
 bench: ffize all
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests
 	go test -v -benchmem -bench MarshalJSON  github.com/pquerna/ffjson/tests/goser github.com/pquerna/ffjson/tests/go.stripe

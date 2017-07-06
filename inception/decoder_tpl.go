@@ -497,12 +497,12 @@ type header struct {
 
 var headerTxt = `
 const (
-	ffj_t_{{.SI.Name}}base = iota
-	ffj_t_{{.SI.Name}}no_such_key
+	ffjt{{.SI.Name}}base = iota
+	ffjt{{.SI.Name}}nosuchkey
 	{{with $si := .SI}}
 		{{range $index, $field := $si.Fields}}
 			{{if ne $field.JsonName "-"}}
-		ffj_t_{{$si.Name}}_{{$field.Name}}
+		ffjt{{$si.Name}}{{$field.Name}}
 			{{end}}
 		{{end}}
 	{{end}}
@@ -511,7 +511,7 @@ const (
 {{with $si := .SI}}
 	{{range $index, $field := $si.Fields}}
 		{{if ne $field.JsonName "-"}}
-var ffj_key_{{$si.Name}}_{{$field.Name}} = []byte({{$field.JsonName}})
+var ffjKey{{$si.Name}}{{$field.Name}} = []byte({{$field.JsonName}})
 		{{end}}
 	{{end}}
 {{end}}
@@ -529,21 +529,23 @@ var ujFuncTxt = `
 {{$si := .SI}}
 {{$ic := .IC}}
 
-func (uj *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
-	fs := fflib.NewFFLexer(input)
-    return uj.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
+// UnmarshalJSON umarshall json - template of ffjson
+func (j *{{.SI.Name}}) UnmarshalJSON(input []byte) error {
+    fs := fflib.NewFFLexer(input)
+    return j.UnmarshalJSONFFLexer(fs, fflib.FFParse_map_start)
 }
 
-func (uj *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
-	var err error = nil
-	currentKey := ffj_t_{{.SI.Name}}base
+// UnmarshalJSONFFLexer fast json unmarshall - template ffjson
+func (j *{{.SI.Name}}) UnmarshalJSONFFLexer(fs *fflib.FFLexer, state fflib.FFParseState) error {
+	var err error
+	currentKey := ffjt{{.SI.Name}}base
 	_ = currentKey
 	tok := fflib.FFTok_init
 	wantedTok := fflib.FFTok_init
 
 				{{if eq .ResetFields true}}
 				{{range $index, $field := $si.Fields}}
-				var ffj_set_{{$si.Name}}_{{$field.Name}} = false
+				var ffjSet{{$si.Name}}{{$field.Name}} = false
  				{{end}}
 				{{end}}
 
@@ -588,7 +590,7 @@ mainparse:
 			kn := fs.Output.Bytes()
 			if len(kn) <= 0 {
 				// "" case. hrm.
-				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}nosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			} else {
@@ -596,21 +598,21 @@ mainparse:
 				{{range $byte, $fields := $si.FieldsByFirstByte}}
 				case '{{$byte}}':
 					{{range $index, $field := $fields}}
-						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
-						currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+						{{if ne $index 0 }}} else if {{else}}if {{end}} bytes.Equal(ffjKey{{$si.Name}}{{$field.Name}}, kn) {
+						currentKey = ffjt{{$si.Name}}{{$field.Name}}
 						state = fflib.FFParse_want_colon
 						goto mainparse
 					{{end}} }
 				{{end}}
 				}
 				{{range $index, $field := $si.ReverseFields}}
-				if {{$field.FoldFuncName}}(ffj_key_{{$si.Name}}_{{$field.Name}}, kn) {
-					currentKey = ffj_t_{{$si.Name}}_{{$field.Name}}
+				if {{$field.FoldFuncName}}(ffjKey{{$si.Name}}{{$field.Name}}, kn) {
+					currentKey = ffjt{{$si.Name}}{{$field.Name}}
 					state = fflib.FFParse_want_colon
 					goto mainparse
 				}
 				{{end}}
-				currentKey = ffj_t_{{.SI.Name}}no_such_key
+				currentKey = ffjt{{.SI.Name}}nosuchkey
 				state = fflib.FFParse_want_colon
 				goto mainparse
 			}
@@ -627,10 +629,10 @@ mainparse:
 			if {{range $index, $v := .ValidValues}}{{if ne $index 0 }}||{{end}}tok == fflib.{{$v}}{{end}} {
 				switch currentKey {
 				{{range $index, $field := $si.Fields}}
-				case ffj_t_{{$si.Name}}_{{$field.Name}}:
+				case ffjt{{$si.Name}}{{$field.Name}}:
 					goto handle_{{$field.Name}}
 				{{end}}
-				case ffj_t_{{$si.Name}}no_such_key:
+				case ffjt{{$si.Name}}nosuchkey:
 					err = fs.SkipField(tok)
 					if err != nil {
 						return fs.WrapErr(err)
@@ -645,10 +647,10 @@ mainparse:
 	}
 {{range $index, $field := $si.Fields}}
 handle_{{$field.Name}}:
-	{{with $fieldName := $field.Name | printf "uj.%s"}}
+	{{with $fieldName := $field.Name | printf "j.%s"}}
 		{{handleField $ic $fieldName $field.Typ $field.Pointer $field.ForceString}}
 		{{if eq $.ResetFields true}}
-		ffj_set_{{$si.Name}}_{{$field.Name}} = true
+		ffjSet{{$si.Name}}{{$field.Name}} = true
 		{{end}}
 		state = fflib.FFParse_after_value
 		goto mainparse
@@ -671,8 +673,8 @@ tokerror:
 done:
 {{if eq .ResetFields true}}
 {{range $index, $field := $si.Fields}}
-	if !ffj_set_{{$si.Name}}_{{$field.Name}} {
-	{{with $fieldName := $field.Name | printf "uj.%s"}}
+	if !ffjSet{{$si.Name}}{{$field.Name}} {
+	{{with $fieldName := $field.Name | printf "j.%s"}}
 	{{if eq $field.Pointer true}}
 		{{$fieldName}} = nil
 	{{else if eq $field.Typ.Kind ` + strconv.FormatUint(uint64(reflect.Interface), 10) + `}}

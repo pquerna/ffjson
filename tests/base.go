@@ -1,16 +1,18 @@
 package tff
 
+// Foo struct
 type Foo struct {
 	Blah int
 }
 
+// Record struct
 type Record struct {
 	Timestamp int64 `json:"id,omitempty"`
-	OriginId  uint32
+	OriginID  uint32
 	Bar       Foo
 	Method    string `json:"meth"`
-	ReqId     string
-	ServerIp  string
-	RemoteIp  string
+	ReqID     string
+	ServerIP  string
+	RemoteIP  string
 	BytesSent uint64
 }

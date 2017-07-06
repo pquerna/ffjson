@@ -8,7 +8,7 @@ import (
 //
 // see https://stripe.com/docs/api#customer_object
 type Customer struct {
-	Id           string        `json:"id"`
+	ID           string        `json:"id"`
 	Desc         string        `json:"description,omitempty"`
 	Email        string        `json:"email,omitempty"`
 	Created      int64         `json:"created"`
@@ -21,10 +21,11 @@ type Customer struct {
 	DefaultCard  string        `json:"default_card"`
 }
 
+// CardData detaiks about cards
 type CardData struct {
 	Object string  `json:"object"`
 	Count  int     `json:"count"`
-	Url    string  `json:"url"`
+	URL    string  `json:"url"`
 	Data   []*Card `json:"data"`
 }
 
@@ -41,7 +42,7 @@ const (
 
 // Card represents details about a Credit Card entered into Stripe.
 type Card struct {
-	Id                string `json:"id"`
+	ID                string `json:"id"`
 	Name              string `json:"name,omitempty"`
 	Type              string `json:"type"`
 	ExpMonth          int    `json:"exp_month"`
@@ -65,7 +66,7 @@ type Card struct {
 //
 // see https://stripe.com/docs/api#discount_object
 type Discount struct {
-	Id       string  `json:"id"`
+	ID       string  `json:"id"`
 	Customer string  `json:"customer"`
 	Start    int64   `json:"start"`
 	End      int64   `json:"end"`
@@ -76,7 +77,7 @@ type Discount struct {
 //
 // see https://stripe.com/docs/api#coupon_object
 type Coupon struct {
-	Id               string `json:"id"`
+	ID               string `json:"id"`
 	Duration         string `json:"duration"`
 	PercentOff       int    `json:"percent_off"`
 	DurationInMonths int    `json:"duration_in_months,omitempty"`
@@ -95,7 +96,7 @@ const (
 	SubscriptionUnpaid   = "unpaid"
 )
 
-// Subscriptions represents a recurring charge a customer's card.
+// Subscription represents a recurring charge a customer's card.
 //
 // see https://stripe.com/docs/api#subscription_object
 type Subscription struct {
@@ -119,7 +120,7 @@ type Subscription struct {
 //
 // see https://stripe.com/docs/api#plan_object
 type Plan struct {
-	Id              string `json:"id"`
+	ID              string `json:"id"`
 	Name            string `json:"name"`
 	Amount          int64  `json:"amount"`
 	Interval        string `json:"interval"`
@@ -129,10 +130,11 @@ type Plan struct {
 	Livemode        bool   `json:"livemode"`
 }
 
+// NewCustomer creates a new customer
 func NewCustomer() *Customer {
 
 	return &Customer{
-		Id:         "hooN5ne7ug",
+		ID:         "hooN5ne7ug",
 		Desc:       "A very nice customer.",
 		Email:      "customer@example.com",
 		Created:    time.Now().UnixNano(),
@@ -141,11 +143,11 @@ func NewCustomer() *Customer {
 		Cards: CardData{
 			Object: "A92F4CFE-8B6B-4176-873E-887AC0D120EB",
 			Count:  1,
-			Url:    "https://stripe.example.com/card/A92F4CFE-8B6B-4176-873E-887AC0D120EB",
+			URL:    "https://stripe.example.com/card/A92F4CFE-8B6B-4176-873E-887AC0D120EB",
 			Data: []*Card{
 				&Card{
 					Name:        "John Smith",
-					Id:          "7526EC97-A0B6-47B2-AAE5-17443626A116",
+					ID:          "7526EC97-A0B6-47B2-AAE5-17443626A116",
 					Fingerprint: "4242424242424242",
 					ExpYear:     time.Now().Year() + 1,
 					ExpMonth:    1,
@@ -153,12 +155,12 @@ func NewCustomer() *Customer {
 			},
 		},
 		Discount: &Discount{
-			Id:       "Ee9ieZ8zie",
+			ID:       "Ee9ieZ8zie",
 			Customer: "hooN5ne7ug",
 			Start:    time.Now().UnixNano(),
 			End:      time.Now().UnixNano(),
 			Coupon: &Coupon{
-				Id:               "ieQuo5Aiph",
+				ID:               "ieQuo5Aiph",
 				Duration:         "2m",
 				PercentOff:       10,
 				DurationInMonths: 2,
@@ -172,7 +174,7 @@ func NewCustomer() *Customer {
 			Customer: "hooN5ne7ug",
 			Status:   SubscriptionActive,
 			Plan: &Plan{
-				Id:              "gaiyeLua5u",
+				ID:              "gaiyeLua5u",
 				Name:            "Great Plan (TM)",
 				Amount:          10,
 				Interval:        "monthly",

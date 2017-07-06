@@ -38,14 +38,14 @@ var outputFileOnError = false
 
 func newLogRecord() *Record {
 	return &Record{
-		OriginId: 11,
+		OriginID: 11,
 		Method:   "POST",
 	}
 }
 
 func newLogFFRecord() *FFRecord {
 	return &FFRecord{
-		OriginId: 11,
+		OriginID: 11,
 		Method:   "POST",
 	}
 }
@@ -132,7 +132,7 @@ func BenchmarkMarshalJSONNativeReuse(b *testing.B) {
 
 func BenchmarkSimpleUnmarshal(b *testing.B) {
 	record := newLogFFRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	err := record.UnmarshalJSON(buf)
 	if err != nil {
 		b.Fatalf("UnmarshalJSON: %v", err)
@@ -150,7 +150,7 @@ func BenchmarkSimpleUnmarshal(b *testing.B) {
 
 func BenchmarkSXimpleUnmarshalNative(b *testing.B) {
 	record := newLogRecord()
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	err := json.Unmarshal(buf, record)
 	if err != nil {
 		b.Fatalf("json.Unmarshal: %v", err)
@@ -206,7 +206,7 @@ func TestMarshalEncoderError(t *testing.T) {
 }
 
 func TestUnmarshalFaster(t *testing.T) {
-	buf := []byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`)
+	buf := []byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`)
 	record := newLogFFRecord()
 	err := ffjson.UnmarshalFast(buf, record)
 	require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestUnmarshalFaster(t *testing.T) {
 func TestSimpleUnmarshal(t *testing.T) {
 	record := newLogFFRecord()
 
-	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginId": 22, "meth": "GET"}`))
+	err := record.UnmarshalJSON([]byte(`{"id": 123213, "OriginID": 22, "meth": "GET"}`))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
@@ -230,8 +230,8 @@ func TestSimpleUnmarshal(t *testing.T) {
 		t.Fatalf("record.Timestamp: expected: 0 got: %v", record.Timestamp)
 	}
 
-	if record.OriginId != 22 {
-		t.Fatalf("record.OriginId: expected: 22 got: %v", record.OriginId)
+	if record.OriginID != 22 {
+		t.Fatalf("record.OriginID: expected: 22 got: %v", record.OriginID)
 	}
 
 	if record.Method != "GET" {
@@ -435,7 +435,7 @@ func TestArray(t *testing.T) {
 	buf := []byte(`{"X": null}`)
 	err := json.Unmarshal(buf, &x)
 	require.NoError(t, err, "Unmarshal of null into array.")
-	var eq [3]int = [3]int{}
+	var eq = [3]int{}
 	require.Equal(t, x.X, eq)
 }
 
@@ -453,7 +453,7 @@ func TestSlice(t *testing.T) {
 	buf := []byte(`{"X": null}`)
 	err := json.Unmarshal(buf, &x)
 	require.NoError(t, err, "Unmarshal of null into slice.")
-	var eq []int = nil
+	var eq []int
 	require.Equal(t, x.X, eq)
 }
 

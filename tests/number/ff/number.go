@@ -21,11 +21,13 @@ import (
 	"encoding/json"
 )
 
+// Number struct
 type Number struct {
 	Int   json.Number
 	Float json.Number
 }
 
+// NewNumber creates a new number
 func NewNumber(e *Number) {
 	e.Int = "1"
 	e.Float = "3.14"

@@ -19,8 +19,9 @@ package ffjsoninception
 
 import (
 	"fmt"
-	"github.com/pquerna/ffjson/shared"
 	"reflect"
+
+	"github.com/pquerna/ffjson/shared"
 )
 
 func typeInInception(ic *Inception, typ reflect.Type, f shared.Feature) bool {
@@ -39,7 +40,7 @@ func typeInInception(ic *Inception, typ reflect.Type, f shared.Feature) bool {
 }
 
 func getOmitEmpty(ic *Inception, sf *StructField) string {
-	ptname := "mj." + sf.Name
+	ptname := "j." + sf.Name
 	if sf.Pointer {
 		ptname = "*" + ptname
 		return "if true {\n"
@@ -483,23 +484,25 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	conditionalWrites := lastConditional(si.Fields)
 	out := ""
 
-	out += `func (mj *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
+	out += "// MarshalJSON marshal bytes to json - template\n"
+	out += `func (j *` + si.Name + `) MarshalJSON() ([]byte, error) {` + "\n"
 	out += `var buf fflib.Buffer` + "\n"
 
-	out += `if mj == nil {` + "\n"
+	out += `if j == nil {` + "\n"
 	out += `  buf.WriteString("null")` + "\n"
 	out += "  return buf.Bytes(), nil" + "\n"
 	out += `}` + "\n"
 
-	out += `err := mj.MarshalJSONBuf(&buf)` + "\n"
+	out += `err := j.MarshalJSONBuf(&buf)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
 	out += `}` + "\n"
 	out += `return buf.Bytes(), nil` + "\n"
 	out += `}` + "\n"
 
-	out += `func (mj *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
-	out += `  if mj == nil {` + "\n"
+	out += "// MarshalJSONBuf marshal buff to json - template\n"
+	out += `func (j *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
+	out += `  if j == nil {` + "\n"
 	out += `    buf.WriteString("null")` + "\n"
 	out += "    return nil" + "\n"
 	out += `  }` + "\n"
@@ -519,7 +522,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	}
 
 	for _, f := range si.Fields {
-		out += getField(ic, f, "mj.")
+		out += getField(ic, f, "j.")
 	}
 
 	// Handling the last comma is tricky.

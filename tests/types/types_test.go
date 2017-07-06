@@ -19,10 +19,11 @@ package types
 
 import (
 	"encoding/json"
-	ff "github.com/pquerna/ffjson/tests/types/ff"
 	"reflect"
 	"strings"
 	"testing"
+
+	ff "github.com/pquerna/ffjson/tests/types/ff"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -72,7 +73,7 @@ func TestUnmarshalEmpty(t *testing.T) {
 }
 
 const (
-	everythingJson = `{
+	everythingJSON = `{
   "Bool": true,
   "Int": 1,
   "Int8": 2,
@@ -110,7 +111,7 @@ func TestUnmarshalFull(t *testing.T) {
 	record := ff.Everything{}
 	// TODO(pquerna): add unicode snowman
 	// TODO(pquerna): handle Bar subtype
-	err := record.UnmarshalJSON([]byte(everythingJson))
+	err := record.UnmarshalJSON([]byte(everythingJSON))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
 	}
