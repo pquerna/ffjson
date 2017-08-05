@@ -553,11 +553,9 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 		} else {
 			return nil, nil
 		}
-
-	default:
-		return nil, fmt.Errorf("ffjson: invalid capture type: %v", start)
 	}
-	panic("not reached")
+
+	return nil, fmt.Errorf("ffjson: invalid capture type: %v", start)
 }
 
 // Captures an entire field value, including recursive objects,
