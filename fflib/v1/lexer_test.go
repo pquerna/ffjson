@@ -75,8 +75,6 @@ func scanToTokCount(ffl *FFLexer, targetTok FFTok) (int, error) {
 			return c, errors.New("Hit EOF before target token")
 		}
 	}
-
-	return c, errors.New("Could not find target token.")
 }
 
 func TestBasicLexing(t *testing.T) {
@@ -228,7 +226,7 @@ func tDouble(t *testing.T, input string, target float64) {
 
 	err = scanToTok(ffl, FFTok_eof)
 	if err != nil {
-		t.Fatal("Failed to find EOF after double. input: %v", input)
+		t.Fatalf("Failed to find EOF after double. input: %v", input)
 	}
 }
 
@@ -259,7 +257,7 @@ func tInt(t *testing.T, input string, target int64) {
 
 	err = scanToTok(ffl, FFTok_eof)
 	if err != nil {
-		t.Fatal("Failed to find EOF after int. input: %v", input)
+		t.Fatalf("Failed to find EOF after int. input: %v", input)
 	}
 }
 

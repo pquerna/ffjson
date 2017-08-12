@@ -111,7 +111,7 @@ type Subscription struct {
 	TrialEnd           int64  `json:"trial_end"`
 	CanceledAt         int64  `json:"canceled_at"`
 	CancelAtPeriodEnd  bool   `json:"cancel_at_period_end"`
-	Quantity           int64  `json"quantity"`
+	Quantity           int64  `json:"quantity"`
 }
 
 // Plan holds details about pricing information for different products and
