@@ -147,6 +147,39 @@ type XslicePtr struct {
 	X []*int
 }
 
+// TMapStringPtr struct
+// ffjson: skip
+type TMapStringPtr struct {
+	X map[string]*int
+}
+
+// XMapStringPtr struct
+type XMapStringPtr struct {
+	X map[string]*int
+}
+
+// TslicePtrStruct struct
+// ffjson: skip
+type TslicePtrStruct struct {
+	X []*Xstring
+}
+
+// XslicePtrStruct struct
+type XslicePtrStruct struct {
+	X []*Xstring
+}
+
+// TMapPtrStruct struct
+// ffjson: skip
+type TMapPtrStruct struct {
+	X map[string]*Xstring
+}
+
+// XMapPtrStruct struct
+type XMapPtrStruct struct {
+	X map[string]*Xstring
+}
+
 // Tstring struct
 // ffjson: skip
 type Tstring struct {

@@ -51,8 +51,7 @@ var handleMarshalerTxt = `
 		{{if eq .Typ.Kind .Ptr}}
 		if {{.Name}} == nil {
 			buf.WriteString("null")
-			return nil
-		}
+		} else {
 		{{end}}
 
 		{{if eq .MarshalJSONBuf true}}
@@ -66,6 +65,9 @@ var handleMarshalerTxt = `
 			return err
 		}
 		buf.Write(obj)
+		{{end}}
+		{{if eq .Typ.Kind .Ptr}}
+		}
 		{{end}}
 	}
 `

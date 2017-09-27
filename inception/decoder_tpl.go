@@ -724,22 +724,21 @@ var handleUnmarshalerTxt = `
 				{{if eq .TakeAddr true }}
 					{{.Name}} = nil
 				{{end}}
-				state = fflib.FFParse_after_value
-				goto mainparse
-		}
-		{{if eq .Typ.Kind .Ptr }}
-			if {{.Name}} == nil {
-				{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
+		} else {
+			{{if eq .Typ.Kind .Ptr }}
+				if {{.Name}} == nil {
+					{{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
+				}
+			{{end}}
+			{{if eq .TakeAddr true }}
+				if {{.Name}} == nil {
+					{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
+				}
+			{{end}}
+			err = {{.Name}}.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+			if err != nil {
+				return err
 			}
-		{{end}}
-		{{if eq .TakeAddr true }}
-			if {{.Name}} == nil {
-				{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
-			}
-		{{end}}
-		err = {{.Name}}.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
-		if err != nil {
-			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -750,23 +749,22 @@ var handleUnmarshalerTxt = `
 			{{if eq .TakeAddr true }}
 				{{.Name}} = nil
 			{{end}}
-			state = fflib.FFParse_after_value
-			goto mainparse
-		}
+		} else {
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
+			tbuf, err := fs.CaptureField(tok)
+			if err != nil {
+				return fs.WrapErr(err)
+			}
 
-		{{if eq .TakeAddr true }}
-		if {{.Name}} == nil {
-			{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
-		}
-		{{end}}
-		err = {{.Name}}.UnmarshalJSON(tbuf)
-		if err != nil {
-			return fs.WrapErr(err)
+			{{if eq .TakeAddr true }}
+			if {{.Name}} == nil {
+				{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
+			}
+			{{end}}
+			err = {{.Name}}.UnmarshalJSON(tbuf)
+			if err != nil {
+				return fs.WrapErr(err)
+			}
 		}
 		state = fflib.FFParse_after_value
 	}
