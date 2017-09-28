@@ -463,6 +463,30 @@ func TestSlicePtr(t *testing.T) {
 	testCycle(t, &TslicePtr{X: []*int{&v}}, &XslicePtr{X: []*int{}})
 }
 
+func TestSlicePtrNils(t *testing.T) {
+	v1 := 3
+	v2 := 4
+	testType(t, &TslicePtr{X: []*int{nil, &v1, nil, &v2}}, &XslicePtr{X: []*int{nil, &v1, nil, &v2}})
+}
+
+func TestMapPtrNils(t *testing.T) {
+	v1 := 3
+	v2 := 4
+	testType(t, &TMapStringPtr{X: map[string]*int{"a": nil, "b": &v1, "c": nil, "d": &v2}}, &XMapStringPtr{X: map[string]*int{"a": nil, "b": &v1, "c": nil, "d": &v2}})
+}
+
+func TestSlicePtrStructNils(t *testing.T) {
+	v1 := "v1"
+	v2 := "v2"
+	testType(t, &TslicePtrStruct{X: []*Xstring{nil, &Xstring{v1}, nil, &Xstring{v2}}}, &XslicePtrStruct{X: []*Xstring{nil, &Xstring{v1}, nil, &Xstring{v2}}})
+}
+
+func TestMapPtrStructNils(t *testing.T) {
+	v1 := "v1"
+	v2 := "v2"
+	testType(t, &TMapPtrStruct{X: map[string]*Xstring{"a": nil, "b": &Xstring{v1}, "c": nil, "d": &Xstring{v2}}}, &XMapPtrStruct{X: map[string]*Xstring{"a": nil, "b": &Xstring{v1}, "c": nil, "d": &Xstring{v2}}})
+}
+
 func TestTimeDuration(t *testing.T) {
 	testType(t, &Tduration{}, &Xduration{})
 }
