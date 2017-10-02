@@ -382,7 +382,7 @@ func testExpectedXVal(t *testing.T, expected interface{}, xval string, ff interf
 func testExpectedError(t *testing.T, expected error, xval string, ff json.Unmarshaler) {
 	buf := []byte(`{"X":` + xval + `}`)
 	err := ff.UnmarshalJSON(buf)
-	require.Error(t, err, "ff[%T] failed to Unmarshal", ff)
+	require.Errorf(t, err, "ff[%T] failed to Unmarshal", ff)
 	require.IsType(t, expected, err)
 }
 
