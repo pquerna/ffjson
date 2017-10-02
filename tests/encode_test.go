@@ -232,11 +232,8 @@ func TestDuplicatedFieldDisappears(t *testing.T) {
 	}
 }
 
-func TestIssue6458(t *testing.T) {
-	type Foo struct {
-		M json.RawMessage
-	}
-	x := Foo{json.RawMessage(`"foo"`)}
+func TestRawMessage(t *testing.T) {
+	x := TRawMessage{json.RawMessage(`"foo"`)}
 
 	b, err := json.Marshal(&x)
 	if err != nil {
@@ -251,7 +248,7 @@ func TestIssue6458(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if want := `{"M":"ImZvbyI="}`; string(b) != want {
+	if want := `{"M":"foo"}`; string(b) != want {
 		t.Errorf("Marshal(x) = %#q; want %#q", b, want)
 	}
 }
