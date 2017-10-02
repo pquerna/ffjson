@@ -232,6 +232,27 @@ func TestDuplicatedFieldDisappears(t *testing.T) {
 	}
 }
 
+func TestRawMessage(t *testing.T) {
+	x := TRawMessage{json.RawMessage(`"foo"`)}
+
+	b, err := json.Marshal(&x)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := `{"M":"foo"}`; string(b) != want {
+		t.Errorf("Marshal(&x) = %#q; want %#q", b, want)
+	}
+
+	b, err = json.Marshal(x)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if want := `{"M":"foo"}`; string(b) != want {
+		t.Errorf("Marshal(x) = %#q; want %#q", b, want)
+	}
+}
+
 func TestHTMLEscape(t *testing.T) {
 	var b, want bytes.Buffer
 	m := `{"M":"<html>foo &` + "\xe2\x80\xa8 \xe2\x80\xa9" + `</html>"}`

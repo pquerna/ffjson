@@ -18,6 +18,7 @@
 package tff
 
 import (
+	"encoding/json"
 	"errors"
 	"math"
 	"time"
@@ -2304,4 +2305,9 @@ type XDominantField struct {
 	Other string
 	Name  *int             `json",omitempty"`
 	A     *struct{ X int } `json:"Name,omitempty"`
+}
+
+// TRawMessage struct
+type TRawMessage struct {
+	M json.RawMessage
 }
