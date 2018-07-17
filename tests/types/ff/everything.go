@@ -22,7 +22,6 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/foo/vendored"
 )
 
 // ExpectedSomethingValue maybe expects something of value
@@ -136,10 +135,15 @@ type nonexported struct {
 	Something int8
 }
 
+type FooBaz struct {
+	A string
+	B int
+}
+
 // Foo a foo's structure (it's a bar !?!)
 type Foo struct {
 	Bar int
-	Baz vendored.Foo
+	Baz FooBaz
 }
 
 // NewEverything kind of renew the world
@@ -166,7 +170,8 @@ func NewEverything(e *Everything) {
 		"bar": 2,
 	}
 	e.String = "snowman->☃"
-	e.FooStruct = &Foo{Bar: 1, Baz: vendored.Foo{A: "a", B: 1}}
+	e.FooStruct = &Foo{Bar: 1, Baz: FooBaz{A: "a", B: 1}}
+	e.FooStruct = 
 	e.Something = ExpectedSomethingValue
 	e.MySweetInterface = &Cats{}
 	e.MapMap = map[string]map[string]string{
