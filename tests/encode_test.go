@@ -251,7 +251,7 @@ func TestIssue6458(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if want := `{"M":"ImZvbyI="}`; string(b) != want {
+	if want := `{"M":"foo"}`; string(b) != want {
 		t.Errorf("Marshal(x) = %#q; want %#q", b, want)
 	}
 }
