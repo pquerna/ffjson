@@ -43,6 +43,7 @@ bench: ffize all
 
 clean:
 	go clean -i github.com/pquerna/ffjson/...
-	rm -rf tests/ff/*_ffjson.go tests/*_ffjson.go tests/ffjson-inception*
+	find . -name '*_ffjson.go' -delete
+	find . -name 'ffjson-inception*' -delete
 
 .PHONY: deps clean test fmt install all
