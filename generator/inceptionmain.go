@@ -116,8 +116,43 @@ func getImportName(inputPath string) (string, error) {
 	}
 
 	dir := filepath.Dir(p)
-	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
+	moduleImportName := func() string {
+		goMod, err := exec.Command("go", "env", "GOMOD").Output()
+		if err != nil {
+			return ""
+		}
+
+		goMod = bytes.TrimSuffix(goMod, []byte("\n"))
+		if len(goMod) == 0 {
+			return ""
+		}
+
+		path := filepath.Dir(string(goMod))
+		absPath, err := filepath.Abs(path)
+		if err != nil {
+			return ""
+		}
+
+		stat, err := os.Stat(absPath)
+		if err != nil || !stat.IsDir() {
+			return ""
+		}
+
+		rel, err := filepath.Rel(filepath.ToSlash(absPath), dir)
+		if err != nil {
+			return ""
+		}
+
+		return filepath.Base(path) + string(os.PathSeparator) + rel
+	}()
+
+
+	if len(moduleImportName) > 0 {
+		return moduleImportName, nil
+	}
+
+	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 	for _, path := range gopaths {
 		gpath, err := filepath.Abs(path)
 		if err != nil {
