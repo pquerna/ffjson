@@ -112,7 +112,7 @@ func foldFunc(key []byte) string {
 }
 
 type MarshalerFaster interface {
-	MarshalJSONBuf(buf fflib.EncodingBuffer) error
+	MarshalJSONBuf(buf fflib.EncodingBuffer, escapeHTML bool) error
 }
 
 type UnmarshalFaster interface {
@@ -187,7 +187,7 @@ func extractFields(obj interface{}) []*StructField {
 					}
 
 					var buf bytes.Buffer
-					fflib.WriteJsonString(&buf, name)
+					fflib.WriteJsonString(&buf, name, true)
 
 					field := &StructField{
 						Name:             sf.Name,

@@ -240,7 +240,7 @@ func TestSimpleUnmarshal(t *testing.T) {
 }
 
 type marshalerFaster interface {
-	MarshalJSONBuf(buf fflib.EncodingBuffer) error
+	MarshalJSONBuf(buf fflib.EncodingBuffer, escapeHTML bool) error
 }
 
 type unmarshalFaster interface {

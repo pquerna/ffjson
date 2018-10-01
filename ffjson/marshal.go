@@ -25,7 +25,7 @@ import (
 )
 
 type marshalerFaster interface {
-	MarshalJSONBuf(buf fflib.EncodingBuffer) error
+	MarshalJSONBuf(buf fflib.EncodingBuffer, escapeHTML bool) error
 }
 
 type unmarshalFaster interface {
@@ -43,7 +43,7 @@ func Marshal(v interface{}) ([]byte, error) {
 	f, ok := v.(marshalerFaster)
 	if ok {
 		buf := fflib.Buffer{}
-		err := f.MarshalJSONBuf(&buf)
+		err := f.MarshalJSONBuf(&buf, true)
 		b := buf.Bytes()
 		if err != nil {
 			if len(b) > 0 {

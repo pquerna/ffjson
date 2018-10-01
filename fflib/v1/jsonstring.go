@@ -38,25 +38,19 @@ type JsonStringWriter interface {
 	stringWriter
 }
 
-func WriteJsonString(buf JsonStringWriter, s string) {
-	WriteJson(buf, []byte(s))
+func WriteJsonString(buf JsonStringWriter, s string, escapeHTML bool) {
+	WriteJson(buf, []byte(s), escapeHTML)
 }
 
 /**
  * Function ported from encoding/json: func (e *encodeState) string(s string) (int, error)
  */
-func WriteJson(buf JsonStringWriter, s []byte) {
+func WriteJson(buf JsonStringWriter, s []byte, escapeHTML bool) {
 	buf.WriteByte('"')
 	start := 0
 	for i := 0; i < len(s); {
 		if b := s[i]; b < utf8.RuneSelf {
-			/*
-				if 0x20 <= b && b != '\\' && b != '"' && b != '<' && b != '>' && b != '&' {
-					i++
-					continue
-				}
-			*/
-			if lt[b] == true {
+			if htmlSafeSet[b] || (!escapeHTML && safeSet[b]) {
 				i++
 				continue
 			}
@@ -74,11 +68,15 @@ func WriteJson(buf JsonStringWriter, s []byte) {
 			case '\r':
 				buf.WriteByte('\\')
 				buf.WriteByte('r')
+			case '\t':
+				buf.WriteByte('\\')
+				buf.WriteByte('t')
 			default:
-				// This encodes bytes < 0x20 except for \n and \r,
-				// as well as < and >. The latter are escaped because they
-				// can lead to security holes when user-controlled strings
-				// are rendered into JSON and served to some browsers.
+				// This encodes bytes < 0x20 except for \t, \n and \r.
+				// If escapeHTML is set, it also escapes <, >, and &
+				// because they can lead to security holes when
+				// user-controlled strings are rendered into JSON
+				// and served to some browsers.
 				buf.WriteString(`\u00`)
 				buf.WriteByte(hex[b>>4])
 				buf.WriteByte(hex[b&0xF])

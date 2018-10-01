@@ -110,7 +110,7 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 		out += "} else {" + "\n"
 		out += ic.q.WriteFlush("{ ")
 		out += "  for key, value := range " + name + " {" + "\n"
-		out += "    fflib.WriteJsonString(buf, key)" + "\n"
+		out += "    fflib.WriteJsonString(buf, key, escapeHTML)" + "\n"
 		out += "    buf.WriteString(`:`)" + "\n"
 		out += getGetInnerValue(ic, "value", typ.Elem(), false, forceString)
 		out += "    buf.WriteByte(',')" + "\n"
@@ -242,11 +242,11 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 				out += "{" + "\n"
 				out += "tmpbuf := fflib.Buffer{}" + "\n"
 				out += "tmpbuf.Grow(len(" + ptname + ") + 16)" + "\n"
-				out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "))" + "\n"
-				out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `))` + "\n"
+				out += "fflib.WriteJsonString(&tmpbuf, string(" + ptname + "), escapeHTML)" + "\n"
+				out += "fflib.WriteJsonString(buf, string( tmpbuf.Bytes() " + `), escapeHTML)` + "\n"
 				out += "}" + "\n"
 			} else {
-				out += "fflib.WriteJsonString(buf, string(" + ptname + "))" + "\n"
+				out += "fflib.WriteJsonString(buf, string(" + ptname + "), escapeHTML)" + "\n"
 			}
 		}
 	case reflect.Ptr:
@@ -493,7 +493,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += "  return buf.Bytes(), nil" + "\n"
 	out += `}` + "\n"
 
-	out += `err := j.MarshalJSONBuf(&buf)` + "\n"
+	out += `err := j.MarshalJSONBuf(&buf, true)` + "\n"
 	out += `if err != nil {` + "\n"
 	out += "  return nil, err" + "\n"
 	out += `}` + "\n"
@@ -501,7 +501,7 @@ func CreateMarshalJSON(ic *Inception, si *StructInfo) error {
 	out += `}` + "\n"
 
 	out += "// MarshalJSONBuf marshal buff to json - template\n"
-	out += `func (j *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer) (error) {` + "\n"
+	out += `func (j *` + si.Name + `) MarshalJSONBuf(buf fflib.EncodingBuffer, escapeHTML bool) (error) {` + "\n"
 	out += `  if j == nil {` + "\n"
 	out += `    buf.WriteString("null")` + "\n"
 	out += "    return nil" + "\n"

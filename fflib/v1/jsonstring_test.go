@@ -24,15 +24,28 @@ import (
 
 func TestWriteJsonString(t *testing.T) {
 	var buf bytes.Buffer
-	WriteJsonString(&buf, "foo")
+	WriteJsonString(&buf, "foo", true)
 	if string(buf.Bytes()) != `"foo"` {
 		t.Fatalf("Expected: %v\nGot: %v", `"foo"`, string(buf.Bytes()))
 	}
 
 	buf.Reset()
-	WriteJsonString(&buf, `f"oo`)
+	WriteJsonString(&buf, `f"oo`, true)
 	if string(buf.Bytes()) != `"f\"oo"` {
 		t.Fatalf("Expected: %v\nGot: %v", `"f\"oo"`, string(buf.Bytes()))
 	}
+
+	buf.Reset()
+	WriteJsonString(&buf, `&foo<bar>`, true)
+	if string(buf.Bytes()) != `"\u0026foo\u003cbar\u003e"` {
+		t.Fatalf("Expected: %v\nGot: %v", `\u0026foo\u003cbar\u003e`, string(buf.Bytes()))
+	}
+
+	buf.Reset()
+	WriteJsonString(&buf, `&foo<bar>`, false)
+	if string(buf.Bytes()) != `"&foo<bar>"` {
+		t.Fatalf("Expected: %v\nGot: %v", `"&foo<bar>"`, string(buf.Bytes()))
+	}
+
 	// TODO(pquerna): all them important tests.
 }

@@ -55,7 +55,7 @@ var handleMarshalerTxt = `
 		{{end}}
 
 		{{if eq .MarshalJSONBuf true}}
-		err = {{.Name}}.MarshalJSONBuf(buf)
+		err = {{.Name}}.MarshalJSONBuf(buf, escapeHTML)
 		if err != nil {
 			return err
 		}
