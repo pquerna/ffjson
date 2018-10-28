@@ -109,15 +109,57 @@ func NewInceptionMain(goCmd string, inputPath string, outputPath string, resetFi
 	}
 }
 
+func goEnv(name string) string {
+	value, err := exec.Command("go", "env", name).Output()
+	if err != nil {
+		return ""
+	}
+	return string(bytes.TrimSuffix(value, []byte("\n")))
+}
+
 func getImportName(inputPath string) (string, error) {
 	p, err := filepath.Abs(inputPath)
 	if err != nil {
 		return "", err
 	}
-
 	dir := filepath.Dir(p)
-	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
+	moduleName, err := exec.Command("go", "list", "-m").Output()
+	if err == nil && len(moduleName) > 0 {
+		moduleImportName := func() string {
+			goMod := goEnv("GOMOD")
+			if len(goMod) == 0 {
+				return ""
+			}
+
+			path := filepath.Dir(string(goMod))
+			absPath, err := filepath.Abs(path)
+			if err != nil {
+				return ""
+			}
+
+			stat, err := os.Stat(absPath)
+			if err != nil || !stat.IsDir() {
+				return ""
+			}
+
+			rel, err := filepath.Rel(filepath.ToSlash(absPath), dir)
+			if err != nil {
+				return ""
+			}
+
+			return string(bytes.TrimSuffix(moduleName, []byte("\n"))) + string(os.PathSeparator) + rel
+		}()
+		if len(moduleImportName) > 0 {
+			return moduleImportName, nil
+		}
+	}
+
+	goPath := os.Getenv("GOPATH")
+	if len(goPath) == 0 {
+		goPath = goEnv("GOPATH")
+	}
+	gopaths := strings.Split(goPath, string(os.PathListSeparator))
 	for _, path := range gopaths {
 		gpath, err := filepath.Abs(path)
 		if err != nil {
