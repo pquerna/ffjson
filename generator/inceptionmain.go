@@ -109,13 +109,22 @@ func NewInceptionMain(goCmd string, inputPath string, outputPath string, resetFi
 	}
 }
 
-func getImportName(inputPath string) (string, error) {
+func getImportName(goCmd, inputPath string) (string, error) {
 	p, err := filepath.Abs(inputPath)
 	if err != nil {
 		return "", err
 	}
-
 	dir := filepath.Dir(p)
+
+	// `go list dir` gives back the module name
+	// Should work for GOPATH as well as with modules
+	// Errors if no go files are found
+	cmd := exec.Command(goCmd, "list", dir)
+	b, err := cmd.Output()
+	if err == nil {
+		return string(b[:len(b)-1]), nil
+	}
+
 	gopaths := strings.Split(os.Getenv("GOPATH"), string(os.PathListSeparator))
 
 	for _, path := range gopaths {
@@ -157,9 +166,8 @@ func (im *InceptionMain) renderTpl(f *os.File, t *template.Template, tc *templat
 
 func (im *InceptionMain) Generate(packageName string, si []*StructInfo, importName string) error {
 	var err error
-
 	if importName == "" {
-		importName, err = getImportName(im.inputPath)
+		importName, err = getImportName(im.goCmd, im.inputPath)
 		if err != nil {
 			return err
 		}
