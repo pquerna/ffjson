@@ -1,14 +1,17 @@
 // +build gofuzz
 
-package generator
+package fuzz
 
 import (
 	"io/ioutil"
 	"os"
+
+	_ "github.com/dvyukov/go-fuzz/go-fuzz-dep"
+	"github.com/pquerna/ffjson/generator"
 )
 
-// Fuzz tests code generation
-func Fuzz(fuzz []byte) int {
+// Fuzz tests code generation.
+func FuzzGenerate(fuzz []byte) int {
 	err := os.MkdirAll("fuzzing", os.ModePerm)
 	if err != nil {
 		panic("could not make fuzzing dir")
@@ -17,7 +20,7 @@ func Fuzz(fuzz []byte) int {
 	if err != nil {
 		panic("could not write input file")
 	}
-	err = GenerateFiles(
+	err = generator.GenerateFiles(
 		"go",
 		"fuzzing/input.go",
 		"fuzzing/output.go",

@@ -1,14 +1,33 @@
 language: go
 
+services:
+  - docker
+
 install:
   - A=${PWD#*github.com/};A=${A%/ffjson};cd ../..;mv $A pquerna;cd pquerna/ffjson
   - go get -d -v -t ./...
 
 script: make clean && make lint && make test && make test 
 
+jobs:
+  include:
+    - stage: Fuzz regression
+      go: 1.12.x
+      dist: bionic
+      script:
+        - cd tests/fuzz
+        - ./fuzzit.sh local-regression
+    - stage: Fuzz
+      if: branch = master AND type IN (push)
+      go: 1.12.x
+      dist: bionic
+      script:
+        - cd tests/fuzz
+        - ./fuzzit.sh fuzzing
+
 go:
   - "1.10.x"
   - "1.11.x"
 
 env:
-  - GO15VENDOREXPERIMENT=1
+  GO15VENDOREXPERIMENT=1
