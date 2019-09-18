@@ -1,6 +1,7 @@
 # ffjson: faster JSON for Go
 
 [![Build Status](https://travis-ci.org/pquerna/ffjson.svg?branch=master)](https://travis-ci.org/pquerna/ffjson)
+[![Fuzzit Status](https://app.fuzzit.dev/badge?org_id=pquerna)](https://app.fuzzit.dev/orgs/pquerna/dashboard)
 
 `ffjson` generates static `MarshalJSON` and `UnmarshalJSON` functions for structures in Go. The generated functions reduce the reliance upon runtime reflection to do serialization and are generally 2 to 3 times faster.  In cases where `ffjson` doesn't understand a Type involved, it falls back to `encoding/json`, meaning it is a safe drop in replacement.  By using `ffjson` your JSON serialization just gets faster with no additional code changes.
 
