@@ -29,9 +29,10 @@ import (
 // It allows to encode many objects to a single writer.
 // This should not be used by more than one goroutine at the time.
 type Encoder struct {
-	buf fflib.Buffer
-	w   io.Writer
-	enc *json.Encoder
+	buf        fflib.Buffer
+	w          io.Writer
+	enc        *json.Encoder
+	escapeHTML bool
 }
 
 // SetEscapeHTML specifies whether problematic HTML characters
@@ -42,13 +43,14 @@ type Encoder struct {
 // In non-HTML settings where the escaping interferes with the readability
 // of the output, SetEscapeHTML(false) disables this behavior.
 func (enc *Encoder) SetEscapeHTML(on bool) {
+	enc.escapeHTML = on
 	enc.enc.SetEscapeHTML(on)
 }
 
 // NewEncoder returns a reusable Encoder.
 // Output will be written to the supplied writer.
 func NewEncoder(w io.Writer) *Encoder {
-	return &Encoder{w: w, enc: json.NewEncoder(w)}
+	return &Encoder{w: w, enc: json.NewEncoder(w), escapeHTML: true}
 }
 
 // Encode the data in the supplied value to the stream
@@ -59,7 +61,7 @@ func (e *Encoder) Encode(v interface{}) error {
 	f, ok := v.(marshalerFaster)
 	if ok {
 		e.buf.Reset()
-		err := f.MarshalJSONBuf(&e.buf)
+		err := f.MarshalJSONBuf(&e.buf, e.escapeHTML)
 		if err != nil {
 			return err
 		}

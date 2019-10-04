@@ -267,7 +267,7 @@ func (ffl *FFLexer) lexString() FFTok {
 			return FFTok_error
 		}
 
-		WriteJson(ffl.Output, ffl.buf.Bytes())
+		WriteJson(ffl.Output, ffl.buf.Bytes(), false)
 
 		return FFTok_string
 	} else {
@@ -548,7 +548,7 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 		//TODO(pquerna): so, other users expect this to be a quoted string :(
 		if capture {
 			ffl.buf.Reset()
-			WriteJson(&ffl.buf, ffl.Output.Bytes())
+			WriteJson(&ffl.buf, ffl.Output.Bytes(), false)
 			return ffl.buf.Bytes(), nil
 		} else {
 			return nil, nil
