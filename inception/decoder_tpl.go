@@ -353,10 +353,18 @@ var handleSliceTxt = `
 				{{.Name}} = []*{{getType $ic .Name .Typ.Elem.Elem}}{}
 			{{end}}
 		{{else}}
-			{{if eq .IsPtr true}}
-				{{.Name}} = &[]{{getType $ic .Name .Typ.Elem}}{}
+			{{if eq .Typ.Name ""}}
+				{{if eq .IsPtr true}}
+					{{.Name}} = &[]{{getType $ic .Name .Typ.Elem}}{}
+				{{else}}
+					{{.Name}} = []{{getType $ic .Name .Typ.Elem}}{}
+				{{end}}
 			{{else}}
-				{{.Name}} = []{{getType $ic .Name .Typ.Elem}}{}
+				{{if eq .IsPtr true}}
+					{{.Name}} = &{{getType $ic .Name .Typ}}{}
+				{{else}}
+					{{.Name}} = {{getType $ic .Name .Typ}}{}
+				{{end}}
 			{{end}}
 		{{end}}
 

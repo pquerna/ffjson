@@ -860,3 +860,8 @@ func TestDominantField(t *testing.T) {
 	i := 43
 	testType(t, &TDominantField{Y: &i}, &XDominantField{Y: &i})
 }
+
+func TestNamedSlice(t *testing.T) {
+	ns := NamedSlice{1, 2, 3}
+	testType(t, &TContainsNamedSlice{Slice: &ns}, &XContainsNamedSlice{Slice: &ns})
+}

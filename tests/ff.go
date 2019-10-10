@@ -2305,3 +2305,14 @@ type XDominantField struct {
 	Name  *int             `json",omitempty"`
 	A     *struct{ X int } `json:"Name,omitempty"`
 }
+
+type NamedSlice []IntType
+
+// ffjson: skip
+type TContainsNamedSlice struct {
+	Slice *NamedSlice `json:"ns"`
+}
+
+type XContainsNamedSlice struct {
+	Slice *NamedSlice `json:"ns"`
+}
