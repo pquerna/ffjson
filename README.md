@@ -99,6 +99,50 @@ go generate ./...
 ```
 This is most of what you need to know about go generate, but you can sese more about [go generate on the golang blog](http://blog.golang.org/generate).
 
+## Complete minimal example
+
+Here's a working minimal example.  Create demo/demo.go containing the struct to be marshalled, in its own module:
+```Go
+package demo
+
+//go:generate ffjson -nodecoder demo.go
+
+type AwesomeStruct struct {
+        Foo string
+        Bar string
+}
+```
+Then create main.go to marshal and print one of those structs:
+```Go
+package main
+
+import (
+	"fmt"
+	"log"
+	"example.com/jsondemo/demo"
+)
+
+func main() {
+	foo := demo.AwesomeStruct{
+		Foo: "buz",
+		Bar: "",
+	}
+	marshaled, err := foo.MarshalJSON()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s\n", marshaled) // => {"foo":"buz"}
+}
+```
+Finally, create a go.mod, add ffjson to it, generate the marshaling code, and run:
+```sh
+$ go mod init example.com/jsondemo
+$ go get -u github.com/pquerna/ffjson
+$ (cd demo; go generate)
+$ go run main.go
+```
+This example also works with [tinygo](https://github.com/tinygo-org/tinygo/)!
+
 ## Should I include ffjson files in VCS?
 
 That question is really up to you. If you don't, you will have a more complex build process. If you do, you have to keep the generated files updated if you change the content of your structs.
