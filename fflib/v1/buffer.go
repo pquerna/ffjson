@@ -28,6 +28,11 @@ type bytesReader interface {
 	String() string
 }
 
+type bytesCopyReader interface {
+	BytesCopy() []byte
+	StringCopy() string
+}
+
 type runeWriter interface {
 	WriteRune(r rune) (n int, err error)
 }
@@ -59,6 +64,7 @@ type EncodingBuffer interface {
 	grower
 	rewinder
 	encoder
+	bytesCopyReader
 }
 
 type DecodingBuffer interface {
@@ -70,6 +76,7 @@ type DecodingBuffer interface {
 	grower
 	bytesReader
 	lener
+	bytesCopyReader
 }
 
 // A Buffer is a variable-sized buffer of bytes with Read and Write methods.
@@ -91,6 +98,13 @@ var ErrTooLarge = errors.New("fflib.v1.Buffer: too large")
 // are no intervening method calls on the Buffer.
 func (b *Buffer) Bytes() []byte { return b.buf[b.off:] }
 
+// BytesCopy returns a copy of slice of the contents of the unread portion of the buffer
+func (b *Buffer) BytesCopy() []byte {
+	bs := make([]byte, b.Len())
+	copy(bs, b.buf[b.off:])
+	return bs
+}
+
 // String returns the contents of the unread portion of the buffer
 // as a string.  If the Buffer is a nil pointer, it returns "<nil>".
 func (b *Buffer) String() string {
@@ -99,6 +113,14 @@ func (b *Buffer) String() string {
 		return "<nil>"
 	}
 	return string(b.buf[b.off:])
+}
+
+// StringCopy returns the copy of contents of the unread portion
+func (b *Buffer) StringCopy() string {
+	if b == nil {
+		return "<nil>"
+	}
+	return string(b.BytesCopy())
 }
 
 // Len returns the number of bytes of the unread portion of the buffer;
