@@ -18,7 +18,7 @@
 package goser
 
 import (
-	fflib "github.com/pquerna/ffjson/fflib/v1"
+	fflib "github.com/jborozdina/ffjson/fflib/v1"
 
 	"io"
 	"net"

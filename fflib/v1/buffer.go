@@ -48,7 +48,7 @@ type encoder interface {
 	Encode(interface{}) error
 }
 
-// TODO(pquerna): continue to reduce these interfaces
+// TODO(jborozdina): continue to reduce these interfaces
 
 type EncodingBuffer interface {
 	io.Writer

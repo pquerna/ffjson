@@ -142,12 +142,12 @@ func (r *ffReader) readU4(j int) (rune, error) {
 			j++
 			continue
 		} else {
-			// TODO(pquerna): handle errors better. layering violation.
+			// TODO(jborozdina): handle errors better. layering violation.
 			return -1, fmt.Errorf("lex_string_invalid_hex_char: %v %v", c, string(u4[:]))
 		}
 	}
 
-	// TODO(pquerna): utf16.IsSurrogate
+	// TODO(jborozdina): utf16.IsSurrogate
 	rr, err := ParseUint(u4[:], 16, 64)
 	if err != nil {
 		return -1, err
@@ -222,7 +222,7 @@ func (r *ffReader) handleEscaped(c byte, j int, out DecodingBuffer) (int, error)
 
 func (r *ffReader) SliceString(out DecodingBuffer) error {
 	var c byte
-	// TODO(pquerna): string_with_escapes? de-escape here?
+	// TODO(jborozdina): string_with_escapes? de-escape here?
 	j := r.i
 
 	for {
@@ -251,7 +251,7 @@ func (r *ffReader) SliceString(out DecodingBuffer) error {
 	}
 }
 
-// TODO(pquerna): consider combining wibth the normal byte mask.
+// TODO(jborozdina): consider combining wibth the normal byte mask.
 var whitespaceLookupTable [256]bool = [256]bool{
 	false, /* 0 */
 	false, /* 1 */

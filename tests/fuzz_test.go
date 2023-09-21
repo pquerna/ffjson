@@ -392,7 +392,7 @@ func TestFuzzStringCycle(t *testing.T) {
 		// Therefore tests on byte arrays are removed, since the golang decoder chokes on them.
 		testSameMarshal(t, &r, &rFF)
 
-		// Test for https://github.com/pquerna/ffjson/issues/80
+		// Test for https://github.com/jborozdina/ffjson/issues/80
 		//		testCycle(t, &r, &rFF)
 	}
 }

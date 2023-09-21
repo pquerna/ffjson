@@ -4,3 +4,6 @@ tests/types/ff/everything_ffjson.go
 tests/number/ff/number_ffjson.go
 tests/ff_ffjson.go
 fuzzing/
+.idea
+*.iml
+.idea_modules

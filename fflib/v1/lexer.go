@@ -199,7 +199,7 @@ func (ffl *FFLexer) wantBytes(want []byte, iftrue FFTok) FFTok {
 		if c != b {
 			ffl.unreadByte()
 			// fmt.Printf("wanted bytes: %s\n", string(want))
-			// TODO(pquerna): thsi is a bad error message
+			// TODO(jborozdina): thsi is a bad error message
 			ffl.Error = FFErr_invalid_string
 			return FFTok_error
 		}
@@ -545,7 +545,7 @@ func (ffl *FFLexer) scanField(start FFTok, capture bool) ([]byte, error) {
 		}
 
 	case FFTok_string:
-		//TODO(pquerna): so, other users expect this to be a quoted string :(
+		//TODO(jborozdina): so, other users expect this to be a quoted string :(
 		if capture {
 			ffl.buf.Reset()
 			WriteJson(&ffl.buf, ffl.Output.Bytes())
@@ -570,7 +570,7 @@ func (ffl *FFLexer) SkipField(start FFTok) error {
 	return err
 }
 
-// TODO(pquerna): return line number and offset.
+// TODO(jborozdina): return line number and offset.
 func (err FFErr) ToError() error {
 	switch err {
 	case FFErr_e_ok:

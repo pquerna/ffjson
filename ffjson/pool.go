@@ -18,7 +18,7 @@ package ffjson
  */
 
 import (
-	fflib "github.com/pquerna/ffjson/fflib/v1"
+	fflib "github.com/jborozdina/ffjson/fflib/v1"
 )
 
 // Send a buffer to the Pool to reuse for other instances.

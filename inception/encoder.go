@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pquerna/ffjson/shared"
+	"github.com/jborozdina/ffjson/shared"
 )
 
 func typeInInception(ic *Inception, typ reflect.Type, f shared.Feature) bool {
@@ -72,7 +72,7 @@ func getOmitEmpty(ic *Inception, sf *StructField) string {
 		return "if " + ptname + " != nil {" + "\n"
 
 	default:
-		// TODO(pquerna): fix types
+		// TODO(jborozdina): fix types
 		return "if true {" + "\n"
 	}
 }
@@ -101,7 +101,7 @@ func getMapValue(ic *Inception, name string, typ reflect.Type, ptr bool, forceSt
 		reflect.Float64,
 		reflect.Bool:
 
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+		ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 
 		out += "if " + name + " == nil  {" + "\n"
 		ic.q.Write("null")
@@ -167,7 +167,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		reflect.Int16,
 		reflect.Int32,
 		reflect.Int64:
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+		ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 		out += "fflib.FormatBits2(buf, uint64(" + ptname + "), 10, " + ptname + " < 0)" + "\n"
 	case reflect.Uint,
 		reflect.Uint8,
@@ -175,13 +175,13 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 		reflect.Uint32,
 		reflect.Uint64,
 		reflect.Uintptr:
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+		ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 		out += "fflib.FormatBits2(buf, uint64(" + ptname + "), 10, false)" + "\n"
 	case reflect.Float32:
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+		ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 		out += "fflib.AppendFloat(buf, float64(" + ptname + "), 'f', -1, 32)" + "\n"
 	case reflect.Float64:
-		ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+		ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 		out += "fflib.AppendFloat(buf, float64(" + ptname + "), 'f', -1, 64)" + "\n"
 	case reflect.Array,
 		reflect.Slice:
@@ -235,7 +235,7 @@ func getGetInnerValue(ic *Inception, name string, typ reflect.Type, ptr bool, fo
 			out += "  return err" + "\n"
 			out += "}" + "\n"
 		} else {
-			ic.OutputImports[`fflib "github.com/pquerna/ffjson/fflib/v1"`] = true
+			ic.OutputImports[`fflib "github.com/jborozdina/ffjson/fflib/v1"`] = true
 			if forceString {
 				// Forcestring on strings does double-escaping of the entire value.
 				// We create a temporary buffer, encode to that an re-encode it.
@@ -411,7 +411,7 @@ func getTotalSize(si *StructInfo) uint32 {
 
 func getBufGrowSize(si *StructInfo) uint32 {
 
-	// TOOD(pquerna): automatically calc a better grow size based on history
+	// TOOD(jborozdina): automatically calc a better grow size based on history
 	// of a struct.
 	return p2(getTotalSize(si))
 }

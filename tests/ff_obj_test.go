@@ -18,7 +18,7 @@
 package tff
 
 import (
-	fflib "github.com/pquerna/ffjson/fflib/v1"
+	fflib "github.com/jborozdina/ffjson/fflib/v1"
 
 	"testing"
 )

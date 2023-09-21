@@ -20,8 +20,8 @@ package goser
 import (
 	"encoding/json"
 	"fmt"
-	base "github.com/pquerna/ffjson/tests/goser/base"
-	ff "github.com/pquerna/ffjson/tests/goser/ff"
+	base "github.com/jborozdina/ffjson/tests/goser/base"
+	ff "github.com/jborozdina/ffjson/tests/goser/ff"
 	"reflect"
 	"testing"
 )

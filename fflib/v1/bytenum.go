@@ -23,7 +23,7 @@
 package v1
 
 import (
-	"github.com/pquerna/ffjson/fflib/v1/internal"
+	"github.com/jborozdina/fflib/v1/internal"
 )
 
 func ParseFloat(s []byte, bitSize int) (f float64, err error) {

@@ -34,5 +34,5 @@ func TestWriteJsonString(t *testing.T) {
 	if string(buf.Bytes()) != `"f\"oo"` {
 		t.Fatalf("Expected: %v\nGot: %v", `"f\"oo"`, string(buf.Bytes()))
 	}
-	// TODO(pquerna): all them important tests.
+	// TODO(jborozdina): all them important tests.
 }

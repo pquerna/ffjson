@@ -18,8 +18,8 @@
 package ffjsoninception
 
 import (
-	fflib "github.com/pquerna/ffjson/fflib/v1"
-	"github.com/pquerna/ffjson/shared"
+	fflib "github.com/jborozdina/ffjson/fflib/v1"
+	"github.com/jborozdina/ffjson/shared"
 
 	"bytes"
 	"encoding/json"

@@ -19,8 +19,8 @@ package goser
 
 import (
 	"encoding/json"
-	base "github.com/pquerna/ffjson/tests/go.stripe/base"
-	ff "github.com/pquerna/ffjson/tests/go.stripe/ff"
+	base "github.com/jborozdina/ffjson/tests/go.stripe/base"
+	ff "github.com/jborozdina/ffjson/tests/go.stripe/ff"
 	"testing"
 )
 

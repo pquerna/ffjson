@@ -5,8 +5,8 @@ github.com/dvyukov/go-fuzz v0.0.0-20190828145000-1810d380ab9c/go.mod h1:11Gm+ccJ
 github.com/elazarl/go-bindata-assetfs v1.0.0 h1:G/bYguwHIzWq9ZoyUQqrjTmJbbYn3j3CKKpKinvZLFk=
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/pquerna/ffjson v0.0.0-20190813045741-dac163c6c0a9 h1:kyf9snWXHvQc+yxE9imhdI8YAm4oKeZISlaAR+x73zs=
-github.com/pquerna/ffjson v0.0.0-20190813045741-dac163c6c0a9/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
+github.com/jborozdina/ffjson v0.0.0-20190813045741-dac163c6c0a9 h1:kyf9snWXHvQc+yxE9imhdI8YAm4oKeZISlaAR+x73zs=
+github.com/jborozdina/ffjson v0.0.0-20190813045741-dac163c6c0a9/go.mod h1:YARuvh7BUWHNhzDq2OM5tzR2RiCcN2D7sapiKyCel/M=
 github.com/robertkrimen/godocdown v0.0.0-20130622164427-0bfa04905481/go.mod h1:C9WhFzY47SzYBIvzFqSvHIR6ROgDo4TtdTuRaOMjF/s=
 github.com/stephens2424/writerset v1.0.2 h1:znRLgU6g8RS5euYRcy004XeE4W+Tu44kALzy7ghPif8=
 github.com/stephens2424/writerset v1.0.2/go.mod h1:aS2JhsMn6eA7e82oNmW4rfsgAOp9COBTTl8mzkwADnc=

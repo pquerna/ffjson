@@ -24,10 +24,10 @@ package v1
 
 import (
 	"io"
-	"unicode/utf8"
 	"strconv"
-	"unicode/utf16"
 	"unicode"
+	"unicode/utf16"
+	"unicode/utf8"
 )
 
 const hex = "0123456789abcdef"
@@ -251,7 +251,7 @@ func getu4(s []byte) rune {
 	return rune(r)
 }
 
-// TODO(pquerna): consider combining wibth the normal byte mask.
+// TODO(jborozdina): consider combining wibth the normal byte mask.
 var lt [256]bool = [256]bool{
 	false, /* 0 */
 	false, /* 1 */

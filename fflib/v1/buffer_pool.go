@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build go1.3
 // +build go1.3
 
 package v1
@@ -15,7 +16,7 @@ var pool64 *sync.Pool
 
 func init() {
 	var i uint
-	// TODO(pquerna): add science here around actual pool sizes.
+	// TODO(jborozdina): add science here around actual pool sizes.
 	for i = 6; i < 20; i++ {
 		n := 1 << i
 		pools[poolNum(n)].New = func() interface{} { return make([]byte, 0, n) }
@@ -26,7 +27,7 @@ func init() {
 // This returns the pool number that will give a buffer of
 // at least 'i' bytes.
 func poolNum(i int) int {
-	// TODO(pquerna): convert to log2 w/ bsr asm instruction:
+	// TODO(jborozdina): convert to log2 w/ bsr asm instruction:
 	// 	<https://groups.google.com/forum/#!topic/golang-nuts/uAb5J1_y7ns>
 	if i <= 64 {
 		return 0

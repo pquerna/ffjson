@@ -1,3 +1,4 @@
+//go:build gofuzz
 // +build gofuzz
 
 package fuzz
@@ -7,7 +8,7 @@ import (
 	"os"
 
 	_ "github.com/dvyukov/go-fuzz/go-fuzz-dep"
-	"github.com/pquerna/ffjson/generator"
+	"github.com/jborozdina/ffjson/generator"
 )
 
 // Fuzz tests code generation.

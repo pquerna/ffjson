@@ -131,7 +131,7 @@ type Tslice struct {
 	X []int
 }
 
-//Xslice struct
+// Xslice struct
 type Xslice struct {
 	X []int
 }
@@ -241,7 +241,7 @@ type TintTagged struct {
 	X int `json:",string"`
 }
 
-//XintTagged struct
+// XintTagged struct
 type XintTagged struct {
 	X int `json:",string"`
 }
@@ -1908,7 +1908,7 @@ type TReTyped struct {
 	Pp ReTypedPp
 	Qp ReTypedQp
 	Rp ReTypedRp
-	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// FIXME: https://github.com/jborozdina/ffjson/issues/108
 	//Sp ReTypedSp
 
 	// Bug in encoding/json: Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedAa
@@ -1961,7 +1961,7 @@ type TReTyped struct {
 	Rra  ReReTypedA
 	Rrs  ReReTypedS
 	Rrap ReReTypedAp
-	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// FIXME: https://github.com/jborozdina/ffjson/issues/108
 	// Rrsp  ReReTypedSp
 	// Rrxc  ReReTypedXc
 	// Rrxd  ReReTypedXd
@@ -2020,7 +2020,7 @@ type XReTyped struct {
 	Pp ReTypedPp
 	Qp ReTypedQp
 	Rp ReTypedRp
-	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// FIXME: https://github.com/jborozdina/ffjson/issues/108
 	//Sp ReTypedSp
 
 	// Bug in encoding/json: Bug in encoding/json: json: cannot unmarshal string into Go value of type tff.ReTypedAa
@@ -2073,7 +2073,7 @@ type XReTyped struct {
 	Rra  ReReTypedA
 	Rrs  ReReTypedS
 	Rrap ReReTypedAp
-	// FIXME: https://github.com/pquerna/ffjson/issues/108
+	// FIXME: https://github.com/jborozdina/ffjson/issues/108
 	// Rrsp  ReReTypedSp
 	// Rrxc  ReReTypedXc
 	// Rrxd  ReReTypedXd

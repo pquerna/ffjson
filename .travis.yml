@@ -4,7 +4,7 @@ services:
   - docker
 
 install:
-  - A=${PWD#*github.com/};A=${A%/ffjson};cd ../..;mv $A pquerna;cd pquerna/ffjson
+  - A=${PWD#*github.com/};A=${A%/ffjson};cd ../..;mv $A jborozdina;cd jborozdina/ffjson
   - go get -d -v -t ./...
 
 script: make clean && make lint && make test && make test 

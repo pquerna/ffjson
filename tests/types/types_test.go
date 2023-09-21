@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	ff "github.com/pquerna/ffjson/tests/types/ff"
+	ff "github.com/jborozdina/ffjson/tests/types/ff"
 )
 
 func TestRoundTrip(t *testing.T) {
@@ -109,8 +109,8 @@ const (
 
 func TestUnmarshalFull(t *testing.T) {
 	record := ff.Everything{}
-	// TODO(pquerna): add unicode snowman
-	// TODO(pquerna): handle Bar subtype
+	// TODO(jborozdina): add unicode snowman
+	// TODO(jborozdina): handle Bar subtype
 	err := record.UnmarshalJSON([]byte(everythingJSON))
 	if err != nil {
 		t.Fatalf("UnmarshalJSON: %v", err)
