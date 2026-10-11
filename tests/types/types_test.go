@@ -186,3 +186,29 @@ func TestUnmarshalToReusedObject(t *testing.T) {
 		}
 	}
 }
+
+func TestNamedBoolPointers(t *testing.T) {
+	for _, data := range []string{
+		`{"Value":true,"Pointer":true,"Plain":true}`,
+		`{"Value":false,"Pointer":false,"Plain":false}`,
+		`{"Pointer":null,"Plain":null}`,
+	} {
+		var got ff.BoolPointers
+		if err := got.UnmarshalJSON([]byte(data)); err != nil {
+			t.Fatalf("%s: %v", data, err)
+		}
+		// A distinct type avoids calling the generated unmarshaler.
+		type plain ff.BoolPointers
+		var want plain
+		if err := json.Unmarshal([]byte(data), &want); err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(plain(got), want) {
+			t.Fatalf("%s: got %#v, want %#v", data, got, want)
+		}
+	}
+	var invalid ff.BoolPointers
+	if err := invalid.UnmarshalJSON([]byte(`{"Pointer":123}`)); err == nil {
+		t.Fatal("expected an error for a non-boolean pointer value")
+	}
+}
