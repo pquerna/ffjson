@@ -126,6 +126,7 @@ func handleFieldAddr(ic *Inception, name string, takeAddr bool, typ reflect.Type
 		out += getAllowTokens(typ.Name(), allowed...)
 
 		out += tplStr(decodeTpl["handleBool"], handleBool{
+			IC:       ic,
 			Name:     name,
 			Typ:      typ,
 			TakeAddr: takeAddr || ptr,

@@ -182,3 +182,13 @@ func NewEverything(e *Everything) {
 		},
 	}
 }
+
+// NamedBool exercises boolean types distinct from the built-in bool.
+type NamedBool bool
+
+// BoolPointers exercises generated decoding of named and built-in booleans.
+type BoolPointers struct {
+	Value   NamedBool
+	Pointer *NamedBool
+	Plain   *bool
+}

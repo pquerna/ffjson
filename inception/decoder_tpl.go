@@ -425,6 +425,7 @@ var handleByteSliceTxt = `
 `
 
 type handleBool struct {
+	IC       *Inception
 	Name     string
 	Typ      reflect.Type
 	TakeAddr bool
@@ -440,7 +441,7 @@ var handleBoolTxt = `
 		tmpb := fs.Output.Bytes()
 
 		{{if eq .TakeAddr true}}
-		var tval bool
+		var tval {{getType .IC .Name .Typ}}
 		{{end}}
 
 		if bytes.Compare([]byte{'t', 'r', 'u', 'e'}, tmpb) == 0 {
