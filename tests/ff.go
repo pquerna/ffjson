@@ -131,7 +131,7 @@ type Tslice struct {
 	X []int
 }
 
-//Xslice struct
+// Xslice struct
 type Xslice struct {
 	X []int
 }
@@ -241,7 +241,7 @@ type TintTagged struct {
 	X int `json:",string"`
 }
 
-//XintTagged struct
+// XintTagged struct
 type XintTagged struct {
 	X int `json:",string"`
 }
@@ -2304,4 +2304,12 @@ type XDominantField struct {
 	Other string
 	Name  *int             `json",omitempty"`
 	A     *struct{ X int } `json:"Name,omitempty"`
+}
+
+// PointerTimes exercises standard unmarshaler pointers in containers.
+type PointerTimes struct {
+	Slice  []*time.Time
+	Array  [2]*time.Time
+	Map    map[string]*time.Time
+	Direct *time.Time
 }
