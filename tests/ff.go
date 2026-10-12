@@ -131,7 +131,7 @@ type Tslice struct {
 	X []int
 }
 
-// Xslice struct
+//Xslice struct
 type Xslice struct {
 	X []int
 }
@@ -241,7 +241,7 @@ type TintTagged struct {
 	X int `json:",string"`
 }
 
-// XintTagged struct
+//XintTagged struct
 type XintTagged struct {
 	X int `json:",string"`
 }
