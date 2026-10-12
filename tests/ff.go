@@ -2305,3 +2305,11 @@ type XDominantField struct {
 	Name  *int             `json",omitempty"`
 	A     *struct{ X int } `json:"Name,omitempty"`
 }
+
+// PointerTimes exercises standard unmarshaler pointers in containers.
+type PointerTimes struct {
+	Slice  []*time.Time
+	Array  [2]*time.Time
+	Map    map[string]*time.Time
+	Direct *time.Time
+}

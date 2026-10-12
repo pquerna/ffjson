@@ -746,6 +746,9 @@ var handleUnmarshalerTxt = `
 	{{if eq .Unmarshaler true}}
 	{
 		if tok == fflib.FFTok_null {
+            {{if eq .Typ.Kind .Ptr }}
+                {{.Name}} = nil
+            {{end}}
 			{{if eq .TakeAddr true }}
 				{{.Name}} = nil
 			{{end}}
@@ -756,6 +759,11 @@ var handleUnmarshalerTxt = `
 				return fs.WrapErr(err)
 			}
 
+            {{if eq .Typ.Kind .Ptr }}
+            if {{.Name}} == nil {
+                {{.Name}} = new({{getType $ic .Typ.Elem.Name .Typ.Elem}})
+            }
+            {{end}}
 			{{if eq .TakeAddr true }}
 			if {{.Name}} == nil {
 				{{.Name}} = new({{getType $ic .Typ.Name .Typ}})
